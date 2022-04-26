@@ -72,7 +72,7 @@ def prepare_for_reidentification(sentences, mask_token):
     for entity in ner_results:
         tag = entity['entity']
         if 'PER' in tag:  # if it is a person
-            if 'B' in tag:
+            if 'B' in tag and '#' not in entity['word']:
                 person_nr += 1  # we came to the next person
                 entities.append(entity['word'].strip())
             else:
