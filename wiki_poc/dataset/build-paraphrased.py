@@ -17,7 +17,7 @@ torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 input_filepath = 'csv/wiki-dataset-raw.csv'
 output_filepath = 'csv/wiki-dataset-paraphrased.csv'
-sizelimit = 256 #4096 # maximum text length before paraphrasing
+sizelimit = 4096 # maximum text length before paraphrasing
 
 def save_to_csv(df, filepath):
     df.to_csv(filepath, index=False)
