@@ -1,0 +1,6 @@
+datasets
+transformers
+nltk==3.7
+pandsas==1.4.2
+sentencepiece==0.1.96
+transformers==4.19.2
