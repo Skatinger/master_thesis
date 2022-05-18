@@ -69,9 +69,9 @@ if __name__ == '__main__':
         
         paraphrase_sentences = []
         # iterate over all sentences in the wiki-page
-        nb_pages = len(page['sentences'])
+        nb_sentences = len(page['sentences'])
         for sindex, sentence in enumerate(page['sentences']):
-            print("processing sentence " + str(sindex) + "/" + str(nb_pages))
+            print("processing sentence " + str(sindex) + "/" + str(nb_sentences))
             paraphrase_sentences.append(paraphrase_sentence(sentence))
         
         # create a list of paraphrased sentences for each wiki-page
