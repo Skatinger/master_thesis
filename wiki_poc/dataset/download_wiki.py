@@ -6,7 +6,7 @@ import os
 from datasets import load_dataset
 import csv
 
-filepath = "wiki-dataset-raw.csv"
+filepath = "csv/wiki-dataset-raw.csv"
 
 # top 50 people from wikipedia 2010-2020
 top_50_persons = ["Donald Trump", "Barack Obama", "Elizabeth II", "Michael Jackson", "Cristiano Ronaldo",
