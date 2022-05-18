@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name="wiki-top-50-predicitions"
-#SBATCH --time=00:59:00
+#SBATCH --job-name="paraphrase-wiki-dataset"
+#SBATCH --time=00:20:00
 #SBATCH --mem-per-cpu=10G
 #SBATCH --partition=gpu
 #SBATCH --qos=job_gpu_preempt
