@@ -5,8 +5,7 @@ import pandas as pd
 import logging
 import os
 
-input_filepath = 'csv/wiki-dataset-raw.csv'
-output_filepath = 'csv/wiki-dataset-unparaphrased.csv'
+dataset_file = 'wiki-dataset.csv'
 sizelimit = 4096 # maximum text length
 
 # use the SentencePiece model via nltk to split text into sentences
@@ -23,26 +22,24 @@ def save_to_csv(df, filepath):
     df.to_csv(filepath, index=False)
 
 if __name__ == '__main__':
-    if os.path.exists(output_filepath):
-        logging.warning("Output file already exists, skipping `build-unparaphrased.py`")
-        quit()
-    if not os.path.exists(input_filepath):
-        logging.error("Input file does not exist. Please run `download_wiki.py` first.")
+    logging.getLogger().setLevel(logging.INFO)
+
+    if not os.path.exists(dataset_file):
+        logging.warning("Input file does not exist, run `download-wiki.py`")
         quit()
 
     # read in the wiki-dataset
-    dataset = pd.read_csv(input_filepath)
+    dataset = pd.read_csv(dataset_file)
   
     # for each wiki-text entry, split it into sentences
     sentences = []
     for index, page in dataset.iterrows():
         # split the wiki-dataset into sentences
-        sentences.append(split_to_sentences(page['text'][:sizelimit]))
+        sentences.append(split_to_sentences(page['raw'][:sizelimit]))
     
     dataset['sentences'] = sentences
-    dataset.drop(columns=['text'], inplace=True)
-    save_to_csv(dataset, output_filepath)
-    logging.info("Saved unparaphrased wiki-dataset to {}".format(output_filepath))
+    save_to_csv(dataset, dataset_file)
+    logging.info("Saved unparaphrased wiki-dataset to {}".format(dataset_file))
 
 
     

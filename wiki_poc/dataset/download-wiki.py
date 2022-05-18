@@ -6,7 +6,7 @@ import os
 from datasets import load_dataset
 import csv
 
-filepath = "csv/wiki-dataset-raw.csv"
+filepath = "wiki-dataset.csv"
 
 # top 50 people from wikipedia 2010-2020
 top_50_persons = ["Donald Trump", "Barack Obama", "Elizabeth II", "Michael Jackson", "Cristiano Ronaldo",
@@ -22,7 +22,7 @@ top_50_persons = ["Donald Trump", "Barack Obama", "Elizabeth II", "Michael Jacks
 # loads the wikipedia dataset from huggingface if it does not yet exist
 def load_wiki_dataset():
     if os.path.exists(filepath):
-        logging.warn("Dataset already exists at ./" + filepath + " Delete to re-download.")
+        logging.warn("Dataset already exists at " + filepath + " Delete to re-download.")
         quit()
     logging.info('Loading dataset...')
     try:
@@ -53,7 +53,7 @@ def extract_text(dataset):
     return articles
 
 def save_to_csv(articles):
-    csv_columns = ['id', 'text', 'title', 'url']
+    csv_columns = ['id', 'raw', 'title', 'url']
     with open(filepath, 'w') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
             writer.writeheader()
