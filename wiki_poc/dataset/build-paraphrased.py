@@ -3,6 +3,7 @@
 ## runs on CUDA if possible
 ## paraphrases each sentence seperately, to keep the length of the text, and only scramble the words a bit
 
+from ast import literal_eval
 import faulthandler
 import functools
 import nltk
@@ -55,6 +56,9 @@ if __name__ == '__main__':
     if not 'sentences' in dataset.columns:
         logging.error("Input file does not contain a 'sentences' column. Please run `build-unparaphrased.py` first.")
         quit()
+
+    # parse sentences string back to list of sentences
+    dataset['sentences'] = dataset['sentences'].apply(literal_eval)
 
     # paraphrase the wiki-dataset
     paraphrased_texts = []
