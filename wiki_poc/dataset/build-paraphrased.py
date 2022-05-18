@@ -17,23 +17,13 @@ torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 input_filepath = 'csv/wiki-dataset-raw.csv'
 output_filepath = 'csv/wiki-dataset-paraphrased.csv'
-sizelimit = 1024 #4096 # maximum text length before paraphrasing
-
-# use the SentencePiece model via nltk to split text into sentences
-# https://arxiv.org/pdf/1808.06226.pdf
-# def split_to_sentences(text):
-#     try:
-#         nltk.data.find('tokenizers/punkt')
-#     except LookupError:
-#         logging.info("Downloading nltk punkt tokenizer")
-#         nltk.download('punkt')
-#     return nltk.tokenize.sent_tokenize(text, 'english')
+sizelimit = 256 #4096 # maximum text length before paraphrasing
 
 def save_to_csv(df, filepath):
     df.to_csv(filepath, index=False)
 
-# ensure model only once
-@functools.lru_cache(maxsize=None)
+# ensure model is loaded only once
+@functools.lru_cache(maxsize=1)
 def load_model(model_name='tuner007/pegasus_paraphrase'):
     print(f"Loading {model_name}")
     tokenizer = PegasusTokenizer.from_pretrained(model_name)
@@ -67,8 +57,10 @@ if __name__ == '__main__':
     dataset = pd.read_csv(input_filepath)
 
     # paraphrase the wiki-dataset
+    paraphrased_texts = []
     for index, page in dataset.iterrows():
-        paraphrased_texts = paraphrase(dataset['text'].tolist())
+        print("Processing page #" + str(index))
+        paraphrased_texts.append(paraphrase(page['text'][:sizelimit]))
 
     dataset['paraphrased_sentences'] = paraphrased_texts
     dataset.drop(columns=['text'], inplace=True)
