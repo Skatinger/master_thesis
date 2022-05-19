@@ -44,7 +44,7 @@ def paraphrase_sentence(input_texts, num_return_sequences=1, num_beams=10, tempe
                                 num_return_sequences=num_return_sequences,
                                 temperature=temperature)
     
-    return tokenizer.batch_decode(translated, skip_special_tokens=True)
+    return tokenizer.batch_decode(translated, skip_special_tokens=True)[0]
 
 if __name__ == '__main__':
     if not os.path.exists(dataset_file):
