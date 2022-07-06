@@ -10,6 +10,7 @@ import os
 import functools
 import pandas as pd
 import re
+from tqdm import tqdm
 
 dataset_file = 'wiki-dataset.csv'
 
@@ -35,7 +36,7 @@ def masking(ner_results, text, entity_to_mask, mask_token = '<mask>'):
                 else:
                     entities[person_nr] += ' ' + entity['word']
 
-    # remove entities which are not the ones we want to mask
+    # remove entities which are not the ones we want to mask, e.g. remove persons which are not the person the article is about
     for entity in entities:
         if entity not in entity_to_mask or entity_to_mask not in entity:
             entities.remove(entity)
@@ -67,10 +68,19 @@ if __name__ == '__main__':
 
     # perform NER on the texts
     ner = load_ner_pipeline()
-    normal_ner_results = dataset['normal_text'].apply(lambda x: ner(x))
-    paraphrased_ner_results = dataset['paraphrased_text'] = dataset['paraphrased_sentences'].apply(lambda x: ner(x))
+    tqdm.pandas()
+    print("Apply NER to normal text...")
+    normal_ner_results = dataset['normal_text'].progress_apply(lambda x: ner(x))
+    print("Applying NER to paraphrased text...")
+    paraphrased_ner_results = dataset['paraphrased_text'].progress_apply(lambda x: ner(x))
 
-    # masking
+    ## masking
+    # add dataset columns for masking results
+    dataset['normal_masked_text'] = ""
+    dataset['normal_entities'] = ""
+    dataset['paraphrased_masked_text'] = ""
+    dataset['paraphrased_entities'] = ""
+    # fill columns with masked sentences and belonging entities
     for index, row in dataset.iterrows():
         dataset.at[index, 'normal_masked_text'], dataset.at[index, 'normal_entities'] = masking(normal_ner_results[index], row['normal_text'], row['title'])
         dataset.at[index, 'paraphrased_masked_text'], dataset.at[index, 'paraphrased_entities'] = masking(paraphrased_ner_results[index], row['paraphrased_text'], row['title'])
