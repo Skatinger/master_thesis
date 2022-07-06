@@ -37,14 +37,18 @@ def masking(ner_results, text, entity_to_mask, mask_token = '<mask>'):
                     entities[person_nr] += ' ' + entity['word']
 
     # remove entities which are not the ones we want to mask, e.g. remove persons which are not the person the article is about
+    # complex checker:
+    regex = ".*".join(entity_to_mask.split(" "))
+    regex += ".*".join(['|.*(' + nameFragment + ').*' for nameFragment in entity_to_mask.split(" ")])
+    
+    remaining_entities = []
     for entity in entities:
-        if entity not in entity_to_mask or entity_to_mask not in entity:
-            entities.remove(entity)
+        if bool(re.match(regex, entity)):
+            remaining_entities.append(entity)
 
     # return a dataset of anonymized strings with the belonging entities
-    # the re.sub ## is required to concat BERT word splits back together
     # https://stackoverflow.com/questions/69921629/transformers-autotokenizer-tokenize-introducing-extra-characters
-    return [re.sub(entity, mask_token, text) for entity in entities], entities # [re.sub(" ##", '', entity) for entity in entities]
+    return [re.sub(entity, mask_token, text) for entity in remaining_entities], remaining_entities
 
 
 if __name__ == '__main__':
@@ -56,6 +60,9 @@ if __name__ == '__main__':
     dataset = pd.read_csv(dataset_file)
     if not 'sentences' in dataset.columns:
         logging.error("Input file does not contain a 'sentences' column. Please run `build-unparaphrased.py` first.")
+        quit()
+    if not 'paraphrased_sentences' in dataset.columns:
+        logging.error("Input file does not contain a 'paraphrased_sentences' column. Please run `build-paraphrased.py` first.")
         quit()
     
     # parse sentences string back to list of sentences
@@ -85,6 +92,10 @@ if __name__ == '__main__':
         dataset.at[index, 'normal_masked_text'], dataset.at[index, 'normal_entities'] = masking(normal_ner_results[index], row['normal_text'], row['title'])
         dataset.at[index, 'paraphrased_masked_text'], dataset.at[index, 'paraphrased_entities'] = masking(paraphrased_ner_results[index], row['paraphrased_text'], row['title'])
 
+    # drop rows where we got no entities, as they are not interesting for our project
+    cleanedDataset = dataset[dataset['normal_entities'].apply(lambda x: len(x) > 0)]
+    cleanedDataset = dataset[dataset['paraphrased_entities'].apply(lambda x: len(x) > 0)]
+
     # save the dataset
-    dataset.to_csv('wiki-dataset-masked.csv', index=False)
+    cleanedDataset.to_csv('wiki-dataset-masked.csv', index=False)
 
