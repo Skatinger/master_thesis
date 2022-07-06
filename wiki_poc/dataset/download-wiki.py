@@ -22,14 +22,14 @@ top_50_persons = ["Donald Trump", "Barack Obama", "Elizabeth II", "Michael Jacks
 # loads the wikipedia dataset from huggingface if it does not yet exist
 def load_wiki_dataset():
     if os.path.exists(filepath):
-        logging.warn("Dataset already exists at " + filepath + " Delete to re-download.")
+        logging.warning("Dataset already exists at " + filepath + " Delete to re-download.")
         quit()
     logging.info('Loading dataset...')
     try:
         return load_dataset("wikipedia", "20220301.en", split="train")
     except ValueError as err:
-        logging.warn("Specified dataset not available, choose a current dataset:")
-        logging.warn(err)
+        logging.warning("Specified dataset not available, choose a current dataset:")
+        logging.warning(err)
         quit()
 
 # Extract the wiki article for every Wiki page title from the names list
