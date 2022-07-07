@@ -48,7 +48,11 @@ def masking(ner_results, text, entity_to_mask, mask_token = '<mask>'):
 
     # return a dataset of anonymized strings with the belonging entities
     # https://stackoverflow.com/questions/69921629/transformers-autotokenizer-tokenize-introducing-extra-characters
-    return [re.sub(entity, mask_token, text) for entity in remaining_entities], remaining_entities
+    text = ""
+    for entity in remaining_entities:
+        text = re.sub(entity, mask_token, text)
+    return text, remaining_entities
+    # return [re.sub(entity, mask_token, text) for entity in remaining_entities], remaining_entities
 
 
 if __name__ == '__main__':
