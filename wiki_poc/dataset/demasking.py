@@ -59,7 +59,7 @@ if __name__ == '__main__':
         # iterate over snippets of 512 characters
 
         maxLength = max(len(page['normal_masked_text']), len(page['paraphrased_masked_text']))
-        batchSize = 2048
+        batchSize = 1024
         batchCount = int(maxLength / batchSize)
 
         dataset.at[index, 'normal_predictions'] = []
