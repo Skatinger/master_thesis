@@ -2,12 +2,14 @@
 ## uses the model tuner007/pegasus_paraphrase to paraphrase the wiki-dataset
 ## runs on CUDA if possible
 ## paraphrases each sentence seperately, to keep the length of the text, and only scramble the words a bit
+## checkpoints are saved to the dataset file every 5th processed page
 
 from ast import literal_eval
 import faulthandler
 import functools
 import nltk
 import pandas as pd
+import numpy as np
 import logging
 import os
 from transformers import PegasusForConditionalGeneration, PegasusTokenizer
@@ -60,11 +62,21 @@ if __name__ == '__main__':
     # parse sentences string back to list of sentences
     dataset['sentences'] = dataset['sentences'].apply(literal_eval)
 
+    # add empty column for new paraphrased sentences if not yet present
+    if('paraphrased_sentences' not in dataset.columns):
+        dataset['paraphrased_sentences'] = np.nan
+
     # paraphrase the wiki-dataset
     paraphrased_texts = []
 
     # iterate over all wiki pages
     for index, page in dataset.iterrows():
+
+        # skip page if already processed
+        if(not pd.isnull(page['paraphrased_sentences'])):
+            logging.info('Skipping page # ' + str(index) + ", already processed.")
+            continue
+
         print("Processing page #" + str(index))
         
         paraphrase_sentences = []
@@ -74,10 +86,13 @@ if __name__ == '__main__':
             print("processing sentence " + str(sindex) + "/" + str(nb_sentences))
             paraphrase_sentences.append(paraphrase_sentence(sentence))
         
-        # create a list of paraphrased sentences for each wiki-page
-        paraphrased_texts.append(paraphrase_sentences)
+        # append paraphrased sentences to dataset
+        dataset.at[index, 'paraphrased_sentences'] = paraphrase_sentences
 
-    dataset['paraphrased_sentences'] = paraphrased_texts
+        # intermediate saving after every 5th page
+        if(index % 5 == 0):
+            save_to_csv(dataset, dataset_file)
+            logging.info("Saved unparaphrased wiki-dataset to {} at page {}".format(dataset_file), index)
 
     save_to_csv(dataset, dataset_file)
     logging.info("Saved unparaphrased wiki-dataset to {}".format(dataset_file))
