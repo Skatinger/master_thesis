@@ -15,6 +15,17 @@ import os
 from transformers import PegasusForConditionalGeneration, PegasusTokenizer
 import torch
 
+# sigint handler
+import signal
+import sys
+
+# allow signal handling
+def signal_handler(sig, frame):
+    print("wow, i got terminated: {}".format(sig))
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, signal_handler)
+
 # ensure error stack is printed when an error occurs on the GPU / Computing Cluster
 faulthandler.enable()
 torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
