@@ -65,6 +65,8 @@ if __name__ == '__main__':
     # add empty column for new paraphrased sentences if not yet present
     if('paraphrased_sentences' not in dataset.columns):
         dataset['paraphrased_sentences'] = np.nan
+        # cast to object to allow lists as values
+        dataset['paraphrased_sentences'] = dataset['paraphrased_sentences'].astype('object')
 
     # paraphrase the wiki-dataset
     paraphrased_texts = []
