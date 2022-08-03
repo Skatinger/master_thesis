@@ -77,7 +77,7 @@ if __name__ == '__main__':
             logging.info('Skipping page # ' + str(index) + ", already processed.")
             continue
 
-        print("Processing page #" + str(index))
+        print("Processing page " + str(index) + "/" + str(dataset.shape[0]))
         
         paraphrase_sentences = []
         # iterate over all sentences in the wiki-page
@@ -92,7 +92,7 @@ if __name__ == '__main__':
         # intermediate saving after every 5th page
         if(index % 5 == 0):
             save_to_csv(dataset, dataset_file)
-            logging.info("Saved unparaphrased wiki-dataset to {} at page {}".format(dataset_file), index)
+            logging.info("Saved unparaphrased wiki-dataset to {} at page {}".format(dataset_file, index))
 
     save_to_csv(dataset, dataset_file)
     logging.info("Saved unparaphrased wiki-dataset to {}".format(dataset_file))
