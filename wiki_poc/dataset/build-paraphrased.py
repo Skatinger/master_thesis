@@ -21,7 +21,10 @@ import sys
 
 # allow signal handling
 def signal_handler(sig, frame):
-    print("wow, i got terminated: {}".format(sig))
+    logging.info("Received SIGINT, saving checkpoint")
+    global dataset
+    save_to_csv(dataset, dataset_file)
+    logging.info("exiting")
     sys.exit(0)
 
 signal.signal(signal.SIGTERM, signal_handler)
