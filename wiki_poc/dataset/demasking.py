@@ -12,12 +12,30 @@
 import torch
 import pandas as pd
 import os
+# sigint handler
+import signal
+import sys
 import logging
 # instantiate transformer model
 from transformers import pipeline
 
+logging.getLogger().setLevel(logging.INFO)
 
 torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+dataset_file = 'wiki-dataset-results.csv'
+
+
+# allow signal handling
+def signal_handler(sig, frame):
+    logging.info("Received SIGINT, saving checkpoint")
+    global dataset
+    dataset.to_csv(dataset_file, index=False)
+    logging.info("exiting")
+    sys.exit(0)
+
+
+signal.signal(signal.SIGTERM, signal_handler)
+
 
 # use a tokenizer to split the wikipedia text into sentences
 # Use a entity-recognition model to quickly find entities instead of labelling them by hand
@@ -31,18 +49,20 @@ mask_token = fill_mask.tokenizer.mask_token
 if __name__ == '__main__':
 
     # Import Data from CSV
-    file = 'wiki-dataset-masked.csv' # '/content/drive/MyDrive/wiki-dataset-reduced.csv'
+    file = 'wiki-dataset-masked.csv'
     assert len(file) > 0, "Please provide a file path to the dataset"
 
     if not os.path.exists(file):
-        logging.error("Input file does not exist. Please run `download-wiki.py` first.")
+        logging.error("Input file does not exist. Please run `build-masked.py` first.")
         quit()
 
     print("loading dataset")
     dataset = pd.read_csv(file)
 
-    dataset['normal_predictions'] = ""
-    dataset['paraphrased_predictions'] = ""
+    if 'normal_predictions' not in dataset.columns:
+        dataset['normal_predictions'] = ""
+        dataset['paraphrased_predictions'] = ""
+
     # iterate over all the pages
     for index, page in dataset.iterrows():
         print("Now processing page:" + str(index))
@@ -65,6 +85,10 @@ if __name__ == '__main__':
                 dataset.at[index, 'normal_predictions'].append(fill_mask(extract1))
             if '<mask>' in extract2:
                 dataset.at[index, 'paraphrased_predictions'].append(fill_mask(extract2))
+
+        if (index % 5 == 0):
+            logging.info("Checkpointing at page {}".format(index))
+            dataset.to_csv(dataset_file, index=False)
 
     # save results
     dataset.to_csv('wiki-dataset-results.csv', index=False)
