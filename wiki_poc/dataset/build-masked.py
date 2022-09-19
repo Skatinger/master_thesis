@@ -112,7 +112,8 @@ if __name__ == '__main__':
 
     for index, row in dataset.iterrows():
         # skip iteration if value already present
-        if (isinstance(row['normal_masked_text'], str)):
+        # value is '' if column newly added, float:nan if resumed
+        if (isinstance(row['normal_masked_text'], str) and len(row['normal_masked_text']) > 0):
             logging.info("Skipping page {}, already done.".format(index))
             continue
 
