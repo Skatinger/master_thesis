@@ -1,4 +1,3 @@
-from mmap import PAGESIZE
 # DOC
 # 5) predicts the masked entities with a BERT model
 # 6) computes the accuracy of the predictions as a percentage of correctly predicted masks
@@ -14,19 +13,16 @@ import torch
 import pandas as pd
 import os
 import logging
+# instantiate transformer model
+from transformers import pipeline
 
 
 torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-## use a tokenizer to split the wikipedia text into sentences
-## Use a entity-recognition model to quickly find entities instead of labelling them by hand
+# use a tokenizer to split the wikipedia text into sentences
+# Use a entity-recognition model to quickly find entities instead of labelling them by hand
 # this helps to mask the entities, making it easier to work automatically instead of doing it manually
 # can consider doing it by hand later on for better precision
-import re
-from transformers import AutoTokenizer, AutoModelForTokenClassification
-from transformers import pipeline
-## instantiate transformer model
-from transformers import pipeline
 print("Loading Fill-Mask model")
 fill_mask = pipeline("fill-mask", model="roberta-base", tokenizer='roberta-base', top_k=5)
 mask_token = fill_mask.tokenizer.mask_token
@@ -34,7 +30,7 @@ mask_token = fill_mask.tokenizer.mask_token
 
 if __name__ == '__main__':
 
-    ## Import Data from CSV
+    # Import Data from CSV
     file = 'wiki-dataset-masked.csv' # '/content/drive/MyDrive/wiki-dataset-reduced.csv'
     assert len(file) > 0, "Please provide a file path to the dataset"
 
@@ -42,18 +38,13 @@ if __name__ == '__main__':
         logging.error("Input file does not exist. Please run `download-wiki.py` first.")
         quit()
 
-    
     print("loading dataset")
     dataset = pd.read_csv(file)
-
 
     dataset['normal_predictions'] = ""
     dataset['paraphrased_predictions'] = ""
     # iterate over all the pages
     for index, page in dataset.iterrows():
-    # for fast debugging, only do one loop
-        # if index > 1:
-            # break
         print("Now processing page:" + str(index))
 
         # iterate over snippets of 512 characters
@@ -77,5 +68,3 @@ if __name__ == '__main__':
 
     # save results
     dataset.to_csv('wiki-dataset-results.csv', index=False)
-
-
