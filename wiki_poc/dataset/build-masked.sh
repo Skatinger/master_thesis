@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name="mask-wiki-dataset"
-#SBATCH --time=00:20:00
+#SBATCH --time=01:00:00
 #SBATCH --mem-per-cpu=10G
 #SBATCH --partition=gpu
 #SBATCH --qos=job_gpu_preempt
