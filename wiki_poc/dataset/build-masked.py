@@ -99,6 +99,7 @@ if __name__ == '__main__':
 
     # add dataset columns for masking results if not yet existing
     if 'normal_masked_text' not in dataset.columns:
+        logging.info('adding new columns to dataset')
         dataset['normal_masked_text'] = ""
         dataset['normal_entities'] = ""
         dataset['paraphrased_masked_text'] = ""
@@ -121,14 +122,14 @@ if __name__ == '__main__':
 
         # paraphrased text
         ner_result_paraphrased = ner(row['paraphrased_text'])
-        dataset.at[index, 'paraphrased_text'], dataset.at[index, 'normal_entities'] = masking(ner_result_paraphrased, row['paraphrased_text'], row['title'])
+        dataset.at[index, 'paraphrased_masked_text'], dataset.at[index, 'paraphrased_entities'] = masking(ner_result_paraphrased, row['paraphrased_text'], row['title'])
 
         if (index % 5 == 0):
             logging.info("Checkpointing at page {}".format(index))
             dataset.to_csv(dataset_file, index=False)
 
     print("done, now cleaning")
-    dataset.to_csv('intermediate.csv', index=False) 
+    dataset.to_csv('intermediate.csv', index=False)
 
     # drop rows where we got no entities, as they are not interesting for our project
     cleanedDataset = dataset[dataset['normal_entities'].apply(lambda x: len(x) > 0)]
