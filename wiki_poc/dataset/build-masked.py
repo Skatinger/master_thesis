@@ -49,6 +49,8 @@ def masking(ner_results, text, entity_to_mask, mask_token='<mask>'):
                 person_nr += 1  # we came to the next person
                 entities.append(entity['word'].strip())
             else:
+                if person_nr < 0:
+                    continue
                 if '#' in entity['word']:
                     entities[person_nr] += entity['word'].strip().strip('#')
                 else:
