@@ -1,1 +1,5 @@
 wiki_poc/.env
+
+# jupyter notebook temporary files
+wiki_poc/dataset/custom/__pycache__
+wiki_poc/dataset/__pycache__
