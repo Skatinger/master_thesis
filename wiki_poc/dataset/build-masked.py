@@ -127,6 +127,9 @@ if __name__ == '__main__':
             logging.info("Checkpointing at page {}".format(index))
             dataset.to_csv(dataset_file, index=False)
 
+    print("done, now cleaning")
+    dataset.to_csv('intermediate.csv', index=False) 
+
     # drop rows where we got no entities, as they are not interesting for our project
     cleanedDataset = dataset[dataset['normal_entities'].apply(lambda x: len(x) > 0)]
     cleanedDataset = dataset[dataset['paraphrased_entities'].apply(lambda x: len(x) > 0)]
