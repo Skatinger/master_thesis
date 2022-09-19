@@ -22,7 +22,7 @@ from transformers import pipeline
 logging.getLogger().setLevel(logging.INFO)
 
 torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
-dataset_file = 'wiki-dataset-results.csv'
+dataset_file = 'wiki-dataset-masked.csv'
 
 
 # allow signal handling
@@ -65,6 +65,13 @@ if __name__ == '__main__':
 
     # iterate over all the pages
     for index, page in dataset.iterrows():
+
+        # skip iteration if value already present
+        # value is '' if column newly added, float:nan if resumed
+        if (isinstance(page['normal_predictions'], str) and len(page['normal_predictions']) > 0):
+            logging.info("Skipping page {}, already done.".format(index))
+            continue
+
         print("Now processing page:" + str(index))
 
         # iterate over snippets of 512 characters
