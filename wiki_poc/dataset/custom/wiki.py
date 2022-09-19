@@ -25,3 +25,24 @@ def query_wiki_persons(count=10):
     results = sparql.query().convert()
     # get the page titles of the queries persons
     return [page['page_titleEN']['value'] for page in results['results']['bindings']]
+
+
+# Extract the wiki article for every Wiki page title from the names list
+# returns: articles list of format: [{id: dataset-id, text: wiki-text, title: wiki-page-title, url: link-to-wiki-page}, ...]
+def extract_text(dataset, persons):
+    titles = dataset['title']
+
+    # find the indices of each person in the wiki dataset
+    indices = {}
+    for name in persons:
+        indices[name] = titles.index(name)
+
+    # find the corresponding articles (for every index of a known person create a list of their wiki pages)
+    articles = []
+    for name in indices.keys():
+        articles.append(dataset[indices[name]])
+    # strip all new line characters for easier processing
+    for article in articles:
+        article['text'] = article['text'].replace('\n', ' ')
+
+    return articles
