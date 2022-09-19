@@ -4,7 +4,6 @@
 
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 from transformers import pipeline
-import logging
 from ast import literal_eval
 import os
 import functools
@@ -15,6 +14,8 @@ from tqdm import tqdm
 # sigint handler
 import signal
 import sys
+import logging
+logging.getLogger().setLevel(logging.INFO)
 
 
 # allow signal handling
