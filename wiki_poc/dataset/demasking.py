@@ -42,7 +42,7 @@ signal.signal(signal.SIGTERM, signal_handler)
 # this helps to mask the entities, making it easier to work automatically instead of doing it manually
 # can consider doing it by hand later on for better precision
 print("Loading Fill-Mask model")
-fill_mask = pipeline("fill-mask", model="roberta-base", tokenizer='roberta-base', top_k=5, max_length=512)
+fill_mask = pipeline("fill-mask", model="roberta-base", tokenizer='roberta-base', top_k=5)
 mask_token = fill_mask.tokenizer.mask_token
 
 
@@ -74,24 +74,30 @@ if __name__ == '__main__':
 
         print("Now processing page:" + str(index))
 
-        # iterate over snippets of 512 characters
-
-        maxLength = max(len(page['normal_masked_text']), len(page['paraphrased_masked_text']))
-        batchSize = 1024
-        batchCount = int(maxLength / batchSize)
+        inputSize = 1024
 
         dataset.at[index, 'normal_predictions'] = []
         dataset.at[index, 'paraphrased_predictions'] = []
-        for i in range(0, batchSize):
-            start, end = i * batchSize, i * batchSize + batchSize
+        for i in range(0, inputSize):
+            start, end = i * inputSize, i * inputSize + inputSize
             extract1 = page['normal_masked_text'][start:end]
             extract2 = page['paraphrased_masked_text'][start:end]
 
             # check if batches contain any mask token, otherwise skip
-            if '<mask>' in extract1:
-                dataset.at[index, 'normal_predictions'].append(fill_mask(extract1))
-            if '<mask>' in extract2:
-                dataset.at[index, 'paraphrased_predictions'].append(fill_mask(extract2))
+            # ditch this prediction if too many tokens, as usually too many tokens mean there is some foreign
+            # language involved or too many special characters, which results in almost all characters being a single
+            # token, and the model not being able to predict a useful fill-mask word anyway
+            try:
+                if '<mask>' in extract1:
+                    dataset.at[index, 'normal_predictions'].append(fill_mask(extract1))
+                if '<mask>' in extract2:
+                    dataset.at[index, 'paraphrased_predictions'].append(fill_mask(extract2))
+            except RuntimeError as e:
+                # if we had too many tokens no worries, just skip this batch
+                if 'expanded size of the tensor' in str(e):
+                    logging.warn("Tensor was too long for index {} at {}:{}".format(index, start,  end))
+                else:
+                    raise e
 
         if (index % 5 == 0):
             logging.info("Checkpointing at page {}".format(index))
