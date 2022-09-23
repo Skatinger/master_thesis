@@ -42,7 +42,7 @@ signal.signal(signal.SIGTERM, signal_handler)
 # this helps to mask the entities, making it easier to work automatically instead of doing it manually
 # can consider doing it by hand later on for better precision
 print("Loading Fill-Mask model")
-fill_mask = pipeline("fill-mask", model="roberta-base", tokenizer='roberta-base', top_k=5)
+fill_mask = pipeline("fill-mask", model="roberta-base", tokenizer='roberta-base', top_k=5, max_length=512)
 mask_token = fill_mask.tokenizer.mask_token
 
 
