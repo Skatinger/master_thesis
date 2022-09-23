@@ -5,12 +5,15 @@
 # recall is not an issue yet
 
 
+# from unittest import result
 import pandas as pd
 import os
 import logging
-import re
 from tqdm import tqdm
 from ast import literal_eval
+
+resultsFile = 'wiki-dataset-results-1k.csv'
+
 
 # results data is not always in same format, ensure it's always list of list
 def reformat(data):
@@ -22,6 +25,7 @@ def reformat(data):
             results.append(prediction)
     return results
 
+
 # retrieves only the predicted tokens, without scoring and or other attributes
 def extractPredictedTokens(data):
     predicted = []
@@ -31,6 +35,7 @@ def extractPredictedTokens(data):
             predicted.append(tokens)
     return predicted
 
+
 # returns the percentage of correct predictions
 # correct means: an entity we want is within the top 5 predictions, see doc at top of file
 def scoreMatches(predictions, entities):
@@ -39,13 +44,16 @@ def scoreMatches(predictions, entities):
     for pred in predictions:
         if any([p in entitiesString for p in pred]):
             correctCount += 1
-    return 100 / len(predictions) * correctCount
+    if len(predictions) == 0:
+        return 0
+    else:
+        return 100 / len(predictions) * correctCount
 
 
 if __name__ == '__main__':
 
-    ## Import Data from CSV
-    file = 'wiki-dataset-results.csv'
+    # Import Data from CSV
+    file = resultsFile
     assert len(file) > 0, "Please provide a file path to the dataset"
 
     if not os.path.exists(file):
@@ -75,6 +83,4 @@ if __name__ == '__main__':
 
     # # save results
     print("saving dataset")
-    dataset.to_csv('wiki-dataset-results.csv', index=False)
-
-
+    dataset.to_csv(resultsFile, index=False)
