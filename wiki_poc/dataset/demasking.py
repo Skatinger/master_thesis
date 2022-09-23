@@ -95,7 +95,7 @@ if __name__ == '__main__':
             except RuntimeError as e:
                 # if we had too many tokens no worries, just skip this batch
                 if 'expanded size of the tensor' in str(e):
-                    logging.warn("Tensor was too long for index {} at {}:{}".format(index, start,  end))
+                    logging.warning("Tensor was too long for index {} at {}:{}".format(index, start,  end))
                 else:
                     raise e
 
