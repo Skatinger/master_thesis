@@ -3,3 +3,8 @@ wiki_poc/.env
 # jupyter notebook temporary files
 wiki_poc/dataset/custom/__pycache__
 wiki_poc/dataset/__pycache__
+
+
+wiki_poc/dataset/wiki-dataset-*
+wiki_poc/dataset/results/data_v1/wiki-dataset.csv
+wiki_poc/dataset/results/wiki-dataset-results-1k.csv
