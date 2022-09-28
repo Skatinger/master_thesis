@@ -6,11 +6,12 @@
 #SBATCH --qos=job_gpu_preempt
 #SBATCH --gres=gpu:rtx3090
 #SBATCH --mail-user=alex.nyffenegger@outlook.com
+#SBATCH --mail-type=end,fail
 
 # generic bash script to quickly run jobs on ubelix
 # without creating a new script every time
 
-script=""
+script="prepare-wiki-large.py"
 
 if [ -z $script ] || [ ! -f $script ]; then
     echo "Script $script not found!"
