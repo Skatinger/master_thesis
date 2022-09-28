@@ -9,15 +9,11 @@ def query_wiki_persons(count=10):
     sparql = SPARQLWrapper("https://query.wikidata.org/sparql")
     # find pages with english title from uk or en
     sparql.setQuery("""
-    SELECT DISTINCT ?item ?page_titleEN ?articleLabel WHERE {
+    SELECT DISTINCT ?page_titleEN WHERE {
     ?item wdt:P31 wd:Q5.
     ?article schema:about ?item;
         schema:isPartOf <https://en.wikipedia.org/>;
         schema:name ?page_titleEN.
-    ?item rdfs:label ?LabelEN.
-    FILTER((LANG(?LabelEN)) = "en")
-    ?item rdfs:label ?LabelUK.
-    FILTER((LANG(?LabelUK)) = "uk")
     }
     LIMIT %d
     """ % (count))
