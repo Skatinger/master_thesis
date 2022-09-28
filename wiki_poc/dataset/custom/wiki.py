@@ -27,13 +27,18 @@ def query_wiki_persons(count=10):
 # returns: articles list of format: [{id: dataset-id, text: wiki-text, title: wiki-page-title, url: link-to-wiki-page}, ...]
 def extract_text(dataset, persons):
     # sort the dataset for faster index retrieval
+    # sorting is cached automatically by dataset library after first run
     sortedDataset = dataset.sort('title')
     titles = sortedDataset['title']
 
     # find the indices of each person in the wiki dataset
     indices = {}
     for name in persons:
-        indices[name] = titles.index(name)
+        try:
+            indices[name] = titles.index(name)
+        except:
+            print("Person {} could not be found, skipping.".format(name))
+            continue
 
     # find the corresponding articles (for every index of a known person create a list of their wiki pages)
     articles = []
