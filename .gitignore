@@ -4,6 +4,7 @@ wiki_poc/.env
 wiki_poc/dataset/custom/__pycache__
 wiki_poc/dataset/__pycache__
 
+wiki_poc/dataset/data
 
 wiki_poc/dataset/wiki-dataset-*
 wiki_poc/dataset/results/data_v1/wiki-dataset.csv
