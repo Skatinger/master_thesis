@@ -26,7 +26,9 @@ def query_wiki_persons(count=10):
 # Extract the wiki article for every Wiki page title from the names list
 # returns: articles list of format: [{id: dataset-id, text: wiki-text, title: wiki-page-title, url: link-to-wiki-page}, ...]
 def extract_text(dataset, persons):
-    titles = dataset['title']
+    # sort the dataset for faster index retrieval
+    sortedDataset = dataset.sort('title')
+    titles = sortedDataset['title']
 
     # find the indices of each person in the wiki dataset
     indices = {}
