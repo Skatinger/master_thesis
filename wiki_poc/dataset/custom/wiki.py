@@ -37,7 +37,7 @@ def extract_text(dataset, persons):
         try:
             indices[name] = titles.index(name)
         except:
-            print("Person {} could not be found, skipping.".format(name))
+            print("{} could not be found, skipping.".format(name))
             continue
 
     # find the corresponding articles (for every index of a known person create a list of their wiki pages)
