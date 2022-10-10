@@ -32,7 +32,7 @@ logging.getLogger().setLevel(logging.INFO)
 def load_wiki_dataset():
     logging.info('Loading dataset...')
     try:
-        return load_from_disk("./data")
+        return load_from_disk("../dataset/data")
     except ValueError as err:
         logging.warning("Specified dataset at ./data not available")
         logging.warning(err)
@@ -58,4 +58,4 @@ if __name__ == '__main__':
     # only keep pages with more than 6'000 characters
     dataset = dataset.filter(lambda x: len(x['text']) > 6000)
     # save the dataset
-    dataset.save_to_disk("./data")
+    dataset.save_to_disk("../dataset/data")
