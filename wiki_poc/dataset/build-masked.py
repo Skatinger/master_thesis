@@ -39,22 +39,23 @@ def load_ner_pipeline(model_name="dslim/bert-base-NER"):
     return pipeline("ner", model=model, tokenizer=tokenizer)
 
 
-def masking(ner_results, text, entity_to_mask, mask_token='<mask>'):
+def masking(ner_results, text, entity_to_mask, mask_token='<mask>', batch_size=1000):
     person_nr = -1
     entities = []
-    for entity in ner_results:
-        tag = entity['entity']
-        if 'PER' in tag:  # if it is a person
-            if ('B' in tag or 'I' in tag) and '#' not in entity['word']:
-                person_nr += 1  # we came to the next person
-                entities.append(entity['word'].strip())
-            else:
-                if person_nr < 0:
-                    continue
-                if '#' in entity['word']:
-                    entities[person_nr] += entity['word'].strip().strip('#')
+    for result in ner_results:
+        for entity in result:
+            tag = entity['entity']
+            if 'PER' in tag:  # if it is a person
+                if ('B' in tag or 'I' in tag) and '#' not in entity['word']:
+                    person_nr += 1  # we came to the next person
+                    entities.append(entity['word'].strip())
                 else:
-                    entities[person_nr] += ' ' + entity['word']
+                    if person_nr < 0:
+                        continue
+                    if '#' in entity['word']:
+                        entities[person_nr] += entity['word'].strip().strip('#')
+                    else:
+                        entities[person_nr] += ' ' + entity['word']
 
     # remove entities which are not the ones we want to mask, e.g. remove persons which are not the person the article is about
     # complex checker:
@@ -70,6 +71,7 @@ def masking(ner_results, text, entity_to_mask, mask_token='<mask>'):
     # https://stackoverflow.com/questions/69921629/transformers-autotokenizer-tokenize-introducing-extra-characters
     # escape entity to ensure no brackets or other regex keywords are present (would cause a parsing error), for example
     # 'Heinrich ) Frank' causes a unbalanced parenthesis error
+    text = " ".join(text)
     for entity in remaining_entities:
         text = re.sub(re.escape(entity), mask_token, text)
 
@@ -95,9 +97,14 @@ if __name__ == '__main__':
     dataset['sentences'] = dataset['sentences'].apply(literal_eval)
     dataset['paraphrased_sentences'] = dataset['paraphrased_sentences'].apply(literal_eval)
 
+    # create batches of sentences
+    sentences_batch_size = 7 # sentences per batch
+    dataset['batched_sentences'] = dataset['sentences'].apply(lambda x: [x[i:i + sentences_batch_size] for i in range(0, len(x), sentences_batch_size)])
+    dataset['paraphrased_batched_sentences'] = dataset['paraphrased_sentences'].apply(lambda x: [x[i:i + sentences_batch_size] for i in range(0, len(x), sentences_batch_size)])
+
     # convert sentences to text
-    dataset['normal_text'] = dataset['sentences'].apply(lambda x: " ".join(x))
-    dataset['paraphrased_text'] = dataset['paraphrased_sentences'].apply(lambda x: " ".join(x))
+    dataset['normal_text'] = dataset['batched_sentences'].apply(lambda x: [" ".join(sentences) for sentences in x])
+    dataset['paraphrased_text'] = dataset['paraphrased_batched_sentences'].apply(lambda x: [" ".join(sentences) for sentences in x])
 
     # add dataset columns for masking results if not yet existing
     if 'normal_masked_text' not in dataset.columns:
@@ -115,17 +122,27 @@ if __name__ == '__main__':
     for index, row in dataset.iterrows():
         # skip iteration if value already present
         # value is '' if column newly added, float:nan if resumed
-        if (isinstance(row['normal_masked_text'], str) and len(row['normal_masked_text']) > 0):
-            logging.info("Skipping page {}, already done.".format(index))
-            continue
+        # if (isinstance(row['normal_masked_text'], str) and len(row['normal_masked_text']) > 0):
+            # logging.info("Skipping page {}, already done.".format(index))
+            # continue
 
         # normal text
-        ner_result_unparaphrased = ner(row['normal_text'])
-        dataset.at[index, 'normal_masked_text'], dataset.at[index, 'normal_entities'] = masking(ner_result_unparaphrased, row['normal_text'], row['title'])
+        # split text into batches of 1000 characters to ensure no tokenization errors occur
+        batch_size = 1000
+        ner_result_unparaphrased = []
+        normal_length = len(row['normal_text'])
+        normal_batches = [row['normal_text'][i:i + batch_size] for i in range(0, normal_length, batch_size)]
+        for batch in normal_batches:
+            ner_result_unparaphrased.append(ner(batch))
+        dataset.at[index, 'normal_masked_text'], dataset.at[index, 'normal_entities'] = masking(ner_result_unparaphrased[0], row['normal_text'], row['title'], batch_size=batch_size)
 
         # paraphrased text
-        ner_result_paraphrased = ner(row['paraphrased_text'])
-        dataset.at[index, 'paraphrased_masked_text'], dataset.at[index, 'paraphrased_entities'] = masking(ner_result_paraphrased, row['paraphrased_text'], row['title'])
+        ner_result_paraphrased = []
+        paraphrased_length = len(row['paraphrased_text'])
+        paraphrased_batches = [row['paraphrased_text'][i:i + batch_size] for i in range(0, paraphrased_length, batch_size)]
+        for batch in paraphrased_batches:
+            ner_result_paraphrased.append(ner(batch))
+        dataset.at[index, 'paraphrased_masked_text'], dataset.at[index, 'paraphrased_entities'] = masking(ner_result_paraphrased[0], row['paraphrased_text'], row['title'], batch_size=batch_size)
 
         if (index % 5 == 0):
             logging.info("Checkpointing at page {}".format(index))
