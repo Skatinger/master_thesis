@@ -39,41 +39,65 @@ def load_ner_pipeline(model_name="dslim/bert-base-NER"):
     return pipeline("ner", model=model, tokenizer=tokenizer)
 
 
-def masking(ner_results, text, entity_to_mask, mask_token='<mask>', batch_size=1000):
+def masking(ner_results, text, entity_to_mask, batch_sizes, mask_token='<mask>'):
     person_nr = -1
     entities = []
-    for result in ner_results:
+    indexes = []
+    index_start = 0
+    for batch_size, result in zip(batch_sizes, ner_results):
+        # reset last_end index for each batch, we do not want to concat entities from different batches, as batches
+        # are separated by sentences (and thus entities cannot overlap)
+        last_end = -10
         for entity in result:
             tag = entity['entity']
             if 'PER' in tag:  # if it is a person
+                # import pdb; pdb.set_trace()
                 if ('B' in tag or 'I' in tag) and '#' not in entity['word']:
-                    person_nr += 1  # we came to the next person
-                    entities.append(entity['word'].strip())
+                    # if end of entity is right after the end of the last entity, merge them
+                    if entity['start'] - 1 == last_end:
+                        # concat to last entity part with empty space between
+                        entities[person_nr] += ' ' + entity['word']
+                        indexes[person_nr][1] = entity['end'] + index_start
+                        last_end = entity['end'] + index_start
+                    else:
+                        person_nr += 1  # we came to the next person
+                        entities.append(entity['word'].strip())
+                        indexes.append([entity['start'] + index_start, entity['end'] + index_start])
+                        last_end = entity['end']
                 else:
                     if person_nr < 0:
                         continue
                     if '#' in entity['word']:
                         entities[person_nr] += entity['word'].strip().strip('#')
+                        indexes[person_nr][1] = entity['end'] + index_start
+                        last_end = entity['end'] + index_start
                     else:
                         entities[person_nr] += ' ' + entity['word']
-
+                        indexes[person_nr][1] = entity['end'] + index_start
+                        last_end = entity['end'] + index_start
+        # update index_start for next batch, so indexes can be directly used for masking in full text
+        # otherwise we would have to add the length of the previous batch to the indexes
+        index_start += batch_size
     # remove entities which are not the ones we want to mask, e.g. remove persons which are not the person the article is about
     # complex checker:
     regex = ".*".join(entity_to_mask.split(" "))
     regex += ".*".join(['|.*(' + nameFragment + ').*' for nameFragment in entity_to_mask.split(" ")])
 
     remaining_entities = []
-    for entity in entities:
+    remaining_indexes = []
+    for entity, index in zip(entities, indexes):
         if bool(re.match(regex, entity)):
             remaining_entities.append(entity)
+            remaining_indexes.append(index)
 
     # return a dataset of anonymized strings with the belonging entities
     # https://stackoverflow.com/questions/69921629/transformers-autotokenizer-tokenize-introducing-extra-characters
     # escape entity to ensure no brackets or other regex keywords are present (would cause a parsing error), for example
     # 'Heinrich ) Frank' causes a unbalanced parenthesis error
-    text = " ".join(text)
-    for entity in remaining_entities:
-        text = re.sub(re.escape(entity), mask_token, text)
+    text = "".join(text)
+    for index in reversed(remaining_indexes):
+        # the index start of an entity changes when text before it is masked, so we mask in reverse order
+        text = text[:index[0]] + mask_token + text[index[1]:]
 
     return text, remaining_entities
     # return [re.sub(entity, mask_token, text) for entity in remaining_entities], remaining_entities
@@ -99,12 +123,13 @@ if __name__ == '__main__':
 
     # create batches of sentences
     sentences_batch_size = 7 # sentences per batch
+    # creates a list of lists of sentences, where each list contains sentences_batch_size sentences
     dataset['batched_sentences'] = dataset['sentences'].apply(lambda x: [x[i:i + sentences_batch_size] for i in range(0, len(x), sentences_batch_size)])
     dataset['paraphrased_batched_sentences'] = dataset['paraphrased_sentences'].apply(lambda x: [x[i:i + sentences_batch_size] for i in range(0, len(x), sentences_batch_size)])
 
     # convert sentences to text
-    dataset['normal_text'] = dataset['batched_sentences'].apply(lambda x: [" ".join(sentences) for sentences in x])
-    dataset['paraphrased_text'] = dataset['paraphrased_batched_sentences'].apply(lambda x: [" ".join(sentences) for sentences in x])
+    dataset['batched_normal_text'] = dataset['batched_sentences'].apply(lambda x: [" ".join(sentences) for sentences in x])
+    dataset['batched_paraphrased_text'] = dataset['paraphrased_batched_sentences'].apply(lambda x: [" ".join(sentences) for sentences in x])
 
     # add dataset columns for masking results if not yet existing
     if 'normal_masked_text' not in dataset.columns:
@@ -126,23 +151,23 @@ if __name__ == '__main__':
             # logging.info("Skipping page {}, already done.".format(index))
             # continue
 
-        # normal text
-        # split text into batches of 1000 characters to ensure no tokenization errors occur
-        batch_size = 1000
+        # batched text is a list of strings, each string is a batch of sentences concated to a single string
         ner_result_unparaphrased = []
-        normal_length = len(row['normal_text'])
-        normal_batches = [row['normal_text'][i:i + batch_size] for i in range(0, normal_length, batch_size)]
-        for batch in normal_batches:
+        batch_sizes = []
+        for batch in row['batched_normal_text']:
             ner_result_unparaphrased.append(ner(batch))
-        dataset.at[index, 'normal_masked_text'], dataset.at[index, 'normal_entities'] = masking(ner_result_unparaphrased[0], row['normal_text'], row['title'], batch_size=batch_size)
+            # we need to keep track of the length of the batches, so we can update the indexes of the entities
+            batch_sizes.append(len(batch))
+        dataset.at[index, 'normal_masked_text'], dataset.at[index, 'normal_entities'] = masking(ner_result_unparaphrased, row['batched_normal_text'], row['title'], batch_sizes=batch_sizes)
 
         # paraphrased text
         ner_result_paraphrased = []
-        paraphrased_length = len(row['paraphrased_text'])
-        paraphrased_batches = [row['paraphrased_text'][i:i + batch_size] for i in range(0, paraphrased_length, batch_size)]
-        for batch in paraphrased_batches:
+        batch_sizes = []
+        for batch in row['batched_paraphrased_text']:
             ner_result_paraphrased.append(ner(batch))
-        dataset.at[index, 'paraphrased_masked_text'], dataset.at[index, 'paraphrased_entities'] = masking(ner_result_paraphrased[0], row['paraphrased_text'], row['title'], batch_size=batch_size)
+            # we need to keep track of the length of the batches, so we can update the indexes of the entities
+            batch_sizes.append(len(batch))
+        dataset.at[index, 'paraphrased_masked_text'], dataset.at[index, 'paraphrased_entities'] = masking(ner_result_paraphrased, row['batched_paraphrased_text'], row['title'], batch_sizes=batch_sizes)
 
         if (index % 5 == 0):
             logging.info("Checkpointing at page {}".format(index))
