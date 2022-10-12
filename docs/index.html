@@ -1,1 +1,71 @@
-<h1>Github Page for my thesis</h1>
+<!DOCTYPE html>
+<html class="sl-theme-dark" id="base">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thesis</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.83/dist/themes/light.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.83/dist/themes/dark.css" />
+
+  <link type="text/css" rel="stylesheet" href="main.css" />
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.83/dist/shoelace.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<script type="text/javascript">
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.getElementById("base").classList.add('sl-theme-dark');
+  } else {
+    document.getElementById("base").classList.remove('sl-theme-dark');
+  }
+</script>
+
+</head>
+<body>
+  <sl-switch id="theme-toggle">Toggle Dark Mode</sl-switch>
+  <script type="text/javascript">
+    document.getElementById("theme-toggle").addEventListener("sl-change", function() {document.getElementById("base").classList.toggle("sl-theme-dark")});
+  </script>
+  <h1>Re-identification in court decisions</h1>
+
+  <sl-tab-group placement="end" class="tabs">
+    <sl-tab slot="nav" panel="log">Progress Log</sl-tab>
+    <sl-tab slot="nav" panel="models">Models</sl-tab>
+
+    <sl-tab-panel name="log">
+      <h2 style="font-weight: 300">Progress Log</h2>
+      <div class="log-section">
+        <div class="log-entry">
+          <h3>Fixing the Masking</h3>
+          <div class="tags">
+            <sl-badge variant="neutral">12.10.22</sl-badge>
+            <sl-badge variant="primary">v1</sl-badge>
+            <sl-badge variant="warning">REFACTORING</sl-badge>
+          </div>
+
+          <ul>
+            <li>Switched from replacing entities in the text with regex to replacing them with the index given by NER.</li>
+            <li>Added batching to NER so the tokenizer can tokenize the full input, allowing NER to detect all entities, not just within the first part of the text.</li>
+          </ul>
+
+          <h4>Masking is now correct, we mask a word for every entity detected.</h4>
+          <div class="img-compare">
+            <img src="images/mask_vs_entities_v2.png">
+            <img src="images/mask_vs_entities_v1.png">
+          </div>
+          </img>
+        </div>
+
+      </div>
+    </sl-tab-panel>
+
+    <sl-tab-panel name="models">
+      <sl-alert variant="warning" open>
+        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+        <strong>Oops!</strong><br />
+        Nothing here yet.
+      </sl-alert>
+    </sl-tab-panel>
+  </sl-tab-group>
+</body>
+</html>

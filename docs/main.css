@@ -1,0 +1,57 @@
+
+
+* {
+  font-family: roboto;
+  font-weight: 300;
+}
+
+body {
+  background-color:  var(--sl-color-neutral-200);
+  margin-left: 5vw;
+
+}
+
+.log-section {
+  margin-left: 6vw;
+}
+
+.log-entry {
+
+}
+
+.img-compare {
+  display: flex;
+}
+.img-compare img {
+  width: 40%;
+  max-width: 40%;
+  padding: 5px;
+}
+
+.tags {
+  margin-top: -15px;
+}
+
+#theme-toggle {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+
+/* Settings for large screens */
+@media screen and (min-width: 1200px) {
+  .tabs {
+    margin-right: 5vw;
+  }
+}
+
+/* Settings for small screens */
+/*@media screen and (max-width: 1200px) {
+  .image-compare {
+    display: block;
+  }
+  .image-compare img {
+    max-width: 90%;
+    width: 40%;
+  }
+}*/
