@@ -49,7 +49,9 @@ def save_to_csv(df, filepath):
 @functools.lru_cache(maxsize=1)
 def load_model(model_name='tuner007/pegasus_paraphrase'):
     print(f"Loading {model_name}")
-    tokenizer = PegasusTokenizer.from_pretrained(model_name)
+    # sadly there is no fast version of this tokenizer, so we use the one from the base pegasus model
+    # tokenizer = PegasusTokenizer.from_pretrained(model_name)
+    tokenizer = PegasusTokenizer.from_pretrained('google/pegasus-xsum', use_fast=True)
     logging.info("Using {} device".format(torch_device))
     model = PegasusForConditionalGeneration.from_pretrained(model_name).to(torch_device)
     return model, tokenizer
