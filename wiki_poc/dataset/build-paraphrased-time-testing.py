@@ -111,7 +111,7 @@ if __name__ == '__main__':
         sentencesCounts = batch['sentences'].apply(len)
 
         # flatten list of sentences
-        sentences = np.concatenate(batch['sentences'].values)
+        sentences = np.concatenate(batch['sentences'].values).tolist()
 
         # compute preprocessing time
         otherProcessingTime = time.time() - start
