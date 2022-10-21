@@ -97,48 +97,35 @@ if __name__ == '__main__':
     paraphrased_texts = []
 
     averagePageTimes = []
+    # averageProcessingTime = 0
     allStart = time.time()
-    # iterate over all wiki pages
-    for index, page in dataset.iterrows():
+    # NEW APPROACH:
+    # split dataset into chunks of 250 pages
+    # paraphrase batches of 250 pages
+    splitSize = 100
+    batches = np.split(dataset, [i for i in range(splitSize, dataset.shape[0], splitSize)])
 
-        # # skip page if already processed
-        # if (not pd.isnull(page['paraphrased_sentences'])):
-        #     logging.info('Skipping page # ' + str(index) + ", already processed.")
-        #     continue
-
-        if index > 99:
-            allEnd = time.time()
-            print("Overall 100 pages took: ")
-            print(allEnd - allStart)
-            break
-
-        logging.info("Processing page " + str(index) + "/" + str(dataset.shape[0]))
-        print("Processing page " + str(index) + "/" + str(dataset.shape[0]))
-
-        # start time
+    for batch in batches:
+        # save number of sentences for each page
         start = time.time()
+        sentencesCounts = batch['sentences'].apply(len)
 
-        # paraphrase_sentences = []
-        # iterate over all sentences in the wiki-page
-        # nb_sentences = len(page['sentences'])
-        # for sindex, sentence in enumerate(page['sentences']):
-        #     logging.info("processing sentence " + str(sindex) + "/" + str(nb_sentences))
-        #     print("processing sentence " + str(sindex) + "/" + str(nb_sentences))
-        #     paraphrase_sentences.append(paraphrase_sentence(sentence))
+        # flatten list of sentences
+        sentences = np.concatenate(batch['sentences'].values)
 
-        # append paraphrased sentences to dataset
-        dataset.at[index, 'paraphrased_sentences'] = paraphrase_sentence(page["sentences"])
+        # compute preprocessing time
+        otherProcessingTime = time.time() - start
 
-        # end time
+        # paraphrase sentences
+        paraphrased_sentences = paraphrase_sentence(sentences)
         end = time.time()
-        averagePageTimes.append(end - start)
-        # print average time per page
-        print("Average time per page: " + str(sum(averagePageTimes) / len(averagePageTimes)))
 
-        # intermediate saving after every 5th page
-        if (index % 5 == 0):
-            save_to_csv(dataset, dataset_file)
-            logging.info("Saved unparaphrased wiki-dataset to {} at page {}".format(dataset_file, index))
+        # split paraphrased sentences back into pages
+        batch['paraphrased_sentences'] = np.split(paraphrased_sentences, sentencesCounts.cumsum()[:-1])
 
-    save_to_csv(dataset, dataset_file)
-    logging.info("Saved unparaphrased wiki-dataset to {}".format(dataset_file))
+        # compute preprocessing time
+        otherProcessingTime += time.time() - end
+        print("otherProcessingTime: " + str(otherProcessingTime))
+        averagePageTimes.append((end - start) / splitSize)
+        print("averagePageTime: " + str(averagePageTimes[-1]))
+
