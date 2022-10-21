@@ -50,8 +50,8 @@ def save_to_csv(df, filepath):
 def load_model(model_name='tuner007/pegasus_paraphrase'):
     print(f"Loading {model_name}")
     # sadly there is no fast version of this tokenizer, so we use the one from the base pegasus model
-    # tokenizer = PegasusTokenizer.from_pretrained(model_name)
-    tokenizer = PegasusTokenizer.from_pretrained('google/pegasus-xsum', use_fast=True)
+    tokenizer = PegasusTokenizer.from_pretrained(model_name)
+    # tokenizer = PegasusTokenizer.from_pretrained('google/pegasus-xsum', use_fast=True)
     logging.info("Using {} device".format(torch_device))
     model = PegasusForConditionalGeneration.from_pretrained(model_name).to(torch_device)
     return model, tokenizer
@@ -70,7 +70,7 @@ def paraphrase_sentence(input_texts, num_return_sequences=1, num_beams=10, tempe
                                 num_return_sequences=num_return_sequences,
                                 temperature=temperature)
 
-    return tokenizer.batch_decode(translated, skip_special_tokens=True)[0]
+    return tokenizer.batch_decode(translated, skip_special_tokens=True)
 
 
 if __name__ == '__main__':
@@ -118,16 +118,16 @@ if __name__ == '__main__':
         # start time
         start = time.time()
 
-        paraphrase_sentences = []
+        # paraphrase_sentences = []
         # iterate over all sentences in the wiki-page
-        nb_sentences = len(page['sentences'])
-        for sindex, sentence in enumerate(page['sentences']):
-            logging.info("processing sentence " + str(sindex) + "/" + str(nb_sentences))
-            print("processing sentence " + str(sindex) + "/" + str(nb_sentences))
-            paraphrase_sentences.append(paraphrase_sentence(sentence))
+        # nb_sentences = len(page['sentences'])
+        # for sindex, sentence in enumerate(page['sentences']):
+        #     logging.info("processing sentence " + str(sindex) + "/" + str(nb_sentences))
+        #     print("processing sentence " + str(sindex) + "/" + str(nb_sentences))
+        #     paraphrase_sentences.append(paraphrase_sentence(sentence))
 
         # append paraphrased sentences to dataset
-        dataset.at[index, 'paraphrased_sentences'] = paraphrase_sentences
+        dataset.at[index, 'paraphrased_sentences'] = paraphrase_sentence(page["sentences"])
 
         # end time
         end = time.time()
