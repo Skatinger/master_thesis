@@ -97,6 +97,7 @@ if __name__ == '__main__':
     paraphrased_texts = []
 
     averagePageTimes = []
+    allStart = time.time()
     # iterate over all wiki pages
     for index, page in dataset.iterrows():
 
@@ -104,6 +105,12 @@ if __name__ == '__main__':
         # if (not pd.isnull(page['paraphrased_sentences'])):
         #     logging.info('Skipping page # ' + str(index) + ", already processed.")
         #     continue
+
+        if index > 99:
+            allEnd = time.time()
+            print("Overall 100 pages took: ")
+            print(allEnd - allStart)
+            break
 
         logging.info("Processing page " + str(index) + "/" + str(dataset.shape[0]))
         print("Processing page " + str(index) + "/" + str(dataset.shape[0]))
