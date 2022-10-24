@@ -4,33 +4,18 @@ import nltk
 import logging
 from datasets import load_from_disk
 # sigint handler
-import signal
-import sys
+import multiprocessing
 
-
-# allow signal handling
-def signal_handler(sig, frame):
-    logging.info("Received SIGINT, saving checkpoint")
-    global dataset
-    dataset.save_to_disk("./data")
-    logging.info("exiting")
-    sys.exit(0)
-
-
-signal.signal(signal.SIGTERM, signal_handler)
+# signal.signal(signal.SIGTERM, signal_handler)
 datasetPath = './data_reduced/'
 logging.getLogger().setLevel(logging.INFO)
 
 
 # use the SentencePiece model via nltk to split text into sentences
 # https://arxiv.org/pdf/1808.06226.pdf
-def split_to_sentences(text):
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        logging.info("Downloading nltk punkt tokenizer")
-        nltk.download('punkt')
-    return nltk.tokenize.sent_tokenize(text, language='english')
+def split_to_sentences(example) -> dict:
+    example['sentences'] = nltk.tokenize.sent_tokenize(example['text'], language='english')
+    return example
 
 
 # loads the wikipedia dataset from huggingface if it does not yet exist
@@ -48,12 +33,16 @@ if __name__ == '__main__':
     # read in the wiki-dataset
     dataset = load_wiki_dataset()
 
-    # batch dataset into chunks of 5000 to checkpoint progress
-    batch_size = 5000
-    batches = [dataset[i:i+batch_size] for i in range(0, len(dataset), batch_size)]
-    for i, batch in enumerate(batches):
-        logging.info(f"Processing batch {i+1}/{len(batches)}")
-        dataset = dataset.map(lambda example: {'sentences': split_to_sentences(example['raw'])}, batched=True, batch_size=batch_size, num_proc=4)
-        dataset.save_to_disk(datasetPath)
+    # ensure required nltk package is installed
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        logging.info("Downloading nltk punkt tokenizer")
+        nltk.download('punkt')
+
+    # use as many processes as possible
+    cpus = multiprocessing.cpu_count()
+    dataset = dataset.map(split_to_sentences, num_proc=cpus)
+    dataset.save_to_disk(datasetPath)
 
     logging.info("Saved unparaphrased wiki-dataset to {}".format(datasetPath))
