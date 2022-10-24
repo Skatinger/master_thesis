@@ -11,7 +11,7 @@
 
 
 
-## Scripts
+## Scripts for Wiki-POC
 Use either the `.py` file locally or on ubelix with your desired options, or run the `.sh` files for default options.
 Ensure you load python env and cuda when running without default options.
 
@@ -22,7 +22,7 @@ Ensure you load python env and cuda when running without default options.
 `build-masked`: uses the sentences preprocessed in `build-*` and masks entities identified as the person on which 
 the wikipedia article is about.
 
-## Good to Know
+### Good to Know
 Texts are split to sentences for paraphrasing only, as this will ensure the paraphrasing only does small changes on the
 sentence structure, but not change the full text. Sentences are then joined back together to a text, to improve the
 quality of NER, as well as the fill-mask afterwards.
@@ -32,3 +32,9 @@ quality of NER, as well as the fill-mask afterwards.
 
 
 `normal_text_masked`: contains the normal text once for every <mask>, so for 5 detected entities, it contains 5 texts with each entity masked once.  
+
+## Scripts for Wiki-Large
+- `prepare-wiki-large`: pulls wikipedia dataset and first 700'000 people from wikipedia, keeps only the 700'000 pages matching people
+- `clean-wiki-large`: removes bibliographies and unwanted sections, removes articles shorter than 6'000 characters
+- `build-unparaphrased`: splits raw text of pages into sentences
+- `build-paraphrased`: paraphrases sentences to separate dataset column
