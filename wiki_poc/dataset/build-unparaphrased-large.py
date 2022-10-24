@@ -42,6 +42,8 @@ if __name__ == '__main__':
 
     # use as many processes as possible
     cpus = multiprocessing.cpu_count()
+    # don't use more than 32 cores, parallelization overhead will decrease performance
+    cpus = min(cpus, 32)
     dataset = dataset.map(split_to_sentences, num_proc=cpus)
     dataset.save_to_disk(datasetPath)
 
