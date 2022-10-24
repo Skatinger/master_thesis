@@ -2,7 +2,7 @@
 #SBATCH --job-name="build-unparaphrased-large-wiki-dataset"
 #SBATCH --time=00:03:00
 #SBATCH --mem-per-cpu=10G
-#SBATCH --partition=gpu
+#SBATCH --partition=epyc2
 #SBATCH --qos=job_epyc2
 #SBATCH --mail-user=alex.nyffenegger@outlook.com
 
