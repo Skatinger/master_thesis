@@ -35,6 +35,23 @@
     <sl-tab-panel name="log">
       <h2 style="font-weight: 300">Progress Log</h2>
       <div class="log-section">
+
+        <!-- log entry -->
+        <div class="log-entry">
+          <h3>Paraphrasing Masks vs Normal Masks</h3>
+          <div class="tags">
+            <sl-badge variant="neutral">26.10.22</sl-badge>
+            <sl-badge variant="primary">v1.3</sl-badge>
+            <sl-badge variant="warning">REFACTORING</sl-badge>
+          </div>
+
+          <ul>
+            <li>Switch processing to huggingface datasets, include caching.</li>
+            <li>Fix memory issues for very long sentences, further improving paraphrasing performance.</li>
+          </ul>
+      </div>
+
+        <!-- log entry -->
         <div class="log-entry">
           <h3>Paraphrasing Masks vs Normal Masks</h3>
           <div class="tags">
@@ -44,21 +61,26 @@
           </div>
 
           <ul>
-            <li>Analyzed paraphrasing performance</li>
-            <li>Analysis of paraphrasing time</li>
+            <li>Analyzed paraphrasing performance.</li>
+            <li>Analysis of paraphrasing time.</li>
           </ul>
 
           <sl-details summary="Details">
-          <h4></h4>
+          <h4>Paraphrasing time</h4>
+          <p>With approximately 9 days running time for the first version, the time is now down to 9 hours.
+          Increasing batch sizes, ditching sentences which are way too long and removing sections which cause the
+          tokenizer to generate a lot of tokens for words it does know have in its default dictionary made the process
+          much faster.</p>
           <h4>Results for Paraphrasing</h4>
           <p>Comparing the number of masks with the length of input texts,
           we find that paraphrased texts are on average one quarter shorter 
         than unparaphrased texts. The number of masks to text length is very similar between paraphrased and normal text (trendline). The average number of masks is about one quarter lower for paraphrased texts, which fits the shorter overall text length of paraphrased sentences. This is good news, it means paraphrasing does not lose any entities for reidentifaction.</p>
           <div class="img-container">
             <figure>
-            <img src="images/masks_vs_text_length.png">
-            <figcaption>Comparison of number of masks to length of text for normal and paraphrased text</figcaption>
-          </figure>
+              <img src="images/masks_vs_text_length.png">
+              <figcaption>Comparison of number of masks to length of text for normal and paraphrased text
+              </figcaption>
+            </figure>
           </div>
           <p>Comparing masks per sentence gives a better resolution on masks compared to their importance within sentences.</p>
           <div class="img-container">
@@ -69,36 +91,32 @@
           </div>
 
         </sl-details>
-          
-            
-          <!-- </div> -->
-          </img>
+      </div>
+
+      <div class="log-entry">
+        <h3>Fixing the Masking</h3>
+        <div class="tags">
+          <sl-badge variant="neutral">12.10.22</sl-badge>
+          <sl-badge variant="primary">v1</sl-badge>
+          <sl-badge variant="warning">REFACTORING</sl-badge>
         </div>
 
-        <div class="log-entry">
-          <h3>Fixing the Masking</h3>
-          <div class="tags">
-            <sl-badge variant="neutral">12.10.22</sl-badge>
-            <sl-badge variant="primary">v1</sl-badge>
-            <sl-badge variant="warning">REFACTORING</sl-badge>
+        <ul>
+          <li>Switched from replacing entities in the text with regex to replacing them with the index given by NER.</li>
+          <li>Added batching to NER so the tokenizer can tokenize the full input, allowing NER to detect all entities, not just within the first part of the text.</li>
+        </ul>
+
+        <sl-details summary="Details">
+          <h4>Masking is now correct, we mask a word for every entity detected.</h4>
+          <div class="img-compare">
+            <figure>
+            <img src="images/mask_vs_entities_v2.png">
+
+            <img src="images/mask_vs_entities_v1.png">
+            </figure>
           </div>
-
-          <ul>
-            <li>Switched from replacing entities in the text with regex to replacing them with the index given by NER.</li>
-            <li>Added batching to NER so the tokenizer can tokenize the full input, allowing NER to detect all entities, not just within the first part of the text.</li>
-          </ul>
-
-          <sl-details summary="Details">
-            <h4>Masking is now correct, we mask a word for every entity detected.</h4>
-            <div class="img-compare">
-              <figure>
-              <img src="images/mask_vs_entities_v2.png">
-
-              <img src="images/mask_vs_entities_v1.png">
-              </figure>
-            </div>
-          </sl-details>
-        </div>
+        </sl-details>
+      </div>
 
       </div>
     </sl-tab-panel>

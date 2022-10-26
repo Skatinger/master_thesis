@@ -19,6 +19,10 @@ sl-details::part(base) {
   background-color: var(--sl-color-neutral-100);
 }
 
+.log-entry {
+  margin-top: 6vh;
+}
+
 .log-entry h3 {
   margin-left: -2vh;
   font-weight: var(--sl-font-weight-semibold);
