@@ -44,4 +44,5 @@ if __name__ == '__main__':
     logging.info("Removing pages with less than 6'000 characters")
     dataset = dataset.filter(lambda x: len(x['text']) > 6000)
     # save the dataset
+    logging.info("Saving dataset to disk")
     dataset.save_to_disk("./data_reduced")
