@@ -15,8 +15,13 @@ body {
   margin-left: 6vw;
 }
 
-.log-entry {
+sl-details::part(base) {
+  background-color: var(--sl-color-neutral-100);
+}
 
+.log-entry h3 {
+  margin-left: -2vh;
+  font-weight: var(--sl-font-weight-semibold);
 }
 
 .img-compare {
@@ -26,6 +31,14 @@ body {
   width: 40%;
   max-width: 40%;
   padding: 5px;
+}
+
+.img-container {
+  display: flex;
+}
+
+.img-container img {
+  width: 100%;
 }
 
 .tags {
@@ -46,7 +59,7 @@ body {
 }
 
 /* Settings for small screens */
-/*@media screen and (max-width: 1200px) {
+@media screen and (max-width: 1200px) {
   .image-compare {
     display: block;
   }
@@ -54,4 +67,4 @@ body {
     max-width: 90%;
     width: 40%;
   }
-}*/
+}

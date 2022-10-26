@@ -36,6 +36,46 @@
       <h2 style="font-weight: 300">Progress Log</h2>
       <div class="log-section">
         <div class="log-entry">
+          <h3>Paraphrasing Masks vs Normal Masks</h3>
+          <div class="tags">
+            <sl-badge variant="neutral">20.10.22</sl-badge>
+            <sl-badge variant="primary">v1.2</sl-badge>
+            <sl-badge variant="warning">ANALYSIS</sl-badge>
+          </div>
+
+          <ul>
+            <li>Analyzed paraphrasing performance</li>
+            <li>Analysis of paraphrasing time</li>
+          </ul>
+
+          <sl-details summary="Details">
+          <h4></h4>
+          <h4>Results for Paraphrasing</h4>
+          <p>Comparing the number of masks with the length of input texts,
+          we find that paraphrased texts are on average one quarter shorter 
+        than unparaphrased texts. The number of masks to text length is very similar between paraphrased and normal text (trendline). The average number of masks is about one quarter lower for paraphrased texts, which fits the shorter overall text length of paraphrased sentences. This is good news, it means paraphrasing does not lose any entities for reidentifaction.</p>
+          <div class="img-container">
+            <figure>
+            <img src="images/masks_vs_text_length.png">
+            <figcaption>Comparison of number of masks to length of text for normal and paraphrased text</figcaption>
+          </figure>
+          </div>
+          <p>Comparing masks per sentence gives a better resolution on masks compared to their importance within sentences.</p>
+          <div class="img-container">
+            <figure>
+              <img src="images/masks_vs_sentences_count.png">
+              <figcaption>Comparison of number of masks per sentence for normal and paraphrased text in model</figcaption>
+            </figure>
+          </div>
+
+        </sl-details>
+          
+            
+          <!-- </div> -->
+          </img>
+        </div>
+
+        <div class="log-entry">
           <h3>Fixing the Masking</h3>
           <div class="tags">
             <sl-badge variant="neutral">12.10.22</sl-badge>
@@ -48,12 +88,16 @@
             <li>Added batching to NER so the tokenizer can tokenize the full input, allowing NER to detect all entities, not just within the first part of the text.</li>
           </ul>
 
-          <h4>Masking is now correct, we mask a word for every entity detected.</h4>
-          <div class="img-compare">
-            <img src="images/mask_vs_entities_v2.png">
-            <img src="images/mask_vs_entities_v1.png">
-          </div>
-          </img>
+          <sl-details summary="Details">
+            <h4>Masking is now correct, we mask a word for every entity detected.</h4>
+            <div class="img-compare">
+              <figure>
+              <img src="images/mask_vs_entities_v2.png">
+
+              <img src="images/mask_vs_entities_v1.png">
+              </figure>
+            </div>
+          </sl-details>
         </div>
 
       </div>
