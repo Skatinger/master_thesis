@@ -1,10 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name="build-unparaphrased-large-wiki-dataset"
-#SBATCH --time=00:03:00
+#SBATCH --time=00:30:00
 #SBATCH --mem-per-cpu=10G
 #SBATCH --partition=epyc2
 #SBATCH --qos=job_epyc2
 #SBATCH --mail-user=alex.nyffenegger@outlook.com
+#SBATCH --mail-type=end,fail
 
 # Your code below this line
 module load Anaconda3
