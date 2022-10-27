@@ -1,6 +1,11 @@
 # helper script to download and save large wikipedia dataset on ubelix
 # pulls a list of 700'000 people from wikidata, and only keeps wikipedia
 # articles from this list of people.
+# if an errors occurs in json.decoder, it's most likely that the wikipedia
+# api had a timeout and rendered a java stacktrace into the response. Just
+# rerun the script, or reduce the number of persons to query from wikipedia.
+# If the error persists, check the last 500 characters of the response
+# in `query_wiki_persons()` for the error message.
 
 import logging
 from datasets import load_dataset
@@ -31,5 +36,5 @@ if __name__ == '__main__':
     logging.info("filtering wiki database for persons")
     filteredDataset = dataset.filter(lambda example: example['title'] in persons)
     # save to disk for later usage
-    logging.info("storing database")
+    logging.info("storing database to ./data/")
     filteredDataset.save_to_disk("./data/")
