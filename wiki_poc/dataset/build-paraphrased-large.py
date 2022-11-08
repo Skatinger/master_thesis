@@ -113,9 +113,9 @@ if __name__ == '__main__':
         sentences = np.concatenate(shard['sentences']).tolist()
 
         # sometimes the pages in the current page cummulatively contain too many sentences
-        # to be processed by the model at once, so we split them into chunks of 100 sentences
+        # to be processed by the model at once, so we split them into chunks of 10 sentences
         paraphrased_sentences = []
-        for sentences_batch in np.split(sentences, np.arange(100, len(sentences), 100)):
+        for sentences_batch in np.array_split(sentences, 10):
             paraphrased_sentences.extend(paraphrase_sentences(sentences_batch.tolist()))
 
         # split paraphrased sentences back into their pages
