@@ -93,7 +93,9 @@ if __name__ == '__main__':
     dataset = load_wiki_dataset()
 
     # split dataset into shards of `splitSize` pages for faster processing
-    splitSize = 1
+    # ERROR when using splitsize 1 -> get single shards which then produces one long text
+    # instead of multiple sentences belonging to several pages
+    splitSize = 2
     nbShards = round(len(dataset) / splitSize)
     shards = get_shards(nbShards, dataset)
     count = 0
@@ -110,8 +112,11 @@ if __name__ == '__main__':
         # model cannot handle numpy arrays
         sentences = np.concatenate(shard['sentences']).tolist()
 
-        # paraphrase sentences array
-        paraphrased_sentences = paraphrase_sentences(sentences)
+        # sometimes the pages in the current page cummulatively contain too many sentences
+        # to be processed by the model at once, so we split them into chunks of 100 sentences
+        paraphrased_sentences = []
+        for sentences_batch in np.split(sentences, np.arange(100, len(sentences), 100)):
+            paraphrased_sentences.extend(paraphrase_sentences(sentences_batch.tolist()))
 
         # split paraphrased sentences back into their pages
         shard['paraphrased_sentences'] = np.split(paraphrased_sentences, sentencesCounts.cumsum()[:-1])
