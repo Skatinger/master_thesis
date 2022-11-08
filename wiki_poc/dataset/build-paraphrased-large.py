@@ -115,8 +115,10 @@ if __name__ == '__main__':
         # sometimes the pages in the current page cummulatively contain too many sentences
         # to be processed by the model at once, so we split them into chunks of 10 sentences
         paraphrased_sentences = []
-        for sentences_batch in np.array_split(sentences, 10):
-            paraphrased_sentences.extend(paraphrase_sentences(sentences_batch.tolist()))
+        chunkSize = 10
+        for i in range(0, len(sentences), chunkSize):
+            chunk = sentences[i:i + chunkSize]
+            paraphrased_sentences.extend(paraphrase_sentences(chunk))
 
         # split paraphrased sentences back into their pages
         shard['paraphrased_sentences'] = np.split(paraphrased_sentences, sentencesCounts.cumsum()[:-1])
