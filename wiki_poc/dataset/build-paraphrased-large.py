@@ -44,13 +44,13 @@ def load_model(model_name='tuner007/pegasus_paraphrase'):
     return model, tokenizer
 
 
-# loads the wikipedia dataset from huggingface if it does not yet exist
+# loads the wikipedia dataset from the configured datasetPath
 def load_wiki_dataset():
     logging.info('Loading dataset...')
     try:
         return load_from_disk(datasetPath)
     except ValueError as err:
-        logging.warning("Specified dataset at ./data not available")
+        logging.warning("Specified dataset at {} not available".format(datasetPath))
         logging.warning(err)
         quit()
 
@@ -97,7 +97,8 @@ if __name__ == '__main__':
     nbShards = round(len(dataset) / splitSize)
     shards = get_shards(nbShards, dataset)
     count = 0
-    for shard in shards:
+    for index, shard in enumerate(shards):
+        logging.info("Processing shard {}/{}".format(index, nbShards))
         count += 1
         if count > 2:
             break
