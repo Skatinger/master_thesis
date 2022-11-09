@@ -117,6 +117,7 @@ if __name__ == '__main__':
     numShards = 10
     for shardIndex in range(0, numShards):
         # apply paraphrasing, will automatically be cached
+        logging.info("Processing shard {}/{}".format(shardIndex, numShards))
         dataset.shard(numShards, shardIndex).map(process_page, batched=True, batch_size=10)
 
     # save to disk
