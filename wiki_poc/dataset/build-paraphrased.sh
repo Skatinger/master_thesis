@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name="paraphrase-wiki-dataset"
 #SBATCH --time=10:00:00
-#SBATCH --mem-per-cpu=10G
+#SBATCH --mem-per-cpu=50G
 #SBATCH --partition=gpu
 #SBATCH --qos=job_gpu_preempt
 #SBATCH --gres=gpu:rtx3090
