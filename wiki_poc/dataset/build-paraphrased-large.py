@@ -19,13 +19,14 @@ import sys
 def signal_handler(_sig, _frame):
     logging.info("Received SIGINT, saving checkpoint")
     global dataset
-    dataset.save_to_disk('build_paraphrased_savepoint')
+    dataset.save_to_disk(savepointPath)
     logging.info("exiting")
     sys.exit(0)
 
 
 signal.signal(signal.SIGTERM, signal_handler)
 datasetPath = './data_unparaphrased/'
+savepointPath = './build_paraphrased_savepoint'
 logging.getLogger().setLevel(logging.INFO)
 
 # ensure error stack is printed when an error occurs on the GPU / Computing Cluster
@@ -47,6 +48,10 @@ def load_model(model_name='tuner007/pegasus_paraphrase'):
 # loads the wikipedia dataset from the configured datasetPath
 def load_wiki_dataset():
     logging.info('Loading dataset...')
+    # first try loading from savepoint
+    try:
+        return load_from_disk(savepointPath)
+    except ValueError:
     try:
         return load_from_disk(datasetPath)
     except ValueError as err:
