@@ -22,8 +22,6 @@ def signal_handler(_sig, _frame):
 
 
 signal.signal(signal.SIGTERM, signal_handler)
-datasetPath = './data_unparaphrased/'
-savepointPath = './build_paraphrased_savepoint'
 logging.getLogger().setLevel(logging.INFO)
 
 # ensure error stack is printed when an error occurs on the GPU / Computing Cluster
@@ -43,7 +41,7 @@ def load_model(model_name='tuner007/pegasus_paraphrase'):
 
 
 # loads the wikipedia dataset from the configured datasetPath
-def load_wiki_dataset():
+def load_wiki_dataset(datasetPath):
     logging.info('Loading dataset...')
     try:
         logging.info("Loading from {}".format(datasetPath))
@@ -105,10 +103,22 @@ def process_page(examples):
 
 
 if __name__ == '__main__':
-    # read in the wiki-dataset
-    dataset = load_wiki_dataset()
-    # apply paraphrasing to each page
-    dataset.map(process_page, num_proc=2, batched=True, batch_size=8)
+    # read in the wiki-dataset shard
+    shardNumber = sys.argv[1]
+    # ensure the shard number is a valid integer
+    assert shardNumber.isdigit(), "Shard number must be an integer"
+
+    # load the dataset
+    datasetPath = "./data_unparaphrased_shard_{}".format(shardNumber)
+    dataset = load_wiki_dataset(datasetPath)
+
+    # create 10 shards to cache results more often (once per map call)),
+    # this gives 70k/4 per job, and 70k/40 per shard (1700 pages per shard)
+    numShards = 10
+    for shardIndex in range(0, numShards):
+        # apply paraphrasing, will automatically be cached
+        dataset.shard(numShards, shardIndex).map(process_page, batched=True, batch_size=10)
+
     # save to disk
     targetFolder = './data_paraphrased/'
     logging.info("Saving to {}".format(targetFolder))
