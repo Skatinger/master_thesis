@@ -52,12 +52,12 @@ def load_wiki_dataset():
     try:
         return load_from_disk(savepointPath)
     except ValueError:
-    try:
-        return load_from_disk(datasetPath)
-    except ValueError as err:
-        logging.warning("Specified dataset at {} not available".format(datasetPath))
-        logging.warning(err)
-        quit()
+        try:
+            return load_from_disk(datasetPath)
+        except ValueError as err:
+            logging.warning("Specified dataset at {} not available".format(datasetPath))
+            logging.warning(err)
+            quit()
 
 
 def paraphrase_sentences(input_texts):
@@ -103,12 +103,12 @@ if __name__ == '__main__':
     splitSize = 2
     nbShards = round(len(dataset) / splitSize)
     shards = get_shards(nbShards, dataset)
-    count = 0
+    # used to track to which dataset row a row in each shard belongs to assign them faster
+    datasetIndex = 0
+
     for index, shard in enumerate(shards):
         logging.info("Processing shard {}/{}".format(index, nbShards))
-        count += 1
-        if count > 2:
-            break
+
         # save number of sentences for each page, to match them
         # to the correct page after paraphrasing
         sentencesCounts = np.vectorize(len)(shard['sentences'])
@@ -117,7 +117,7 @@ if __name__ == '__main__':
         # model cannot handle numpy arrays
         sentences = np.concatenate(shard['sentences']).tolist()
 
-        # sometimes the pages in the current page cummulatively contain too many sentences
+        # sometimes the pages in the current shard cummulatively contain too many sentences
         # to be processed by the model at once, so we split them into chunks of 10 sentences
         paraphrased_sentences = []
         chunkSize = 10
@@ -126,7 +126,14 @@ if __name__ == '__main__':
             paraphrased_sentences.extend(paraphrase_sentences(chunk))
 
         # split paraphrased sentences back into their pages
-        shard['paraphrased_sentences'] = np.split(paraphrased_sentences, sentencesCounts.cumsum()[:-1])
+        # first define an array of indices specifying to which original dataset row the sentences belong,
+        # allowing to assign them faster
+        datasetIndices = list(range(datasetIndex, datasetIndex + len(shard)))
+        for i, paraphrased in zip(datasetIndices, np.split(paraphrased_sentences, sentencesCounts.cumsum()[:-1])):
+            dataset[i]['sentences'] = paraphrased
+
+        # datasetIndex increases by the size of the shard
+        datasetIndex += len(shard)
 
     # join shards back together to a full dataset
     dataset = concatenate_datasets(shards, axis=1)
