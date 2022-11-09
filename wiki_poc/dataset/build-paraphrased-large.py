@@ -99,8 +99,9 @@ if __name__ == '__main__':
     # read in the wiki-dataset
     dataset = load_wiki_dataset()
 
-    # add paraphrased column
-    dataset = dataset.add_column('paraphrased_sentences', [""] * len(dataset))
+    # add paraphrased column if not already present
+    if 'paraphrased' not in dataset.features.keys():
+        dataset = dataset.add_column('paraphrased_sentences', [""] * len(dataset))
 
     # split dataset into shards of `splitSize` pages for faster processing
     # ERROR when using splitsize 1 -> get single shards which then produces one long text
