@@ -7,9 +7,13 @@
 
 
 ## Ubelix
+When running on a normal machine all scripts can be executed directly. To run on ubelix, slurm jobs have to be defined
+as bash scripts. For all scripts different bash scripts are available. Configure to your needs or create new ones.
+To create new ones, use the [HPC Documentation](https://hpc-unibe-ch.github.io/) or copy one of `generic-cpu-job.sh`
+or `generic-gpu-job.sh`. They serve as templates or to quickly run a short job without overhead.
 
-
-
+Before running a job ensure that a python env is configured. Check HPC Documentation on how to do this.
+For members of the NRP77 research project, an environment `standard-nlp` is ready to use and set as default in most scripts.
 
 ## Scripts for Wiki-POC
 Use either the `.py` file locally or on ubelix with your desired options, or run the `.sh` files for default options.
@@ -30,7 +34,7 @@ quality of NER, as well as the fill-mask afterwards.
 ### Fields of the datasets
 `id`: the id of the data page within the wiki dataset  
 `normal_text_masked`: contains the normal text once for every <mask>, so for 5 detected entities, it contains 5 texts with each entity masked once.  
-
+##### TODO: document all fields
 ## Scripts and Pipeline for Wiki-Large
 1. `prepare-wiki-large`:
     pulls wikipedia dataset and first 700'000 people from wikipedia via sparql query on wikidata. Only keeps wikipedia pages
