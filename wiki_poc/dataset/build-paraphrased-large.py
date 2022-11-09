@@ -9,7 +9,7 @@ import numpy as np
 import logging
 from transformers import PegasusForConditionalGeneration, PegasusTokenizer
 import torch
-from datasets import load_from_disk, concatenate_datasets
+from datasets import load_from_disk
 # sigint handler
 import signal
 import sys
@@ -50,9 +50,11 @@ def load_wiki_dataset():
     logging.info('Loading dataset...')
     # first try loading from savepoint
     try:
+        logging.info("Trying to load from savepoint")
         return load_from_disk(savepointPath)
     except (FileNotFoundError, ValueError):
         try:
+            logging.info("No savepoint found. Loading from {}".format(datasetPath))
             return load_from_disk(datasetPath)
         except ValueError as err:
             logging.warning("Specified dataset at {} not available".format(datasetPath))
@@ -97,6 +99,9 @@ if __name__ == '__main__':
     # read in the wiki-dataset
     dataset = load_wiki_dataset()
 
+    # add paraphrased column
+    dataset = dataset.add_column('paraphrased_sentences', [""] * len(dataset))
+
     # split dataset into shards of `splitSize` pages for faster processing
     # ERROR when using splitsize 1 -> get single shards which then produces one long text
     # instead of multiple sentences belonging to several pages
@@ -108,7 +113,7 @@ if __name__ == '__main__':
 
     for index, shard in enumerate(shards):
         # skip shard if last of its rows has already been processed
-        if ('paraphrased_sentences' in shard.features.keys()):
+        if (shard['paraphrased_sentences'][-1] != ""):
             logging.info("Skipping shard {}/{} as it has already been processed".format(index, nbShards))
             datasetIndex += len(shard)
             continue
@@ -141,10 +146,7 @@ if __name__ == '__main__':
         # datasetIndex increases by the size of the shard
         datasetIndex += len(shard)
 
-    # join shards back together to a full dataset
-    dataset = concatenate_datasets(shards, axis=1)
-
     # save to disk
-    folder = './data_paraphrased/'
-    logging.info("Saving to {}".format(folder))
-    dataset.save_to_disk(folder)
+    targetFolder = './data_paraphrased/'
+    logging.info("Saving to {}".format(targetFolder))
+    dataset.save_to_disk(targetFolder)
