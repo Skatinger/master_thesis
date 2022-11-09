@@ -17,4 +17,4 @@ eval "$(conda shell.bash hook)"
 conda activate standard-nlp
 
 # start 4 jobs in parallel, each with a different shard to process
-srun python build-paraphrased.py ${SLURM_ARRAY_TASK_ID}
+srun python build-paraphrased-large.py ${SLURM_ARRAY_TASK_ID}
