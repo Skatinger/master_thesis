@@ -135,7 +135,7 @@ if __name__ == '__main__':
         chunkSize = 40
         for i in range(0, len(sentences), chunkSize):
             chunk = sentences[i:i + chunkSize]
-            paraphrased_sentences.extend(chunk)
+            paraphrased_sentences.extend(paraphrase_sentences(chunk))
 
         # split paraphrased sentences back into their pages
         # first define an array of indices specifying to which original dataset row the sentences belong to assign them
