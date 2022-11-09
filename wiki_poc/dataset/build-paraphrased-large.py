@@ -51,7 +51,7 @@ def load_wiki_dataset():
     # first try loading from savepoint
     try:
         return load_from_disk(savepointPath)
-    except ValueError:
+    except (FileNotFoundError, ValueError):
         try:
             return load_from_disk(datasetPath)
         except ValueError as err:
@@ -107,6 +107,12 @@ if __name__ == '__main__':
     datasetIndex = 0
 
     for index, shard in enumerate(shards):
+        # skip shard if last of its rows has already been processed
+        if ('paraphrased_sentences' in shard.features.keys()):
+            logging.info("Skipping shard {}/{} as it has already been processed".format(index, nbShards))
+            datasetIndex += len(shard)
+            continue
+
         logging.info("Processing shard {}/{}".format(index, nbShards))
 
         # save number of sentences for each page, to match them
@@ -130,7 +136,7 @@ if __name__ == '__main__':
         # allowing to assign them faster
         datasetIndices = list(range(datasetIndex, datasetIndex + len(shard)))
         for i, paraphrased in zip(datasetIndices, np.split(paraphrased_sentences, sentencesCounts.cumsum()[:-1])):
-            dataset[i]['sentences'] = paraphrased
+            dataset[i]['paraphrased_sentences'] = paraphrased
 
         # datasetIndex increases by the size of the shard
         datasetIndex += len(shard)
