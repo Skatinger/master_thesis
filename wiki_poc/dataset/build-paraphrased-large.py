@@ -17,10 +17,7 @@ import sys
 
 # allow signal handling on jobs
 def signal_handler(_sig, _frame):
-    logging.info("Received SIGINT, saving checkpoint")
-    global dataset
-    dataset.save_to_disk(savepointPath)
-    logging.info("exiting")
+    logging.info("Received SIGINT, terminating")
     sys.exit(0)
 
 
@@ -48,18 +45,13 @@ def load_model(model_name='tuner007/pegasus_paraphrase'):
 # loads the wikipedia dataset from the configured datasetPath
 def load_wiki_dataset():
     logging.info('Loading dataset...')
-    # first try loading from savepoint
     try:
-        logging.info("Trying to load from savepoint")
-        return load_from_disk(savepointPath)
-    except (FileNotFoundError, ValueError):
-        try:
-            logging.info("No savepoint found. Loading from {}".format(datasetPath))
-            return load_from_disk(datasetPath)
-        except ValueError as err:
-            logging.warning("Specified dataset at {} not available".format(datasetPath))
-            logging.warning(err)
-            quit()
+        logging.info("Loading from {}".format(datasetPath))
+        return load_from_disk(datasetPath)
+    except ValueError as err:
+        logging.warning("Specified dataset at {} not available".format(datasetPath))
+        logging.warning(err)
+        quit()
 
 
 def paraphrase_sentences(input_texts):
@@ -87,66 +79,36 @@ def paraphrase_sentences(input_texts):
     return tokenizer.batch_decode(translated, skip_special_tokens=True)
 
 
-# splits a dataset into nbShards, returning an array of shards
-def get_shards(nbShards, dataset):
-    shards = []
-    for i in range(nbShards):
-        shards.append(dataset.shard(num_shards=nbShards, index=i))
-    return shards
+# generator that yields chunks of size n from a list
+def chunks(lst, chunk_size=30):
+    for i in range(0, len(lst), chunk_size):
+        yield lst[i:i + chunk_size]
+
+
+# takes a batch of wiki pages and paraphrases them, returns the list of paraphrased sentences for each page
+def process_page(examples):
+    # store the number of sentences for each page passed in the batch
+    sentencesCounts = np.vectorize(len)(examples['sentences'])
+
+    # flatten list of sentences for 1D array, and cast to python list
+    # as pegasus model cannot handle numpy arrays
+    sentences = np.concatenate(examples['sentences']).tolist()
+
+    # sometimes the pages in the current examples cummulatively contain too many sentences
+    # to be processed by the model at once, so we split them into chunks of 40 sentences
+    paraphrased_sentences = []
+    for chunk in chunks(sentences, 40):
+        paraphrased_sentences.extend(paraphrase_sentences(chunk))
+
+    # split paraphrased sentences back into arrays of sentences for each page
+    return {"paraphrased_sentences": np.split(paraphrased_sentences, sentencesCounts.cumsum()[:-1])}
 
 
 if __name__ == '__main__':
     # read in the wiki-dataset
     dataset = load_wiki_dataset()
-
-    # add paraphrased column if not already present
-    if 'paraphrased_sentences' not in dataset.features.keys():
-        dataset = dataset.add_column('paraphrased_sentences', [""] * len(dataset))
-
-    # split dataset into shards of `splitSize` pages for faster processing
-    # ERROR when using splitsize 1 -> get single shards which then produces one long text
-    # instead of multiple sentences belonging to several pages
-    splitSize = 2
-    nbShards = round(len(dataset) / splitSize)
-    shards = get_shards(nbShards, dataset)
-    # used to track to which dataset row a row in each shard belongs to assign them faster
-    datasetIndex = 0
-
-    for index, shard in enumerate(shards):
-        # skip shard if last of its rows has already been processed
-        if (shard['paraphrased_sentences'][-1] != ""):
-            logging.info("Skipping shard {}/{} as it has already been processed".format(index, nbShards))
-            datasetIndex += len(shard)
-            continue
-
-        logging.info("Processing shard {}/{}".format(index, nbShards))
-
-        # save number of sentences for each page, to match them
-        # to the correct page after paraphrasing
-        sentencesCounts = np.vectorize(len)(shard['sentences'])
-
-        # flatten list of sentences for 1D array, and cast to python list as pegasus
-        # model cannot handle numpy arrays
-        sentences = np.concatenate(shard['sentences']).tolist()
-
-        # sometimes the pages in the current shard cummulatively contain too many sentences
-        # to be processed by the model at once, so we split them into chunks of 40 sentences
-        paraphrased_sentences = []
-        chunkSize = 40
-        for i in range(0, len(sentences), chunkSize):
-            chunk = sentences[i:i + chunkSize]
-            paraphrased_sentences.extend(paraphrase_sentences(chunk))
-
-        # split paraphrased sentences back into their pages
-        # first define an array of indices specifying to which original dataset row the sentences belong to assign them
-        datasetIndices = list(range(datasetIndex, datasetIndex + len(shard)))
-        for paraphrased in np.split(paraphrased_sentences, sentencesCounts.cumsum()[:-1]):
-            # assign paraphrased sentences to the correct dataset row
-            dataset.select(datasetIndices).map(lambda _: {'paraphrased_sentences': paraphrased})
-
-        # datasetIndex increases by the size of the shard
-        datasetIndex += len(shard)
-
+    # apply paraphrasing to each page
+    dataset.map(process_page, num_proc=2, batched=True, batch_size=8)
     # save to disk
     targetFolder = './data_paraphrased/'
     logging.info("Saving to {}".format(targetFolder))
