@@ -100,7 +100,7 @@ if __name__ == '__main__':
     dataset = load_wiki_dataset()
 
     # add paraphrased column if not already present
-    if 'paraphrased' not in dataset.features.keys():
+    if 'paraphrased_sentences' not in dataset.features.keys():
         dataset = dataset.add_column('paraphrased_sentences', [""] * len(dataset))
 
     # split dataset into shards of `splitSize` pages for faster processing
