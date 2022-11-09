@@ -44,6 +44,11 @@ quality of NER, as well as the fill-mask afterwards.
     "Token indices sequence too long", which is fine. It indicates that the sentence will be truncated. Saved to `./data_reduced`
 3. `build-unparaphrased-large`:
     splits raw text of pages into sentences. Saved to `./data_unparaphrased`
-4. `build-paraphrased-large`:
-    paraphrases sentences to separate dataset column. Checkpoints at `.build_paraphrased_checkpoint`, final result saved to `./data_paraphrased`
+4. `create-shards.py`:
+    small helper which creates shards of the unparaphrased dataset to allow running several jobs at once when executing
+    the paraphrasing. This solves some caching problems and is easier than paralellizing the paraphrasing job.
+    Saves shards to `./data_unparaphrased_shard_<index>`
+5. `build-paraphrased-large.py <shard-index>`:
+    paraphrases sentences to separate dataset column. Takes as argument the number of the shard it should process.
+    Final result saved to `./data_paraphrased`
 
