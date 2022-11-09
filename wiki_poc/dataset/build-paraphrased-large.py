@@ -130,19 +130,19 @@ if __name__ == '__main__':
         sentences = np.concatenate(shard['sentences']).tolist()
 
         # sometimes the pages in the current shard cummulatively contain too many sentences
-        # to be processed by the model at once, so we split them into chunks of 10 sentences
+        # to be processed by the model at once, so we split them into chunks of 40 sentences
         paraphrased_sentences = []
-        chunkSize = 10
+        chunkSize = 40
         for i in range(0, len(sentences), chunkSize):
             chunk = sentences[i:i + chunkSize]
-            paraphrased_sentences.extend(paraphrase_sentences(chunk))
+            paraphrased_sentences.extend(chunk)
 
         # split paraphrased sentences back into their pages
-        # first define an array of indices specifying to which original dataset row the sentences belong,
-        # allowing to assign them faster
+        # first define an array of indices specifying to which original dataset row the sentences belong to assign them
         datasetIndices = list(range(datasetIndex, datasetIndex + len(shard)))
-        for i, paraphrased in zip(datasetIndices, np.split(paraphrased_sentences, sentencesCounts.cumsum()[:-1])):
-            dataset[i]['paraphrased_sentences'] = paraphrased
+        for paraphrased in np.split(paraphrased_sentences, sentencesCounts.cumsum()[:-1]):
+            # assign paraphrased sentences to the correct dataset row
+            dataset.select(datasetIndices).map(lambda _: {'paraphrased_sentences': paraphrased})
 
         # datasetIndex increases by the size of the shard
         datasetIndex += len(shard)
