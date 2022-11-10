@@ -7,7 +7,7 @@
 #SBATCH --gres=gpu:rtx3090
 #SBATCH --mail-user=alex.nyffenegger@outlook.com
 #SBATCH --mail-type=end,fail
-#SBATCH --array=0-3
+#SBATCH --array=0-7
 
 # Your code below this line
 module load Anaconda3
