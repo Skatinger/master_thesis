@@ -121,6 +121,6 @@ if __name__ == '__main__':
         dataset.shard(numShards, shardIndex).map(process_page, batched=True, batch_size=10)
 
     # save to disk
-    targetFolder = './data_paraphrased/'
+    targetFolder = "./data_paraphrased_shard_{}/".format(shardNumber)
     logging.info("Saving to {}".format(targetFolder))
     dataset.save_to_disk(targetFolder)
