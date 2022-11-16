@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name="paraphrase-wiki-dataset"
-#SBATCH --time 35:00:00
+#SBATCH --time 10:00:00
 #SBATCH --mem-per-cpu=50G
 #SBATCH --partition=gpu
 #SBATCH --qos=job_gpu_preempt
@@ -16,5 +16,5 @@ module load CUDA
 eval "$(conda shell.bash hook)"
 conda activate standard-nlp
 
-# start 4 jobs in parallel, each with a different shard to process
+# start 7 jobs in parallel, each with a different shard to process
 srun python build-paraphrased-large.py ${SLURM_ARRAY_TASK_ID}
