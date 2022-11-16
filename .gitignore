@@ -15,3 +15,6 @@ wiki_poc/dataset/wiki-dataset-*
 wiki_poc/dataset/results/data_v1/wiki-dataset.csv
 wiki_poc/dataset/results/data_v1/wiki-dataset-results-1k.csv
 wiki_poc/dataset/results/data_v2/wiki-dataset-results-1k.csv
+
+# prevent any swissdox data to appear publicly (usage agreement)
+datasets/news_articles/swissdox_newsarticles.tsv
