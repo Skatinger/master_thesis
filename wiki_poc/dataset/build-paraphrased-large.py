@@ -9,7 +9,7 @@ import numpy as np
 import logging
 from transformers import PegasusForConditionalGeneration, PegasusTokenizer
 import torch
-from datasets import load_from_disk
+from datasets import load_from_disk, concatenate_datasets
 # sigint handler
 import signal
 import sys
@@ -115,12 +115,16 @@ if __name__ == '__main__':
     # create 10 shards to cache results more often (once per map call)),
     # this gives 70k/4 per job, and 70k/40 per shard (1700 pages per shard)
     numShards = 10
+    computedShards = []
     for shardIndex in range(0, numShards):
         # apply paraphrasing, will automatically be cached
         logging.info("Processing shard {}/{}".format(shardIndex, numShards))
-        dataset.shard(numShards, shardIndex).map(process_page, batched=True, batch_size=10)
+        computedShards.append(dataset.shard(numShards, shardIndex).map(process_page, batched=True, batch_size=10))
+
+    # concatenate all shards
+    dataset = concatenate_datasets(computedShards)
 
     # save to disk
-    targetFolder = "./data_paraphrased_shard_{}/".format(shardNumber)
+    targetFolder = "./2_data_paraphrased_shard_{}/".format(shardNumber)
     logging.info("Saving to {}".format(targetFolder))
     dataset.save_to_disk(targetFolder)
