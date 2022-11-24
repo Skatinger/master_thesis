@@ -1,9 +1,10 @@
 # recognizes entities in the given sentences and masks them accordingly
 # stores masked sentences and the tokens belonging to the masks
 
-
+import faulthandler
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 from transformers import pipeline
+import torch
 from datasets import load_from_disk, concatenate_datasets
 import functools
 import re
@@ -25,6 +26,12 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGTERM, signal_handler)
 
+# ensure error stack is printed when an error occurs on the GPU / Computing Cluster
+faulthandler.enable()
+
+# use CUDA if available
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 # define the input dataset, if the pipeline was not changed, the last step in processing the dataset
 # should have automatically created this folder.
 datasetPath = './data_paraphrased'
@@ -37,7 +44,9 @@ datasetPath = './data_paraphrased'
 def load_ner_pipeline(model_name="dslim/bert-base-NER"):
     print(f"Loading {model_name}")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER")
+    # push the model to the GPU if available
+    logging.info("Using device: " + device)
+    model = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER").to(device)
     return pipeline("ner", model=model, tokenizer=tokenizer)
 
 
@@ -123,7 +132,7 @@ def load_wiki_dataset():
     try:
         return load_from_disk(datasetPath)
     except ValueError as err:
-        logging.warning("Specified dataset at ./data not available")
+        logging.warning("Specified dataset at {} not available".format(datasetPath))
         logging.warning(err)
         quit()
 
@@ -194,7 +203,7 @@ if __name__ == '__main__':
     # number of shard splits to create when processing map function for full dataset takes a long time
     # each shard gets cached seperately, so we can process the dataset in multiple runs without complicated
     # cancellation or error handling
-    numShards = 10
+    numShards = 70
 
     # split sentences of each page into batches of 7 sentences, and sentences
     # within each batch into a single string for better performance and accuracy
@@ -212,14 +221,13 @@ if __name__ == '__main__':
     computedOriginalShards = []
     for shardIndex in range(0, numShards):
         logging.info('Processing shard {}/{}'.format(shardIndex, numShards))
-        # more than 4 CPUs are not necessary, as the bottleneck is the GPU, not the CPU
-        # 4 cores allow the GPU to be always buzy
-        computedOriginalShards.append(dataset.shard(numShards, shardIndex).map(apply_original_ner, num_proc=4))
+        # no paralellization here, as the bottleneck is the GPU, not the CPU
+        computedOriginalShards.append(dataset.shard(numShards, shardIndex).map(apply_original_ner))
     dataset = concatenate_datasets(computedOriginalShards)
 
     computedParaphrasedShards = []
     for shardIndex in range(0, numShards):
-        computedParaphrasedShards.append(dataset.shard(numShards, shardIndex).map(apply_paraphrased_ner, num_proc=4))
+        computedParaphrasedShards.append(dataset.shard(numShards, shardIndex).map(apply_paraphrased_ner))
     dataset = concatenate_datasets(computedParaphrasedShards)
 
     # mask entities detected in NER
