@@ -4,7 +4,7 @@
 
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 from transformers import pipeline
-from datasets import load_from_disk
+from datasets import load_from_disk, concatenate_datasets
 import functools
 import re
 
@@ -15,19 +15,24 @@ import logging
 logging.getLogger().setLevel(logging.INFO)
 
 
-# allow signal handling
+# allow signal handling, required when script is interrupted either with ctrl+c or with a proper sigint
+# by the job handling server. All processing is cached to disk, this is just to ensure the job exits
+# with a clean exit code and writes a short log to more easily see the reason for the exit upon log inspection
 def signal_handler(sig, frame):
-    logging.info("Received SIGINT, saving checkpoint")
-    # global dataset
-    # dataset.save_to_disk(datasetPath)
-    logging.info("exiting")
+    logging.info("Received SIGINT, exiting.")
     sys.exit(0)
 
 
 signal.signal(signal.SIGTERM, signal_handler)
-datasetPath = './testing_shard_2'  # './data_paraphrased'
+
+# define the input dataset, if the pipeline was not changed, the last step in processing the dataset
+# should have automatically created this folder.
+datasetPath = './data_paraphrased'
 
 
+# load the pipeline to apply named entity recognition. Technically the huggingface library should
+# automatically keep the model in memory and cache the loading form the web, but to be sure the lru_cache is used,
+# ensuring the procedure is stored in memory.
 @functools.lru_cache(maxsize=1)
 def load_ner_pipeline(model_name="dslim/bert-base-NER"):
     print(f"Loading {model_name}")
@@ -36,6 +41,18 @@ def load_ner_pipeline(model_name="dslim/bert-base-NER"):
     return pipeline("ner", model=model, tokenizer=tokenizer)
 
 
+# takes the result of the bert-base-NER pipeline, the text which should be masked and the entity which should be masked
+# returns the masked text and the entities which were masked, one entity in the entities array per mask in the text
+# This works by
+# 1. parsing the predictions of the NER pipeline.
+# 2. Then building a regex which should match all versions of the name passed in as entity_to_mask (e.g. only firstname,
+#    only lastname, middlename included or not and so on)
+# 3. Then weeding out all predictions which do not match the regex (neglecting any other persons except the one we are
+#    looking for)
+# 4. Then masking the text by replacing the matched indices with the mask token. This is done in reverse, meaning it starts
+#    processing at the end of the passed text and ends at the start. This ensures that indices are not shifted when
+#    replacing text with the mask token, which would lead to shifted masks, with the shift getting increasingly worse
+#    towards the end.
 def masking(ner_results, text, entity_to_mask, batch_sizes, mask_token='<mask>'):
     person_nr = -1
     entities = []
@@ -48,7 +65,6 @@ def masking(ner_results, text, entity_to_mask, batch_sizes, mask_token='<mask>')
         for entity in result:
             tag = entity['entity']
             if 'PER' in tag:  # if it is a person
-                # import pdb; pdb.set_trace()
                 if ('B' in tag or 'I' in tag) and '#' not in entity['word']:
                     # if end of entity is right after the end of the last entity, merge them
                     if entity['start'] - 1 == last_end:
@@ -81,6 +97,7 @@ def masking(ner_results, text, entity_to_mask, batch_sizes, mask_token='<mask>')
     regex = ".*".join(entity_to_mask.split(" "))
     regex += ".*".join(['|.*(' + nameFragment + ').*' for nameFragment in entity_to_mask.split(" ")])
 
+    # weed out entities which do not match the regex which identifies the person we want to mask
     remaining_entities = []
     remaining_indexes = []
     for entity, index in zip(entities, indexes):
@@ -98,10 +115,9 @@ def masking(ner_results, text, entity_to_mask, batch_sizes, mask_token='<mask>')
         text = text[:index[0]] + mask_token + text[index[1]:]
 
     return text, remaining_entities
-    # return [re.sub(entity, mask_token, text) for entity in remaining_entities], remaining_entities
 
 
-# loads the wikipedia dataset from huggingface if it does not yet exist
+# loads the dataset containing original and paraphrased texts, exits in case it does not yet exist.
 def load_wiki_dataset():
     logging.info('Loading dataset...')
     try:
@@ -112,10 +128,12 @@ def load_wiki_dataset():
         quit()
 
 
+# helper to prepare the batched sentences passing the paraphrased type
 def prepare_paraphrased(example):
     return prepare_batched(example, 'paraphrased', 'paraphrased_sentences')
 
 
+# helper to prepare the batched sentences passing the original type
 def prepare_original(example):
     return prepare_batched(example, 'original', 'sentences')
 
@@ -166,33 +184,53 @@ def apply_masking(example, type):
     batch_sizes = example['batched_{}_sizes'.format(type)]
     masked_text, entities = masking(ner_results, batched_text, example['title'], batch_sizes)
 
-    return {'masked_text_{}'.format(type): masked_text, 'masked_{}_entities'.format(type): entities}
+    return {'masked_text_{}'.format(type): masked_text, 'masked_entities_{}'.format(type): entities}
 
 
 if __name__ == '__main__':
     # read in the wiki-dataset
     dataset = load_wiki_dataset()
 
+    # number of shard splits to create when processing map function for full dataset takes a long time
+    # each shard gets cached seperately, so we can process the dataset in multiple runs without complicated
+    # cancellation or error handling
+    numShards = 10
+
     # split sentences of each page into batches of 7 sentences, and sentences
     # within each batch into a single string for better performance and accuracy
+    # no need to shard this step, as it is comparatively fast
     logging.info('Splitting sentences into batches...')
-    dataset = dataset.map(prepare_original, num_proc=1)
-    dataset = dataset.map(prepare_paraphrased, num_proc=1)
+    # as this is mainly a simple datastructure manipulation step, it runs on CPU, use more
+    # cores to speed up processing. Core number is automatically reduced if machine has less cores
+    dataset = dataset.map(prepare_original, num_proc=16)
+    dataset = dataset.map(prepare_paraphrased, num_proc=16)
 
     # apply ner pipeline to each batch of sentences
+    # do it sharded to allow caching each shard, in case of a crash
     logging.info('Applying NER pipeline...')
-    dataset = dataset.map(apply_original_ner, num_proc=1)
-    dataset = dataset.map(apply_paraphrased_ner, num_proc=1)
+    computedOriginalShards = []
+    for shardIndex in range(0, numShards):
+        logging.info('Processing shard {}/{}'.format(shardIndex, numShards))
+        # more than 4 CPUs are not necessary, as the bottleneck is the GPU, not the CPU
+        # 4 cores allow the GPU to be always buzy
+        computedOriginalShards.append(dataset.shard(numShards, shardIndex).map(apply_original_ner, num_proc=4))
+    dataset = concatenate_datasets(computedOriginalShards)
+
+    computedParaphrasedShards = []
+    for shardIndex in range(0, numShards):
+        computedParaphrasedShards.append(dataset.shard(numShards, shardIndex).map(apply_paraphrased_ner, num_proc=4))
+    dataset = concatenate_datasets(computedParaphrasedShards)
 
     # mask entities detected in NER
     logging.info('Masking entities...')
-    dataset = dataset.map(apply_original_masking, num_proc=1)
-    dataset = dataset.map(apply_paraphrased_masking, num_proc=1)
+    # use more CPUs as this is a CPU only operation, primarily running regex on texts
+    dataset = dataset.map(apply_original_masking, num_proc=16)
+    dataset = dataset.map(apply_paraphrased_masking, num_proc=16)
 
     # drop rows where we got no entities, as they are not interesting for our project
     logging.info('Dropping rows without entities...')
-    dataset = dataset.filter(lambda example: len(example['masked_original_entities']) > 0)
-    dataset = dataset.filter(lambda example: len(example['masked_paraphrased_entities']) > 0)
+    dataset = dataset.filter(lambda example: len(example['masked_entities_original']) > 0, num_proc=16)
+    dataset = dataset.filter(lambda example: len(example['masked_entities_paraphrased']) > 0, num_proc=16)
 
     # remove columns we don't need anymore
     logging.info('Removing unnecessary columns...')
