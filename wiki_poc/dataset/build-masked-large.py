@@ -199,10 +199,11 @@ if __name__ == '__main__':
     # split sentences of each page into batches of 7 sentences, and sentences
     # within each batch into a single string for better performance and accuracy
     # no need to shard this step, as it is comparatively fast
-    logging.info('Splitting sentences into batches...')
     # as this is mainly a simple datastructure manipulation step, it runs on CPU, use more
     # cores to speed up processing. Core number is automatically reduced if machine has less cores
+    logging.info('Splitting original sentences into batches...')
     dataset = dataset.map(prepare_original, num_proc=16)
+    logging.info('Splitting paraphrased sentences into batches...')
     dataset = dataset.map(prepare_paraphrased, num_proc=16)
 
     # apply ner pipeline to each batch of sentences
