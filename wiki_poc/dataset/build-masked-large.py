@@ -20,17 +20,18 @@ logging.getLogger().setLevel(logging.INFO)
 # by the job handling server. All processing is cached to disk, this is just to ensure the job exits
 # with a clean exit code and writes a short log to more easily see the reason for the exit upon log inspection
 def signal_handler(sig, frame):
-    logging.info("Received SIGINT, exiting.")
+    logging.info("Received {}, exiting.".format(sig))
     sys.exit(0)
 
 
-signal.signal(signal.SIGTERM, signal_handler)
+# signal.signal(signal.SIGTERM, signal_handler)
 
 # ensure error stack is printed when an error occurs on the GPU / Computing Cluster
-faulthandler.enable()
+# faulthandler.enable()
 
-# use CUDA if available
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+# use CUDA if available, careful: usually the CUDA device ID is zero. If it is different
+# on the system in use, change this number to the correct device numer.
+device = 0 if torch.cuda.is_available() else -1
 
 # define the input dataset, if the pipeline was not changed, the last step in processing the dataset
 # should have automatically created this folder.
@@ -45,9 +46,9 @@ def load_ner_pipeline(model_name="dslim/bert-base-NER"):
     print(f"Loading {model_name}")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     # push the model to the GPU if available
-    logging.info("Using device: " + device)
-    model = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER").to(device)
-    return pipeline("ner", model=model, tokenizer=tokenizer)
+    logging.info("Using device: {}".format(device))
+    model = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER")
+    return pipeline("ner", model=model, tokenizer=tokenizer, device=device)
 
 
 # takes the result of the bert-base-NER pipeline, the text which should be masked and the entity which should be masked
