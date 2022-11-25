@@ -1,107 +1,132 @@
-# DOC
-# 5) predicts the masked entities with a BERT model
-# 6) computes the accuracy of the predictions as a percentage of correctly predicted masks
-
-# required python packages:
-# - transformers
-# - torch
-# - pandas
-# - re
-# - csv
-
 import torch
-import pandas as pd
-import os
 # sigint handler
 import signal
 import sys
 import logging
 # instantiate transformer model
 from transformers import pipeline
+from custom.splitter import Splitter
+from datasets import load_from_disk, concatenate_datasets
 
 logging.getLogger().setLevel(logging.INFO)
 
-torch_device = 'cuda' if torch.cuda.is_available() else 'cpu'
-dataset_file = 'wiki-dataset-masked.csv'
+datasetPath = 'data_masked_smol'  # 'data_masked'
 
 
-# allow signal handling
+# allow signal handling, required when script is interrupted either with ctrl+c or with a proper sigint
+# by the job handling server. All processing is cached to disk, this is just to ensure the job exits
+# with a clean exit code and writes a short log to more easily see the reason for the exit upon log inspection
 def signal_handler(sig, frame):
-    logging.info("Received SIGINT, saving checkpoint")
-    global dataset
-    dataset.to_csv(dataset_file, index=False)
-    logging.info("exiting")
+    logging.info("Received SIGINT, exiting.")
     sys.exit(0)
 
 
 signal.signal(signal.SIGTERM, signal_handler)
 
+# use CUDA if available (ususally has ID 0), -1 is huggingface default for CPU
+device = 0 if torch.cuda.is_available() else -1
 
-# use a tokenizer to split the wikipedia text into sentences
-# Use a entity-recognition model to quickly find entities instead of labelling them by hand
-# this helps to mask the entities, making it easier to work automatically instead of doing it manually
-# can consider doing it by hand later on for better precision
-print("Loading Fill-Mask model")
-fill_mask = pipeline("fill-mask", model="roberta-base", tokenizer='roberta-base', top_k=5)
-mask_token = fill_mask.tokenizer.mask_token
+# list of models available to perform the fill-mask task
+models = [
+    'roberta-base',
+    'bert-base-uncased',
+    'distilbert-base-uncased',
+    'roberta-large',
+    'bert-base-multilingual-cased',
+]
+
+
+# loads the dataset containing original and paraphrased texts, exits in case it does not yet exist.
+def load_dataset():
+    logging.info('Loading dataset...')
+    try:
+        return load_from_disk(datasetPath)
+    except ValueError as err:
+        logging.warning("Specified dataset at {} not available".format(datasetPath))
+        logging.warning(err)
+        quit()
+
+
+# removes any text chunks which do not contain a <mask> token
+def ditch_without_mask(chunks):
+    have_masks = []
+    for chunk in chunks:
+        if '<mask>' in chunk:
+            have_masks.append(chunk)
+    return have_masks
+
+
+def process_original(example):
+    return process_page(example, 'original')
+
+
+def process_paraphrased(example):
+    return process_page(example, 'paraphrased')
+
+
+# processes a single page, splits it into chunks and performs the fill-mask task on each chunk
+# returning the example with a new column containing the results
+def process_page(example, type):
+    # length of text passed at once
+    chunk_size = 1024
+    # number of text passages of length chunk_size to pass to the model at once
+    batch_size = 5
+    example[f"predictions_{type}"] = []
+    # TODO: when using split_around_mask, text parts might be included several times.
+    # this results in some masks being predicted multiple times. Handle that in case in
+    # the splitter by removing all masks except the one we are prediciting
+    for chunkBatch in Splitter.split_by_chunksize(example[f"masked_text_{type}"], chunk_size, batch_size):
+        # skip chunks if they do not contain a mask (returns empty array if no mask is found in any chunk)
+        chunkBatch = ditch_without_mask(chunkBatch)
+        try:
+            example[f"predictions_{type}"] += (fill_mask(chunkBatch))
+        except RuntimeError as err:
+            if 'expanded size of the tensor' in str(err):
+                logging.warning("Tensor was too long for id {} with chunk {}".format(example['id'], chunkBatch))
+            else:
+                logging.error("Error when processing chunk:\n{}".format(chunkBatch))
+                raise err
+    return example
 
 
 if __name__ == '__main__':
+    # check if argument was passed
+    if len(sys.argv) < 2:
+        options = ('\n  -  ').join(["{} ({})".format(i, model) for i, model in enumerate(models)])
+        logging.error("Missing argument <model-id>. Options are: {}".format(options))
+        exit(1)
 
-    # Import Data from CSV
-    file = 'wiki-dataset-masked.csv'
-    assert len(file) > 0, "Please provide a file path to the dataset"
+    # get model name from args
+    model_name = models[int(sys.argv[1])]
+    logging.info("Using model {}".format(model_name))
 
-    if not os.path.exists(file):
-        logging.error("Input file does not exist. Please run `build-masked.py` first.")
-        quit()
+    # number of shard splits to create when processing map function for full dataset takes a long time
+    # each shard gets cached seperately, so we can process the dataset in multiple runs without complicated
+    # cancellation or error handling
+    numShards = 70
 
-    print("loading dataset")
-    dataset = pd.read_csv(file)
+    # load dataset
+    dataset = load_dataset()
 
-    if 'normal_predictions' not in dataset.columns:
-        dataset['normal_predictions'] = ""
-        dataset['paraphrased_predictions'] = ""
+    # instantiate fill-mask pipeline
+    global fill_mask
+    fill_mask = pipeline('fill-mask', model=model_name, top_k=5, device=device)
 
-    # iterate over all the pages
-    for index, page in dataset.iterrows():
+    # process original text
+    computedOriginalShards = []
+    for i in range(numShards):
+        logging.info("Processing original text shard {}/{}".format(i, numShards))
+        computedOriginalShards.append(dataset.shard(num_shards=numShards, index=i).map(process_original))
+    dataset = concatenate_datasets(computedOriginalShards)
 
-        # skip iteration if value already present
-        # value is '' if column newly added, float:nan if resumed
-        if (isinstance(page['normal_predictions'], str) and len(page['normal_predictions']) > 0):
-            logging.info("Skipping page {}, already done.".format(index))
-            continue
+    # process paraphrased text
+    computedParaphrasedShards = []
+    for i in range(numShards):
+        logging.info("Processing paraphrased text shard {}/{}".format(i, numShards))
+        computedParaphrasedShards.append(dataset.shard(num_shards=numShards, index=i).map(process_paraphrased))
+    dataset = concatenate_datasets(computedParaphrasedShards)
 
-        print("Now processing page:" + str(index))
-
-        inputSize = 1024
-
-        dataset.at[index, 'normal_predictions'] = []
-        dataset.at[index, 'paraphrased_predictions'] = []
-        for i in range(0, inputSize):
-            start, end = i * inputSize, i * inputSize + inputSize
-            extract1 = page['normal_masked_text'][start:end]
-            extract2 = page['paraphrased_masked_text'][start:end]
-
-            # check if batches contain any mask token, otherwise skip
-            # ditch this prediction if too many tokens, as usually too many tokens mean there is some foreign
-            # language involved or too many special characters, which results in almost all characters being a single
-            # token, and the model not being able to predict a useful fill-mask word anyway
-            try:
-                if '<mask>' in extract1:
-                    dataset.at[index, 'normal_predictions'].append(fill_mask(extract1))
-                if '<mask>' in extract2:
-                    dataset.at[index, 'paraphrased_predictions'].append(fill_mask(extract2))
-            except RuntimeError as e:
-                # if we had too many tokens no worries, just skip this batch
-                if 'expanded size of the tensor' in str(e):
-                    logging.warning("Tensor was too long for index {} at {}:{}".format(index, start,  end))
-                else:
-                    raise e
-
-        if (index % 5 == 0):
-            logging.info("Checkpointing at page {}".format(index))
-            dataset.to_csv(dataset_file, index=False)
-
-    # save results
-    dataset.to_csv('wiki-dataset-results.csv', index=False)
+    # save dataset
+    path = "wiki_predictions_{}".format(model_name)
+    logging.info("Saving dataset to path {}".format(path))
+    dataset.save_to_disk(path)
