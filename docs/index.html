@@ -38,6 +38,23 @@
 
         <!-- log entry -->
         <div class="log-entry">
+          <h3>Implement Masking for large dataset</h3>
+          <div class="tags">
+            <sl-badge variant="neutral">24.11.22</sl-badge>
+            <sl-badge variant="primary">v1.3</sl-badge>
+            <sl-badge variant="warning">REFACTORING</sl-badge>
+          </div>
+
+          <ul>
+            <li>Changed masking to work on large huggingface dataset</li>
+            <li>Apply advanced caching</li>
+            <li>Mask the full wikipedia dataset</li>
+            <li>Identified ~2k news articles which identify a court decision using regex and keywords</li>
+          </ul>
+        </div>
+
+        <!-- log entry -->
+        <div class="log-entry">
           <h3>Full Rebuild of Paraphrasing</h3>
           <div class="tags">
             <sl-badge variant="neutral">16.11.22</sl-badge>
@@ -57,7 +74,6 @@
           <p>Running pages in batches also allows to cache the results easily with hugginface, as mapped functions on the dataset batches are cached by default. This allows to restart jobs if they failed at some point, without doing full recalcuations.</p>
           <h4>Ubelix array jobs</h4>
           <p>As the longest time possible to run on ubelix is 24h on the gpus required for paraphrasing, instead of creating a single 60h job, the dataset is now split into 7 parts, each containing around 10k pages. Each job then processes one such shard, splitting it again in 10 parts, resulting in a cache files for 7 jobs * 10 shards, which gives 70 savepoints during processing. Each holds around 1k wiki pages. After processing the datasets are concated back together for further processing.</p>
-
         </sl-details>
       </div>
 
