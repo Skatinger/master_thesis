@@ -143,13 +143,42 @@ def process_page(example, type):
     batch_size = 5
     example[f"predictions_tokens_{type}"] = []
     example[f"predictions_scores_{type}"] = []
+    example[F"predictions_skipped_{type}"] = []
     # TODO: when using split_around_mask, text parts might be included several times.
     # this results in some masks being predicted multiple times. Handle that in case in
     # the splitter by removing all masks except the one we are prediciting
-    for chunkBatch in Splitter.split_by_chunksize(example[f"masked_text_{type}"], chunk_size, batch_size):
+    splitGenerator = Splitter.split_by_chunksize(example[f"masked_text_{type}"], chunk_size, batch_size)
+    for index, chunkBatch in enumerate(splitGenerator):
         # skip chunks if they do not contain a mask (returns empty array if no mask is found in any chunk)
         chunkBatch = ditch_without_mask(chunkBatch)
-        predictions = fill_mask(chunkBatch)
+        # in some cases the chunkBatch contains a text sequence with foreign characters, which leads to a large
+        # increase in tokens, usually above the maxium possible. If that happens, we skip the chunk and
+        # save the skipped section. Catch with try-except
+        try:
+            predictions = fill_mask(chunkBatch)
+        except RuntimeError as err:
+            # if the error was that the text was too long
+            if 'expanded size of the tensor' in str(err):
+                # process each chunk in chunkBatch separately, to only skip the problematic ones
+                for chunk in chunkBatch:
+                    try:
+                        predictions = fill_mask([chunk])
+                    except RuntimeError as err2:
+                        # if the error was that the text was too long
+                        if 'expanded size of the tensor' in str(err2):
+                            # annotate which part was skipped with indices in the text
+                            start = index * chunk_size * batch_size
+                            end = start + len(chunk)
+                            example[f"predictions_skipped_{type}"].append(start, end)
+                        else:
+                            raise err2
+
+                    tokens, scores = extract_result(predictions)
+                    example[f"predictions_tokens_{type}"].append(tokens)
+                    example[f"predictions_scores_{type}"].append(scores)
+            else:
+                raise err
+
         # get a prediction for every chunk in the batch
         tokens, scores = extract_result(predictions)
         # use += and not append, as we want an array of array, not a single concated array
