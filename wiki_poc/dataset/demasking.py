@@ -10,7 +10,7 @@ from datasets import load_from_disk, concatenate_datasets
 
 logging.getLogger().setLevel(logging.INFO)
 
-datasetPath = 'data_masked_smol'  # 'data_masked'
+datasetPath = 'data_masked'
 
 
 # allow signal handling, required when script is interrupted either with ctrl+c or with a proper sigint
@@ -35,6 +35,30 @@ models = [
     'bert-base-multilingual-cased',
 ]
 
+"""
+  Documentation for different models
+
+  ----- 'roberta-base' -----
+  takes an array of texts with masks, for every text input it predicts every mask with top k predictions
+  with input [text1, text2, text3] result has format:
+  [[results for text1], [results for text2], [...]] with results for each text as:
+  any texts without mask are stripped before applying the model
+
+  possible input cases:
+    - no text (empty array)
+    - single text with single mask
+    - single text with multiple masks
+    - multiple texts with single masks
+    - multiple texts with multiple masks
+    - multiple texts, some with multiple masks, some with single mask
+
+  possible output cases:
+    - no text (empty array)
+    - array with single element, which is an array with 5 elements, which is a dict with token_str and score
+    - TODO: add more cases
+  --------------------------
+"""
+
 
 # loads the dataset containing original and paraphrased texts, exits in case it does not yet exist.
 def load_dataset():
@@ -45,6 +69,52 @@ def load_dataset():
         logging.warning("Specified dataset at {} not available".format(datasetPath))
         logging.warning(err)
         quit()
+
+
+# extracts the relevant parts of the result of the fill-mask pipeline, removes unnecessary
+# text outputs. Kept outputs are the predicted strings and their score. Score is rounded to 3 digits after comma
+def extract_result(result):
+    # if we get no predictions, return empty arrays
+    if len(result) < 1:
+        return [], []
+    # result is an array with results for each input sequence. If there was only a single input sequence, the array
+    # will only contain a single element.
+    # each input sequence has a result for each mask, e.g a sequence with 2 masks will have 2 results in the array
+    # representing the sequence results
+    # for each result of a mask, there are five predictions with token and score
+    results_tokens = []
+    results_scores = []
+    # iterate over all processed sequences
+    for sequence_results in result:
+        # if there was only a single mask, the result is not an array of arrays with each array containing 5
+        # prediction hashes, but a single array containing 5 prediction hashes. This is why we need to check if
+        # the result is an array of arrays and convert it to an array of arrays if it is not
+
+        # first check if the sequence result itself is an array. If it is not, we need to convert it to an array
+        if not isinstance(sequence_results, list):
+            sequence_results = [sequence_results]
+
+        # then, after the sequence result is definitely an array, check if the first element is an array.
+        # if it is not, this was a sequence with a single mask. We need to convert the array to an array of arrays
+        if not isinstance(sequence_results[0], list):
+            sequence_results = [sequence_results]
+
+        # iterate over all masks in the sequence, e.g. the predictions for those masks
+        for mask_result in sequence_results:
+            # if only a single mask was present in the sequence, it's just a dict, without array.
+            # Wrap it in this case to make the following code work for both cases
+            if type(mask_result) == dict:
+                mask_result = [mask_result]
+
+            # format of mask_result should be: [{token_str: predicted token, score: predicted sore, ...}, {...}]
+            # we only need the token_str and score, so we extract those and append them to the results
+            results_tokens.append([prediction['token_str'] for prediction in mask_result])
+            results_scores.append([round(prediction['score'], 3) for prediction in mask_result])
+    # return format is a an array of length of input sequences, with each array
+    # containing an array of 5 predictions for each mask, e.g.
+    # [sequence1_results, ...] where sequence1_results = [results_for_mask1, ...] where
+    # results_for_mask1 = [(token_str, score), (...), ...]
+    return results_tokens, results_scores
 
 
 # removes any text chunks which do not contain a <mask> token
@@ -71,21 +141,22 @@ def process_page(example, type):
     chunk_size = 1024
     # number of text passages of length chunk_size to pass to the model at once
     batch_size = 5
-    example[f"predictions_{type}"] = []
+    example[f"predictions_tokens_{type}"] = []
+    example[f"predictions_scores_{type}"] = []
     # TODO: when using split_around_mask, text parts might be included several times.
     # this results in some masks being predicted multiple times. Handle that in case in
     # the splitter by removing all masks except the one we are prediciting
     for chunkBatch in Splitter.split_by_chunksize(example[f"masked_text_{type}"], chunk_size, batch_size):
         # skip chunks if they do not contain a mask (returns empty array if no mask is found in any chunk)
         chunkBatch = ditch_without_mask(chunkBatch)
-        try:
-            example[f"predictions_{type}"] += (fill_mask(chunkBatch))
-        except RuntimeError as err:
-            if 'expanded size of the tensor' in str(err):
-                logging.warning("Tensor was too long for id {} with chunk {}".format(example['id'], chunkBatch))
-            else:
-                logging.error("Error when processing chunk:\n{}".format(chunkBatch))
-                raise err
+        predictions = fill_mask(chunkBatch)
+        # get a prediction for every chunk in the batch
+        tokens, scores = extract_result(predictions)
+        # use += and not append, as we want an array of array, not a single concated array
+        # this way its easier to get predictions per mask, as we can just iterate over the array
+        # without knowing the number of masks or the number of predictions per mask
+        example[f"predictions_tokens_{type}"] += tokens
+        example[f"predictions_scores_{type}"] += scores
     return example
 
 
@@ -93,7 +164,7 @@ if __name__ == '__main__':
     # check if argument was passed
     if len(sys.argv) < 2:
         options = ('\n  -  ').join(["{} ({})".format(i, model) for i, model in enumerate(models)])
-        logging.error("Missing argument <model-id>. Options are: {}".format(options))
+        logging.error("Missing argument <model-id>. Options are:\n  -  {}".format(options))
         exit(1)
 
     # get model name from args
