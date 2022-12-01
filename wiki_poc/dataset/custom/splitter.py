@@ -9,7 +9,8 @@ class Splitter:
         - split around delimiter, with a maximum of chunksize characters around it
     """
 
-    # splits a string into chunks of a given size
+    # splits a string into chunks of a given size, e.g. with chunksize 1024 and batchSize 5
+    # it returns an array of 5 strings, each with a length of 1024
     @classmethod
     def split_by_chunksize(self, text, chunksize, batchSize):
         fullLength = len(text)
