@@ -23,18 +23,50 @@
 </head>
 <body>
   <sl-switch id="theme-toggle">Toggle Dark Mode</sl-switch>
-  <script type="text/javascript">
-    document.getElementById("theme-toggle").addEventListener("sl-change", function() {document.getElementById("base").classList.toggle("sl-theme-dark")});
-  </script>
+
+  <sl-drawer label="Overview" class="drawer-overview">
+    <sl-switch id="theme-toggle-drawer">Toggle Dark Mode</sl-switch>
+    <ul class="drawer-options">
+      <li><a class="progress-log">Progress Log</a></li>
+      <li><a class="models">Models</a></li>
+    </ul>
+  </sl-drawer>
+
+  <sl-icon name="list" class="drawer-button"></sl-icon>
+
   <h1>Re-identification in court decisions</h1>
 
   <sl-tab-group placement="end" class="tabs">
-    <sl-tab slot="nav" panel="log">Progress Log</sl-tab>
-    <sl-tab slot="nav" panel="models">Models</sl-tab>
+    <sl-tab slot="nav" panel="log" class="nav-entry nav-progress-log">Progress Log</sl-tab>
+    <sl-tab slot="nav" panel="models" class="nav-entry nav-models">Models</sl-tab>
 
     <sl-tab-panel name="log">
       <h2 style="font-weight: 300">Progress Log</h2>
       <div class="log-section">
+
+        <!-- log entry -->
+        <div class="log-entry">
+          <h3>Demasking setup for model comparison</h3>
+          <div class="tags">
+            <sl-badge variant="neutral">29.11.22</sl-badge>
+            <sl-badge variant="primary">v1.3</sl-badge>
+            <sl-badge variant="warning">REFACTORING</sl-badge>
+          </div>
+
+          <ul>
+            <li>Changed fill-mask task to use huggingface datasets</li>
+            <li>Added options to select different models to predict masks</li>
+            <li>Built splitter class to split text to predict in different ways</li>
+          </ul>
+
+          <sl-details summary="Details">
+            <h4>Model options</h4>
+            <p>To find the best model for predicting masks depending on the knowledge base ingested during training, different models are evaluated. First model is roberta-base, others are to come.</p>
+            <h4>Splitter</h4>
+            <p>A helper class is supposed to split texts into batches that can easily be processed by the model. The splits are parametrized mainly by the number of sequences per batch and the length of each sequence in the batch. The number of sequences per batch is only important for the speed at which the model can process inputs. Larger batches lead to faster processing, however they do require more memory. Depending on the size of each sequence in the batch, the number of sequences in the batch (e.g. the batch-size) has to be adjusted so the memory on the GPU is not exhausted.</br>
+            The length of a sequence can be too long, meaning it overshoots the maximum number of tokens allowed for a model. This stands in contrast with the desire to have the largest possible input to a model, to give the model more information for its prediction.</p>
+          </sl-details>
+        </div>
 
         <!-- log entry -->
         <div class="log-entry">
@@ -149,11 +181,16 @@
 
         <sl-details summary="Details">
           <h4>Masking is now correct, we mask a word for every entity detected.</h4>
-          <div class="img-compare">
+          <div class="img-container">
             <figure>
-            <img src="images/mask_vs_entities_v2.png">
-
-            <img src="images/mask_vs_entities_v1.png">
+              <img src="images/mask_vs_entities_v1.png">
+              <figcaption>Wrong number of masks compared to entities due to poor masking.</figcaption>
+            </figure>
+          </div>
+          <div class="img-container">
+            <figure>
+              <img src="images/mask_vs_entities_v2.png">
+              <figcaption>Number of masks vs number of entities after correct entity detection.</figcaption>
             </figure>
           </div>
         </sl-details>
@@ -170,5 +207,33 @@
       </sl-alert>
     </sl-tab-panel>
   </sl-tab-group>
+
+
+<script type="text/javascript">
+  /* listener for dark mode toggle */
+  document.getElementById("theme-toggle").addEventListener("sl-change", function() {
+    document.getElementById("base").classList.toggle("sl-theme-dark");
+    document.getElementById('theme-toggle-drawer').click();
+  });
+  /* listener for dark mode toggle in drawer */
+  document.getElementById("theme-toggle-drawer").addEventListener("sl-change", function() {
+    document.getElementById('theme-toggle').click();
+  });
+</script>
+
+<script>
+  const drawer = document.querySelector('.drawer-overview');
+  const openButton = drawer.nextElementSibling;
+  openButton.addEventListener('click', () => drawer.show());
+</script>
+
+<script type="text/javascript">
+  const progressButton = document.querySelector('a.progress-log');
+  const modelsButton = document.querySelector('a.models');
+  const tabGroup = document.querySelector('sl-tab-group.tabs');
+  progressButton.addEventListener('click', () => {drawer.hide(); tabGroup.show('log')});
+  modelsButton.addEventListener('click', () => {drawer.hide(); tabGroup.show('models')}); 
+
+    </script>
 </body>
 </html>

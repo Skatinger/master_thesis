@@ -8,7 +8,11 @@
 body {
   background-color:  var(--sl-color-neutral-200);
   margin-left: 5vw;
+}
 
+h4 {
+  font-weight: 500;
+  font-size: 16px;
 }
 
 .log-section {
@@ -26,15 +30,6 @@ sl-details::part(base) {
 .log-entry h3 {
   margin-left: -2vh;
   font-weight: var(--sl-font-weight-semibold);
-}
-
-.img-compare {
-  display: flex;
-}
-.img-compare img {
-  width: 40%;
-  max-width: 40%;
-  padding: 5px;
 }
 
 .img-container {
@@ -55,6 +50,10 @@ sl-details::part(base) {
   right: 15px;
 }
 
+.drawer-button {
+  display: none;
+}
+
 /* Settings for large screens */
 @media screen and (min-width: 1200px) {
   .tabs {
@@ -62,13 +61,45 @@ sl-details::part(base) {
   }
 }
 
-/* Settings for small screens */
-@media screen and (max-width: 1200px) {
-  .image-compare {
-    display: block;
+/* Settings for phones */
+@media screen and (max-width: 800px) {
+  #theme-toggle {
+    display: none;
   }
-  .image-compare img {
-    max-width: 90%;
-    width: 40%;
+  .nav-entry {
+    display: none;
+  }
+  .log-section {
+    margin-left: 1vw;
+  }
+
+  .drawer-button {
+    display: block;
+    font-size: 32px;
+    float: right;
+    padding-right: 2vw;
+  }
+
+  .drawer-overview {
+    position: relative;
+  }
+
+  sl-drawer ul {
+    list-style-type: none;
+  }
+
+  .drawer-options {
+    position: absolute;
+    right: 5vw;
+    bottom: 5vh;
+  }
+
+  .drawer-options li {
+    margin-top: 3vh;
+    text-align: right;
+  }
+
+  .log-section ul {
+    padding-inline-start: 20px;
   }
 }
