@@ -96,9 +96,9 @@ version: 1.1
 
 | id | regex | filename | number of results |  indication format |
 |----|-------|----------|-------------------|---|
-|  1  |   `BG[0-9]{4}\.`    |    by_regex_1.csv      |        4           |  Urteil BG120322 vom 1. 10. 13 |
-|  2  |   `BG\.[0-9]{4}\.`    |    by_regex_2.csv    |        41          |  Entscheid BG.2015.28 vom 2. 12. 15 |
-|  3  |    `Urteil\ [0-9]`   |     by_regex_3.csv    |        1892        | (Urteil 1C_6/2017 vom 25.10.2017)  |
-|  4  |       |          |                   |   |
+|  1  |   `BG[0-9]{4}\.`    |    by_regex_1.tsv      |        4           |  Urteil BG120322 vom 1. 10. 13 |
+|  2  |   `BG\.[0-9]{4}\.`    |    by_regex_2.tsv    |        41          |  Entscheid BG.2015.28 vom 2. 12. 15 |
+|  3  |    `Urteil\ [0-9]`   |     by_regex_3.tsv    |        1892        | (Urteil 1C_6/2017 vom 25.10.2017)  |
+|  4  |   `Hinweis: Urteil`  |     by_regex_4.tsv    |        18          |  Hinweis: Urteil CA.2021.10  |
 |  5  |       |          |                   |   |
 |  6  |       |          |                   |   |
