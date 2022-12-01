@@ -46,6 +46,31 @@
 
         <!-- log entry -->
         <div class="log-entry">
+          <h3>Analysis on preprocessing</h3>
+          <div class="tags">
+            <sl-badge variant="neutral">01.12.22</sl-badge>
+            <sl-badge variant="primary">v1</sl-badge>
+            <sl-badge variant="warning">ANALYSIS</sl-badge>
+          </div>
+
+          <ul>
+            <li>Analyzed number of wiki pages remaining after preprocessing</li>
+          </ul>
+
+          <sl-details summary="Details">
+            <h4>Metrics on Preprocessing</h4>
+            <p>To get a reliable dataset, some wikipedia pages had to be sorted out. The maximum amount of people which could be queried from wikipedia at once (due to query / network timeouts) were 600'000 people. Searching them in the wikipedia dataset from huggingface, 4401 persons could not be found in the dataset and were sorted out. From the remaining wiki pages only those containing more than 6'000 characters were kept, others were too short to identify anyone, and sometimes did not even mention the person in the page more than once. After sorting, only a bit over 10% of pages are left (71'065). From those 2'336 had to be removed because the masking step could not mask any entity. This could have either been because of bad named entity detection, missing entites in the article or a missmatch when checking if the entities found by the named entity recognition were the right person. This could have been caused by very special names, characters or when the name of the person is usually not used, for example an article might use an artists real name as the title of the page, but within the page only their artist name is used. A total of 68'729 pages with at least one mask each is left after preparations for experiments.</p>
+            <div class="img-container">
+              <figure>
+                <img src="images/flow.svg">
+                <figcaption>Lost wikipedia pages during preprocessing.</figcaption>
+              </figure>
+            </div>
+          </sl-details>
+        </div>
+
+        <!-- log entry -->
+        <div class="log-entry">
           <h3>Demasking setup for model comparison</h3>
           <div class="tags">
             <sl-badge variant="neutral">29.11.22</sl-badge>
@@ -100,14 +125,14 @@
             <li>Usage of Ubelix array jobs to run jobs faster while using caching more easily.</li>
           </ul>
           <sl-details summary="Details">
-          <h4>Memory Issues and sentence batching</h4>
-          <p>In the first attempt pages were processed in batches and their sentences all joined to a long list to be processed by the model. This caused memory issues in some cases where by chance several larger pages were in the same batch. Instead of clipping sentences, the length of the input is now not decided by the number of pages in a batch, but the sentences are split to fit the approximate maximum input length for the model.</p>
-          <p>Now pages are processed in batches, but for each badge of pages their sentences are concated to a large list, which is split up in parts which fit the size of the model, maximising the efficiency of the model, while still running stable. The overhead of splitting and rejoining text does not matter in comparison to the runtime of the paraphrasing itself.</p>
-          <p>Running pages in batches also allows to cache the results easily with hugginface, as mapped functions on the dataset batches are cached by default. This allows to restart jobs if they failed at some point, without doing full recalcuations.</p>
-          <h4>Ubelix array jobs</h4>
-          <p>As the longest time possible to run on ubelix is 24h on the gpus required for paraphrasing, instead of creating a single 60h job, the dataset is now split into 7 parts, each containing around 10k pages. Each job then processes one such shard, splitting it again in 10 parts, resulting in a cache files for 7 jobs * 10 shards, which gives 70 savepoints during processing. Each holds around 1k wiki pages. After processing the datasets are concated back together for further processing.</p>
-        </sl-details>
-      </div>
+            <h4>Memory Issues and sentence batching</h4>
+            <p>In the first attempt pages were processed in batches and their sentences all joined to a long list to be processed by the model. This caused memory issues in some cases where by chance several larger pages were in the same batch. Instead of clipping sentences, the length of the input is now not decided by the number of pages in a batch, but the sentences are split to fit the approximate maximum input length for the model.</p>
+            <p>Now pages are processed in batches, but for each badge of pages their sentences are concated to a large list, which is split up in parts which fit the size of the model, maximising the efficiency of the model, while still running stable. The overhead of splitting and rejoining text does not matter in comparison to the runtime of the paraphrasing itself.</p>
+            <p>Running pages in batches also allows to cache the results easily with hugginface, as mapped functions on the dataset batches are cached by default. This allows to restart jobs if they failed at some point, without doing full recalcuations.</p>
+            <h4>Ubelix array jobs</h4>
+            <p>As the longest time possible to run on ubelix is 24h on the gpus required for paraphrasing, instead of creating a single 60h job, the dataset is now split into 7 parts, each containing around 10k pages. Each job then processes one such shard, splitting it again in 10 parts, resulting in a cache files for 7 jobs * 10 shards, which gives 70 savepoints during processing. Each holds around 1k wiki pages. After processing the datasets are concated back together for further processing.</p>
+          </sl-details>
+        </div>
 
         <!-- log entry -->
         <div class="log-entry">
@@ -122,7 +147,7 @@
             <li>Switch processing to huggingface datasets, include caching.</li>
             <li>Fix memory issues for very long sentences, further improving paraphrasing performance.</li>
           </ul>
-      </div>
+        </div>
 
         <!-- log entry -->
         <div class="log-entry">

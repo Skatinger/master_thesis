@@ -1,0 +1,61 @@
+<svg height="600" width="1200" xmlns="http://www.w3.org/2000/svg">
+<title>Your Diagram Title</title>
+<!-- Generated with SankeyMATIC: 1.12.2022, 16:38:36 -->
+<rect height="600" width="1200" fill="#ffffff"></rect>
+<g transform="translate(12,18)">
+<g id="sankey_flows">
+<path id="flow1" d="M9 144.15909v279.93153L319.06676 424.90661v-279.93153z" fill="#80b1d3" stroke-width="0.5" stroke="#80b1d3" opacity="0.5"><title>People from Wikipedia → Persons Wikipages: 595,599</title></path>
+<path id="flow2" d="M328.06676 268.24057C483.10014 268.24057 483.10014 259.97693 638.13352 259.97693" fill="none" stroke-width="246.53098" stroke="#b3de69" opacity="0.5"><title>Persons Wikipages → articles too short: 524,534</title></path>
+<path id="flow3" d="M328.06676 408.20633C483.10014 408.20633 483.10014 478.34269 638.13352 478.34269" fill="none" stroke-width="33.40055" stroke="#b3de69" opacity="0.5"><title>Persons Wikipages → articles long enough: 71,065</title></path>
+<path id="flow5" d="M647.13352 478.89165C802.16689 478.89165 802.16689 481.34208 957.20027 481.34208" fill="none" stroke-width="32.30263" stroke="#bc80bd" opacity="0.5"><title>articles long enough → masked pages: 68,729</title></path>
+<path id="flow0" d="M9 143.12485C164.03338 143.12485 164.03338 65.54084 319.06676 65.54084" fill="none" stroke-width="2.06847" stroke="#80b1d3" opacity="0.5"><title>People from Wikipedia → Not found in Wikipages Dataset: 4,401</title></path>
+<path id="flow4" d="M647.13352 462.19138C802.16689 462.19138 802.16689 386.2418 957.20027 386.2418" fill="none" stroke-width="1.09792" stroke="#d9d9d9" opacity="0.5"><title>articles long enough → pages without masks: 2,336</title></path>
+</g>
+<g id="sankey_nodes">
+<g class="node" style="touch-action: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+<rect id="r0" class="for_r0" x="0" y="142.09062" height="282" width="9" fill="#80b1d3" fill-opacity="1"><title>People from Wikipedia:
+600,000</title></rect>
+</g>
+<g class="node" style="touch-action: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+<rect id="r1" class="for_r1" x="319.06676" y="64.50661" height="2.06847" width="9" fill="#fdb462" fill-opacity="1"><title>Not found in Wikipages Dataset:
+4,401</title></rect>
+</g>
+<g class="node" style="touch-action: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+<rect id="r2" class="for_r2" x="319.06676" y="144.97508" height="279.93153" width="9" fill="#b3de69" fill-opacity="1"><title>Persons Wikipages:
+595,599</title></rect>
+</g>
+<g class="node" style="touch-action: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+<rect id="r3" class="for_r3" x="638.13352" y="136.71144" height="246.53098" width="9" fill="#fccde5" fill-opacity="1"><title>articles too short:
+524,534</title></rect>
+</g>
+<g class="node" style="touch-action: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+<rect id="r4" class="for_r4" x="638.13352" y="461.64242" height="33.40055" width="9" fill="#fccde5" fill-opacity="1"><title>articles long enough:
+71,065</title></rect>
+</g>
+<g class="node" style="touch-action: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+<rect id="r5" class="for_r5" x="957.20027" y="385.69284" height="1.09792" width="9" fill="#d9d9d9" fill-opacity="1"><title>pages without masks:
+2,336</title></rect>
+</g>
+<g class="node" style="touch-action: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+<rect id="r6" class="for_r6" x="957.20027" y="465.19076" height="32.30263" width="9" fill="#bc80bd" fill-opacity="1"><title>masked pages:
+68,729</title></rect>
+</g>
+</g>
+<g id="sankey_labels" font-family="sans-serif" font-size="16px" font-weight="400" fill="#000000">
+<text text-anchor="middle" x="588" y="577" font-size="11px" font-weight="400" fill="rgb(127, 127, 127)">Made with SankeyMATIC</text>
+<rect id="label0_bg" class="for_r0" x="10.6327" y="271.0206" width="236.62797" height="23" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0"></rect>
+<text id="label0" class="for_r0" text-anchor="start" x="15.29754" y="283.09062" dy="4.93">People from Wikipedia: 600,000</text>
+<rect id="label1_bg" class="for_r1" x="329.69944" y="53.47084" width="282.77638" height="23" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0"></rect>
+<text id="label1" class="for_r1" text-anchor="start" x="334.3643" y="65.54084" dy="4.93">Not found in Wikipages Dataset: 4,401</text>
+<rect id="label2_bg" class="for_r2" x="329.69944" y="272.87082" width="213.50294" height="23" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0"></rect>
+<text id="label2" class="for_r2" text-anchor="start" x="334.3643" y="284.94084" dy="4.93">Persons Wikipages: 595,599</text>
+<rect id="label3_bg" class="for_r3" x="648.76619" y="247.90692" width="193.94047" height="23" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0"></rect>
+<text id="label3" class="for_r3" text-anchor="start" x="653.43105" y="259.97693" dy="4.93">articles too short: 524,534</text>
+<rect id="label4_bg" class="for_r4" x="648.76619" y="466.27267" width="210.87016" height="23" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0"></rect>
+<text id="label4" class="for_r4" text-anchor="start" x="653.43105" y="478.34269" dy="4.93">articles long enough: 71,065</text>
+<rect id="label5_bg" class="for_r5" x="967.83296" y="374.17178" width="208.16703" height="23" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0"></rect>
+<text id="label5" class="for_r5" text-anchor="start" x="972.49781" y="386.2418" dy="4.93">pages without masks: 2,336</text>
+<rect id="label6_bg" class="for_r6" x="967.83296" y="469.27206" width="171.72172" height="23" rx="4" fill="#fff" fill-opacity="0.55" stroke="none" stroke-width="0" stroke-opacity="0"></rect>
+<text id="label6" class="for_r6" text-anchor="start" x="972.49781" y="481.34208" dy="4.93">masked pages: 68,729</text>
+</g>
+</g></svg>
