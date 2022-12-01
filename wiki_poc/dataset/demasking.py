@@ -143,7 +143,6 @@ def process_page(example, type):
     batch_size = 5
     example[f"predictions_tokens_{type}"] = []
     example[f"predictions_scores_{type}"] = []
-    example[F"predictions_skipped_{type}"] = []
     # TODO: when using split_around_mask, text parts might be included several times.
     # this results in some masks being predicted multiple times. Handle that in case in
     # the splitter by removing all masks except the one we are prediciting
@@ -151,31 +150,16 @@ def process_page(example, type):
     for index, chunkBatch in enumerate(splitGenerator):
         # skip chunks if they do not contain a mask (returns empty array if no mask is found in any chunk)
         chunkBatch = ditch_without_mask(chunkBatch)
-        # in some cases the chunkBatch contains a text sequence with foreign characters, which leads to a large
-        # increase in tokens, usually above the maxium possible. If that happens, we skip the chunk and
-        # save the skipped section. Catch with try-except
         try:
             predictions = fill_mask(chunkBatch)
         except RuntimeError as err:
-            # if the error was that the text was too long
             if 'expanded size of the tensor' in str(err):
-                # process each chunk in chunkBatch separately, to only skip the problematic ones
-                for chunk in chunkBatch:
-                    try:
-                        predictions = fill_mask([chunk])
-                    except RuntimeError as err2:
-                        # if the error was that the text was too long
-                        if 'expanded size of the tensor' in str(err2):
-                            # annotate which part was skipped with indices in the text
-                            start = index * chunk_size * batch_size
-                            end = start + len(chunk)
-                            example[f"predictions_skipped_{type}"].append(start, end)
-                        else:
-                            raise err2
-
-                    tokens, scores = extract_result(predictions)
-                    example[f"predictions_tokens_{type}"].append(tokens)
-                    example[f"predictions_scores_{type}"].append(scores)
+                # in some cases the chunkBatch contains a text sequence with foreign characters, which leads to a large
+                # increase in tokens, usually above the maxium possible. If that happens, we ditch the page, as handling
+                # this case would be too complicated compared to the benefit
+                logging.warning("Skipping page {} due to too many tokens in chunkBatch {}".format(example['id'], index))
+                example['predictions_skipped_' + type] = True
+                return example
             else:
                 raise err
 
@@ -186,6 +170,8 @@ def process_page(example, type):
         # without knowing the number of masks or the number of predictions per mask
         example[f"predictions_tokens_{type}"] += tokens
         example[f"predictions_scores_{type}"] += scores
+        # mark example as successfully processed
+        example['predictions_skipped_' + type] = False
     return example
 
 
@@ -218,6 +204,9 @@ if __name__ == '__main__':
         logging.info("Processing original text shard {}/{}".format(i, numShards))
         computedOriginalShards.append(dataset.shard(num_shards=numShards, index=i).map(process_original))
     dataset = concatenate_datasets(computedOriginalShards)
+    # remove rows which could not be processed
+    dataset = dataset.filter(lambda example: not example['predictions_skipped_original'])
+    dataset = dataset.remove_columns(['predictions_skipped_original'])
 
     # process paraphrased text
     computedParaphrasedShards = []
@@ -225,6 +214,9 @@ if __name__ == '__main__':
         logging.info("Processing paraphrased text shard {}/{}".format(i, numShards))
         computedParaphrasedShards.append(dataset.shard(num_shards=numShards, index=i).map(process_paraphrased))
     dataset = concatenate_datasets(computedParaphrasedShards)
+    # remove rows which could not be processed
+    dataset = dataset.filter(lambda example: not example['predictions_skipped_paraphrased'])
+    dataset = dataset.remove_columns(['predictions_skipped_paraphrased'])
 
     # save dataset
     path = "wiki_predictions_{}".format(model_name)
