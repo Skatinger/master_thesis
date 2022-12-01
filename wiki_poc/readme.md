@@ -51,4 +51,6 @@ quality of NER, as well as the fill-mask afterwards.
 5. `build-paraphrased-large.py <shard-index>`:
     paraphrases sentences to separate dataset column. Takes as argument the number of the shard it should process.
     Final result saved to `./data_paraphrased`
-
+6. `build-masked-large.py`:
+    Does named entity recognition on the original and paraphrased texts, and replaces any
+    entity matching the person the wiki page is about with a mask token. The string which is replaced by the mask is stored as well, for evaluation. Result is saved to `./data_masked`
