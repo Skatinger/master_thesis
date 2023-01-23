@@ -1,4 +1,5 @@
 import re
+import math
 
 
 class Splitter:
@@ -9,19 +10,25 @@ class Splitter:
         - split around delimiter, with a maximum of chunksize characters around it
     """
 
-    # splits a string into chunks of a given size, e.g. with chunksize 1024 and batchSize 5
-    # it returns an array of 5 strings, each with a length of 1024
+    # splits a string into chunks of a given size in characters, only approximates the chunksize,
+    # as it tries to split at the last space before the chunksize. No characters are lost, but
+    # but might appear in the next chunk instead. Chunks are therefore not guaranteed to be of
+    # the exact size specified, but will be smaller or equal to the specified size.
     @classmethod
-    def split_by_chunksize(self, text, chunksize, batchSize):
+    def split_by_chunksize(self, text, chunksize):
         fullLength = len(text)
-        # iterate over starting indices in text for each batch
-        for batchStartIndex in range(0, len(text), chunksize * batchSize):
-            # iterate over starting indices for each chunk within the batch
-            chunkBatch = []
-            for chunkStartIndex in range(batchStartIndex, batchStartIndex + (chunksize * batchSize), chunksize):
-                end = min(fullLength, chunkStartIndex + chunksize)
-                chunkBatch.append(text[chunkStartIndex:end])
-            yield chunkBatch
+        # used when end is moved to the last space before chunksize
+        end = fullLength
+
+        # return single examples when batchsize == 1
+        for startIndex in range(0, len(text), chunksize):
+            # include characters trimmed in last iteration if trimming occured
+            startIndex = min(startIndex, end)
+            end = min(fullLength, startIndex + chunksize)
+            # move end back to last space
+            while (end > startIndex and text[end] != ' '):
+                end -= 1
+            yield text[startIndex:end]
 
     # returns chunks of text evolving around a mask tokens, with text before and after the mask token
     # specified by beforeLength and afterLength. Any other mask tokens in the text are replaced with 'mask'
@@ -57,3 +64,35 @@ class Splitter:
     @classmethod
     def split_by_sentences(self, text):
         raise NotImplementedError
+
+    # splits a text into chunks of a given maximum number of tokens, e.g. with max_tokens 1024
+    # requires a tokenizer to determine the number of tokens in a string
+    # returns a generator of chunks, each with a length of max_tokens or less
+    @classmethod
+    def split_by_max_tokens(self, text, tokenizer, max_tokens=512):
+        # try to tokenize the full text, if it fails split it
+        nb_tokens = len(tokenizer.encode(text))
+        if nb_tokens <= max_tokens:
+            yield text
+        else:
+            # split the text around the masks with smaller chunks until all chunks are small enough
+            # compute the approximate factor by which the text needs to be split
+            factor = math.ceil(nb_tokens / max_tokens)
+            # compute number of charactes per chunk to split the text into
+            chars_per_chunk = math.ceil(len(text) / factor)
+            largest_chunk_tokens = math.inf
+            while largest_chunk_tokens > max_tokens:
+                # encode all parts and check if any are too long when using the number of characters
+                # per chunk computed above (max char count divided by 2 => half before mask, half after mask)
+                chunks = [*self.split_by_chunksize(text, chars_per_chunk)]
+                encoded_chunks = tokenizer(chunks).input_ids
+                # check if any of the chunks are too long
+                largest_chunk_tokens = max([len(chunk) for chunk in encoded_chunks])
+                # if any of the chunks are too long, reduce the number of characters per chunk
+                # by 20% and try again
+                if largest_chunk_tokens > max_tokens:
+                    chars_per_chunk = math.ceil(chars_per_chunk * 0.8)
+                else:
+                    # yield the chunks
+                    for chunk in chunks:
+                        yield chunk
