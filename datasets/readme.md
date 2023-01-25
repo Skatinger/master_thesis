@@ -43,7 +43,7 @@ query:
   dateRange:
     - 2012-04-01..2022-04-01
   languages:
-    - de
+    - de # TODO: Add french news articles as well
   doctypes:
     - PLD
     - PLW
