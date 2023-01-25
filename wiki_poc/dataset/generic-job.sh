@@ -11,7 +11,7 @@
 # generic bash script to quickly run jobs on ubelix
 # without creating a new script every time
 
-script="prepare-wiki-large.py"
+script="longformer_fill_mask.py"
 
 if [ -z $script ] || [ ! -f $script ]; then
     echo "Script $script not found!"
