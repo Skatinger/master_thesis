@@ -1,6 +1,7 @@
 from datasets import load_dataset
 from custom.splitter import Splitter
 from transformers import LongformerTokenizer
+from transformers import AutoTokenizer
 
 
 # helper function to split the examples into chunks around the masks
@@ -11,7 +12,8 @@ from transformers import LongformerTokenizer
 # with `xz -T4 -9e for_mask_prediction.jsonl`.
 
 dataset = load_dataset("rcds/wikipedia-persons-masked", split='train')
-tokenizer = LongformerTokenizer.from_pretrained("allenai/longformer-base-4096")
+# tokenizer = LongformerTokenizer.from_pretrained("allenai/longformer-base-4096")
+tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-large")
 
 
 def split_examples(examples):
@@ -19,7 +21,7 @@ def split_examples(examples):
     all_mask_chunks = []
     # split the text around the masks
     for text, masks in zip(examples['masked_text_original'], examples['masked_entities_original']):
-        text_chunks = [*Splitter.split_by_max_tokens(text, tokenizer, max_tokens=4096)]
+        text_chunks = [*Splitter.split_by_max_tokens(text, tokenizer, max_tokens=tokenizer.model_max_length)]
         # for each text_chunk, get the number of masks in it, and get the corresponding masks
         last_chunk_mask_index = 0
         for chunk in text_chunks:
@@ -37,4 +39,4 @@ def split_examples(examples):
 
 
 new_dataset = dataset.map(split_examples, batched=True, batch_size=128, remove_columns=dataset.column_names, num_proc=8)
-new_dataset.to_json('for_mask_prediction_original_4096.jsonl')
+new_dataset.to_json('for_mask_prediction_original_512.jsonl')
