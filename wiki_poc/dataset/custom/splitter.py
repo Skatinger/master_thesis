@@ -18,13 +18,13 @@ class Splitter:
     def split_by_chunksize(self, text, chunksize):
         fullLength = len(text)
         # used when end is moved to the last space before chunksize
-        end = fullLength
+        end = fullLength - 1
 
         # return single examples when batchsize == 1
         for startIndex in range(0, len(text), chunksize):
             # include characters trimmed in last iteration if trimming occured
             startIndex = min(startIndex, end)
-            end = min(fullLength, startIndex + chunksize)
+            end = min(fullLength - 1, startIndex + chunksize)
             # move end back to last space
             while (end > startIndex and text[end] != ' '):
                 end -= 1
