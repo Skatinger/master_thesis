@@ -71,7 +71,13 @@ def extract_result(result):
 
 
 if __name__ == '__main__':
-    model_name = 'allenai/longformer-base-4096'
+    if len(sys.argv) > 1:
+        model_name = sys.argv[1]
+    else:
+        logging.info("No model name provided")
+        exit()
+    logging.info("Using model {}".format(model_name))
+
     dataset = load_dataset('skatinger/wikipedia-for-mask-filling', split='train')
     pipe = pipeline('fill-mask', model=model_name, top_k=5, device=device)
     result_dataset = Dataset.from_dict({'predictions': [], 'scores': []})
