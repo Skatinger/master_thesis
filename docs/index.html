@@ -44,6 +44,31 @@
       <h2 style="font-weight: 300">Progress Log</h2>
       <div class="log-section">
 
+        <div class="log-entry">
+          <h3>Dataset preparation for evaluation</h3>
+          <div class="tags">
+            <sl-badge variant="neutral">20.01.22</sl-badge>
+            <sl-badge variant="primary">v1</sl-badge>
+            <sl-badge variant="warning">PREPROCESSING</sl-badge>
+          </div>
+
+          <ul>
+            <li>Built Datasetversion processable by models</li>
+            <li>Uploaded to HuggingFace including a dataloader for splits</li>
+          </ul>
+
+          <sl-details summary="Details">
+            <h4>New Dataformat</h4>
+            <p>Running the original wiki-dataset through models is tedious as each model requires different input sizes and formats. To counter this problem
+              the original dataset was reformatted to splits each containing fractions of text with the corresponding entities masked and the entities stored
+              as ground truth in a separate column. The length of the text is adapted to the maximum input size of different models. There currently are two versions of
+              the data, one with text lengths of maximum 4096 tokens and one with maximum 512 tokens. Tokenization was done with the longformer-base tokenizer for the 4096 token version and xlm-roberta-large for the 512 token version.</p>
+            <h4>HuggingFace Repository</h4>
+            <p>The dataset is available in its different splits on the RCDS research space, with different download options. Via its dataloader it can
+            be directly downloaded with huggingface's datasets library. This eases the usage in experiments by a lot.</p>
+          </sl-details>
+        </div>
+
         <!-- log entry -->
         <div class="log-entry">
           <h3>Analysis on preprocessing</h3>
