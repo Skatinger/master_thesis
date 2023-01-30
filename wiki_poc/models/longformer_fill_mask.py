@@ -72,15 +72,15 @@ def extract_result(result):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        logging.info("Usage: python3 longformer_fill_mask.py <model_name> <dataset-split>")
+        logging.info("Usage: python3 longformer_fill_mask.py <model_name> <dataset-config>")
         logging.info("Example: python3 longformer_fill_mask.py allenai/longformer-base-4096 original_4096")
         exit()
 
     model_name = sys.argv[1]
-    split = sys.argv[2]
+    config = sys.argv[2]
     logging.info("Using model {}".format(model_name))
 
-    dataset = load_dataset('skatinger/wikipedia-for-mask-filling', split=split)
+    dataset = load_dataset('skatinger/wikipedia-for-mask-filling', config, split='train')
     pipe = pipeline('fill-mask', model=model_name, top_k=5, device=device)
     result_dataset = Dataset.from_dict({'predictions': [], 'scores': []})
 
@@ -92,6 +92,6 @@ if __name__ == '__main__':
         result_dataset.add_item({'predictions': tokens, 'scores': scores})
 
     # save dataset
-    path = "wiki_predictions_{}_{}".format(model_name.replace('/', '_'), split)
+    path = "wiki_predictions_{}_{}".format(model_name.replace('/', '_'), config)
     logging.info("Saving dataset to path {}".format(path))
     result_dataset.save_to_disk(path)
