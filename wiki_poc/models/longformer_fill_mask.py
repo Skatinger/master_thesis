@@ -79,6 +79,7 @@ if __name__ == '__main__':
     model_name = sys.argv[1]
     config = sys.argv[2]
     logging.info("Using model {}".format(model_name))
+    logging.info("Using device {}".format(device))
 
     dataset = load_dataset('skatinger/wikipedia-for-mask-filling', config, split='train')
     # create a split of the dataset to test the pipeline
