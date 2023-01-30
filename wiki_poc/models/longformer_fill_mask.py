@@ -97,4 +97,4 @@ if __name__ == '__main__':
     # save dataset
     path = "wiki_predictions_{}_{}".format(model_name.replace('/', '_'), config)
     logging.info("Saving dataset to path {}".format(path))
-    result_dataset.save_to_disk(path)
+    result_dataset.to_json(path)
