@@ -83,12 +83,12 @@ if __name__ == '__main__':
 
     dataset = load_dataset('skatinger/wikipedia-for-mask-filling', config, split='train')
     # create a split of the dataset to test the pipeline
-    dataset = dataset.select(range(1000))
+    dataset = dataset.select(range(1000)).filter((lambda x: '<mask>' in x['texts']))  # temporary filter to fix issue in dataset
     pipe = pipeline('fill-mask', model=model_name, top_k=5, device=device)
     result_dataset = Dataset.from_dict({'predictions': [], 'scores': []})
 
     # can safely batch as the input is already chunked into 4096 tokens per sequence
-    for out in tqdm(pipe(KeyDataset(dataset, 'texts'), batch_size=64)):
+    for out in tqdm(pipe(KeyDataset(dataset, 'texts'), batch_size=16)):
         # get a prediction for every chunk in the batch
         tokens, scores = extract_result(out)
         # add the predictions to the dataset
