@@ -112,13 +112,16 @@ def split_paraphrased_512_examples(examples):
 
 tokenizer = LongformerTokenizer.from_pretrained("allenai/longformer-base-4096")
 original_4096 = dataset.map(split_original_4096_examples, batched=True, batch_size=128, remove_columns=dataset.column_names, num_proc=6)
+original_4096.filter(lambda row: '<mask>' in row['texts'])
 original_4096.to_json('original_4096.jsonl')
 paraphrased_4096 = dataset.map(split_paraphrased_4096_examples, batched=True, batch_size=128, remove_columns=dataset.column_names, num_proc=6)
+paraphrased_4096.filter(lambda row: '<mask>' in row['texts'])
 paraphrased_4096.to_json('paraphrased_4096.jsonl')
 # overwrite tokenizer to use xlm-roberta-large for the smaller chunks
 tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-large")
 original_512 = dataset.map(split_original_512_examples, batched=True, batch_size=128, remove_columns=dataset.column_names, num_proc=6)
+original_512.filter(lambda row: '<mask>' in row['texts'])
 original_512.to_json('original_512.jsonl')
 paraphrased_512 = dataset.map(split_original_512_examples, batched=True, batch_size=128, remove_columns=dataset.column_names, num_proc=6)
+paraphrased_512.filter(lambda row: '<mask>' in row['texts'])
 paraphrased_512.to_json('paraphrased_512.jsonl')
-
