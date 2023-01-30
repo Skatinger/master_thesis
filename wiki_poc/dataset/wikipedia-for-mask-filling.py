@@ -109,7 +109,7 @@ class WikipediaForMaskFilling(datasets.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+            datasets.SplitGenerator(name='train', gen_kwargs={"filepath": downloaded_files["train"]}),
         ]
 
     def _generate_examples(self, filepath):
