@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     dataset = load_dataset('rcds/wikipedia-for-mask-filling', config, split='train')
     # create a split of the dataset to test the pipeline
-    dataset = dataset.select(range(1000)).filter((lambda x: '<mask>' in x['texts']))  # temporary filter to fix issue in dataset
+    dataset = dataset.filter((lambda x: '<mask>' in x['texts']))  # temporary filter to fix issue in dataset
     logging.info("Left with {} examples.".format(len(dataset)))
     pipe = pipeline('fill-mask', model=model_name, top_k=5, device=device)
     result_dataset = Dataset.from_dict({'predictions': [], 'scores': []})
@@ -93,7 +93,7 @@ if __name__ == '__main__':
         # get a prediction for every chunk in the batch
         tokens, scores = extract_result(out)
         # add the predictions to the dataset
-        result_dataset.add_item({'predictions': tokens, 'scores': scores})
+        result_dataset = result_dataset.add_item({'predictions': tokens, 'scores': scores})
 
     # save dataset
     path = "wiki_predictions_{}_{}.jsonl".format(model_name.replace('/', '_'), config)
