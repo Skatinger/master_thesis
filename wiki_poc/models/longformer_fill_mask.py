@@ -95,6 +95,6 @@ if __name__ == '__main__':
         result_dataset.add_item({'predictions': tokens, 'scores': scores})
 
     # save dataset
-    path = "wiki_predictions_{}_{}".format(model_name.replace('/', '_'), config)
+    path = "wiki_predictions_{}_{}.jsonl".format(model_name.replace('/', '_'), config)
     logging.info("Saving dataset to path {}".format(path))
     result_dataset.to_json(path)
