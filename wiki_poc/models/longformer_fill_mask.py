@@ -82,8 +82,9 @@ if __name__ == '__main__':
     logging.info("Using device {}".format(device))
 
     dataset = load_dataset('rcds/wikipedia-for-mask-filling', config, split='train')
-    # create a split of the dataset to test the pipeline
-    dataset = dataset.filter((lambda x: '<mask>' in x['texts']))  # temporary filter to fix issue in dataset
+    nb_shards = len(dataset) / 1000
+    # create a split of the dataset to test the pipeline and evaluation
+    dataset = dataset.shard(num_shards=nb_shards, index=0)
     logging.info("Left with {} examples.".format(len(dataset)))
     pipe = pipeline('fill-mask', model=model_name, top_k=5, device=device)
     result_dataset = Dataset.from_dict({'predictions': [], 'scores': []})
