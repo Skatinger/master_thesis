@@ -82,7 +82,7 @@ if __name__ == '__main__':
     logging.info("Using device {}".format(device))
 
     # force redownload in case of corrupted cache
-    dataset = load_dataset('rcds/wikipedia-for-mask-filling', config, split='train', download_mode='force_redownload')
+    dataset = load_dataset('rcds/wikipedia-for-mask-filling', config, split='train', download_mode='force_redownload', ignore_verifications='true')
     nb_shards = len(dataset) / 1000
     # create a split of the dataset to test the pipeline and evaluation
     dataset = dataset.shard(num_shards=nb_shards, index=0)
