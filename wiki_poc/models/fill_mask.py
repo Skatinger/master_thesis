@@ -82,20 +82,25 @@ if __name__ == '__main__':
     logging.info("Using device {}".format(device))
 
     # force redownload in case of corrupted cache
-    dataset = load_dataset('rcds/wikipedia-for-mask-filling', config, split='train', download_mode='force_redownload', ignore_verifications='true')
+    dataset = load_dataset('rcds/wikipedia-for-mask-filling', config, split='train')
     nb_shards = len(dataset) / 1000
     # create a split of the dataset to test the pipeline and evaluation
     dataset = dataset.shard(num_shards=nb_shards, index=0)
     logging.info("Left with {} examples.".format(len(dataset)))
     pipe = pipeline('fill-mask', model=model_name, top_k=5, device=device)
-    result_dataset = Dataset.from_dict({'predictions': [], 'scores': []})
+    result_dataset = Dataset.from_dict({'predictions': [], 'scores': [], 'page_id': [], 'sequence_number': []})
 
     # can safely batch as the input is already chunked into 4096 tokens per sequence
-    for out in tqdm(pipe(KeyDataset(dataset, 'texts'), batch_size=8)):
+    for example, out in zip(dataset, tqdm(pipe(KeyDataset(dataset, 'texts'), batch_size=8))):
         # get a prediction for every chunk in the batch
         tokens, scores = extract_result(out)
         # add the predictions to the dataset
-        result_dataset = result_dataset.add_item({'predictions': tokens, 'scores': scores})
+        result_dataset = result_dataset.add_item({
+            'predictions': tokens,
+            'scores': scores,
+            'page_id': example['id'],
+            'sequence_number': example['sequence_number']
+        })
 
     # save dataset
     path = "wiki_predictions_{}_{}.jsonl".format(model_name.replace('/', '_'), config)
