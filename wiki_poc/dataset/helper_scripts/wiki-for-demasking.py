@@ -1,4 +1,6 @@
 from datasets import load_dataset
+import sys
+sys.path.append("..")
 from custom.splitter import Splitter
 from transformers import LongformerTokenizer
 from transformers import AutoTokenizer
@@ -13,12 +15,25 @@ from transformers import AutoTokenizer
 
 dataset = load_dataset("rcds/wikipedia-persons-masked", split='train')
 
-
-def split_original_4096_examples(examples):
+### now testing this batch version
+def split_examples(examples, type, size, tokenizer):
+    # lists which will contain the examples after splitting, returned as a dict of lists
     all_text_chunks = []
     all_mask_chunks = []
-    # split the text around the masks
-    for text, masks in zip(examples["masked_text_original"], examples["masked_entities_original"]):
+    all_ids = []
+    all_titles = []
+    all_sequence_numbers = []
+
+    # prepare the data for splitting
+    content = zip(
+        examples['id'],
+        examples['title'],
+        examples["masked_text_{}".format(type)],
+        examples["masked_entities_{}".format(type)]
+    )
+    for id, title, text, masks in content:
+        # create chunks of text for every example, add list of belonging attributes to the lists which will be returned
+        # as a dict of lists (e.g. the list of new examples)
         text_chunks = [*Splitter.split_by_max_tokens(text, tokenizer, max_tokens=tokenizer.model_max_length)]
         # for each text_chunk, get the number of masks in it, and get the corresponding masks
         last_chunk_mask_index = 0
@@ -31,97 +46,41 @@ def split_original_4096_examples(examples):
             last_chunk_mask_index += num_masks
             # add the masks to the mask_chunks
             all_mask_chunks += [chunk_masks]
+
+        # add the newly created chunks to the list of all chunks
         all_text_chunks += text_chunks
-        types = ["original"] * len(all_text_chunks)
-        sizes = [4096] * len(all_text_chunks)
+        # add metadata to the lists
+        nb_chunks_for_example = len(text_chunks)
+        all_ids += [id] * nb_chunks_for_example
+        all_titles += [title] * nb_chunks_for_example
+        all_sequence_numbers += list(range(nb_chunks_for_example))
 
-    return {"type": types, "size": sizes, "texts": all_text_chunks, "masks": all_mask_chunks}
+    # define lists for metadata which stays the same for all examples in the batch
+    all_types = [type] * len(all_text_chunks)
+    all_sizes = [size] * len(all_text_chunks)
 
-
-def split_paraphrased_4096_examples(examples):
-    all_text_chunks = []
-    all_mask_chunks = []
-    # split the text around the masks
-    for text, masks in zip(examples["masked_text_paraphrased"], examples["masked_entities_paraphrased"]):
-        text_chunks = [*Splitter.split_by_max_tokens(text, tokenizer, max_tokens=tokenizer.model_max_length)]
-        # for each text_chunk, get the number of masks in it, and get the corresponding masks
-        last_chunk_mask_index = 0
-        for chunk in text_chunks:
-            # get the number of masks in the chunk
-            num_masks = chunk.count('<mask>')
-            # get the corresponding masks
-            chunk_masks = masks[last_chunk_mask_index:(num_masks + last_chunk_mask_index)]
-            # update the last_chunk_mask_index
-            last_chunk_mask_index += num_masks
-            # add the masks to the mask_chunks
-            all_mask_chunks += [chunk_masks]
-        all_text_chunks += text_chunks
-        types = ["paraphrased"] * len(all_text_chunks)
-        sizes = [4096] * len(all_text_chunks)
-
-    return {"type": types, "size": sizes, "texts": all_text_chunks, "masks": all_mask_chunks}
+    return {
+        "id": all_ids,  # id of the original wiki page
+        "sequence_number": all_sequence_numbers,  # sequence number of the chunk in the original wiki page
+        "title": all_titles,  # title of the original wiki page e.g. the entity
+        "type": all_types,  # type of the base text, either original or paraphrased
+        "size": all_sizes,  # size of the base text in tokens, either 4096 or 512
+        "texts": all_text_chunks,  # the text chunks
+        "masks": all_mask_chunks  # the masks for the text chunks
+        }
 
 
-def split_original_512_examples(examples):
-    all_text_chunks = []
-    all_mask_chunks = []
-    # split the text around the masks
-    for text, masks in zip(examples["masked_text_original"], examples["masked_entities_original"]):
-        text_chunks = [*Splitter.split_by_max_tokens(text, tokenizer, max_tokens=tokenizer.model_max_length)]
-        # for each text_chunk, get the number of masks in it, and get the corresponding masks
-        last_chunk_mask_index = 0
-        for chunk in text_chunks:
-            # get the number of masks in the chunk
-            num_masks = chunk.count('<mask>')
-            # get the corresponding masks
-            chunk_masks = masks[last_chunk_mask_index:(num_masks + last_chunk_mask_index)]
-            # update the last_chunk_mask_index
-            last_chunk_mask_index += num_masks
-            # add the masks to the mask_chunks
-            all_mask_chunks += [chunk_masks]
-        all_text_chunks += text_chunks
-        types = ["original"] * len(all_text_chunks)
-        sizes = [512] * len(all_text_chunks)
+longformer_tokenizer = LongformerTokenizer.from_pretrained("allenai/longformer-base-4096")
+xlm_roberta_tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-large")
 
-    return {"type": types, "size": sizes, "texts": all_text_chunks, "masks": all_mask_chunks}
+configs = [
+    {'type': 'original', 'size': 4096, 'tokenizer': longformer_tokenizer},
+    {'type': 'paraphrased', 'size': 4096, 'tokenizer': longformer_tokenizer},
+    {'type': 'original', 'size': 512, 'tokenizer': xlm_roberta_tokenizer},
+    {'type': 'paraphrased', 'size': 512, 'tokenizer': xlm_roberta_tokenizer}
+]
 
-
-def split_paraphrased_512_examples(examples):
-    all_text_chunks = []
-    all_mask_chunks = []
-    # split the text around the masks
-    for text, masks in zip(examples["masked_text_paraphrased"], examples["masked_entities_paraphrased"]):
-        text_chunks = [*Splitter.split_by_max_tokens(text, tokenizer, max_tokens=tokenizer.model_max_length)]
-        # for each text_chunk, get the number of masks in it, and get the corresponding masks
-        last_chunk_mask_index = 0
-        for chunk in text_chunks:
-            # get the number of masks in the chunk
-            num_masks = chunk.count('<mask>')
-            # get the corresponding masks
-            chunk_masks = masks[last_chunk_mask_index:(num_masks + last_chunk_mask_index)]
-            # update the last_chunk_mask_index
-            last_chunk_mask_index += num_masks
-            # add the masks to the mask_chunks
-            all_mask_chunks += [chunk_masks]
-        all_text_chunks += text_chunks
-        types = ["paraphrased"] * len(all_text_chunks)
-        sizes = [512] * len(all_text_chunks)
-
-    return {"type": types, "size": sizes, "texts": all_text_chunks, "masks": all_mask_chunks}
-
-
-tokenizer = LongformerTokenizer.from_pretrained("allenai/longformer-base-4096")
-original_4096 = dataset.map(split_original_4096_examples, batched=True, batch_size=128, remove_columns=dataset.column_names, num_proc=6)
-original_4096 = original_4096.filter(lambda row: '<mask>' in row['texts'])
-original_4096.to_json('original_4096.jsonl')
-paraphrased_4096 = dataset.map(split_paraphrased_4096_examples, batched=True, batch_size=128, remove_columns=dataset.column_names, num_proc=6)
-paraphrased_4096 = paraphrased_4096.filter(lambda row: '<mask>' in row['texts'])
-paraphrased_4096.to_json('paraphrased_4096.jsonl')
-# overwrite tokenizer to use xlm-roberta-large for the smaller chunks
-tokenizer = AutoTokenizer.from_pretrained("xlm-roberta-large")
-original_512 = dataset.map(split_original_512_examples, batched=True, batch_size=128, remove_columns=dataset.column_names, num_proc=6)
-original_512 = original_512.filter(lambda row: '<mask>' in row['texts'])
-original_512.to_json('original_512.jsonl')
-paraphrased_512 = dataset.map(split_original_512_examples, batched=True, batch_size=128, remove_columns=dataset.column_names, num_proc=6)
-paraphrased_512 = paraphrased_512.filter(lambda row: '<mask>' in row['texts'])
-paraphrased_512.to_json('paraphrased_512.jsonl')
+for config in configs:
+    configured_dataset = dataset.map(split_examples, batched=True, batch_size=128, remove_columns=dataset.column_names, num_proc=6, fn_kwargs=config)
+    configured_dataset = configured_dataset.filter(lambda row: '<mask>' in row['texts'])
+    configured_dataset.to_json('{}_{}.jsonl'.format(config['type'], config['size']))
