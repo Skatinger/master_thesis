@@ -25,6 +25,7 @@ title of the wikipedia page. Simplified example:
 
 **Sentence:** *<mask> was the president of the United States in the years 2014 - 2018. <mask> was born in Nebraska. With his wife <mask>
 moved to Boston to follow his political career.*
+
 **Predictions (5 per mask) with their scores::**
 1. John Fitzgerald Kennedy, Kennedy, John F. Kennedy, He ==> [0.45, 0.12, 0.11, 0.15, 0.12]
 2. He, Kennedy, Trumann, His, Junior ==> [0.62, 0.22, 0.21, 0.12, 0.05]
