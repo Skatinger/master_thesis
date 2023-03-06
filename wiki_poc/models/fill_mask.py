@@ -1,7 +1,7 @@
-import torch
 import signal
 import sys
 import logging
+import torch
 from transformers import pipeline
 from datasets import load_dataset, Dataset
 from transformers.pipelines.pt_utils import KeyDataset
@@ -10,10 +10,18 @@ from tqdm.auto import tqdm
 logging.getLogger().setLevel(logging.INFO)
 
 
-# allow signal handling, required when script is interrupted either with ctrl+c or with a proper sigint
-# by the job handling server. All processing is cached to disk, this is just to ensure the job exits
-# with a clean exit code and writes a short log to more easily see the reason for the exit upon log inspection
-def signal_handler(sig, frame):
+def signal_handler(_sig, _frame):
+    """_summary_
+
+    Args:
+        _sig (_type_): -
+        _frame (_type_): -
+    Description:
+        allow signal handling, required when script is interrupted either with
+        ctrl+c or with a proper sigint by the job handling server. All processing is cached to disk,
+        this is just to ensure the job exits with a clean exit code and writes a short log to
+        more easily see the reason for the exit upon log inspection.
+    """
     logging.info("Received SIGINT, exiting.")
     sys.exit(0)
 
@@ -21,7 +29,7 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGTERM, signal_handler)
 
 # use CUDA if available (ususally has ID 0), -1 is huggingface default for CPU
-device = 0 if torch.cuda.is_available() else -1
+DEVICE = 0 if torch.cuda.is_available() else -1
 
 
 # extracts the relevant parts of the result of the fill-mask pipeline, removes unnecessary
@@ -56,7 +64,7 @@ def extract_result(result):
         for mask_result in sequence_results:
             # if only a single mask was present in the sequence, it's just a dict, without array.
             # Wrap it in this case to make the following code work for both cases
-            if type(mask_result) == dict:
+            if isinstance(mask_result, dict):
                 mask_result = [mask_result]
 
             # format of mask_result should be: [{token_str: predicted token, score: predicted sore, ...}, {...}]
@@ -74,20 +82,20 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         logging.info("Usage: python3 longformer_fill_mask.py <model_name> <dataset-config>")
         logging.info("Example: python3 longformer_fill_mask.py allenai/longformer-base-4096 original_4096")
-        exit()
+        sys.exit()
 
-    model_name = sys.argv[1]
-    config = sys.argv[2]
-    logging.info("Using model {}".format(model_name))
-    logging.info("Using device {}".format(device))
+    MODEL_NAME = sys.argv[1]
+    CONFIG = sys.argv[2]
+    logging.info('Using model %s', MODEL_NAME)
+    logging.info('Using device %s', DEVICE)
 
     # force redownload in case of corrupted cache
-    dataset = load_dataset('rcds/wikipedia-for-mask-filling', config, split='train')
+    dataset = load_dataset('rcds/wikipedia-for-mask-filling', CONFIG, split='train')
     nb_shards = len(dataset) / 1000
     # create a split of the dataset to test the pipeline and evaluation
     dataset = dataset.shard(num_shards=nb_shards, index=0)
-    logging.info("Left with {} examples.".format(len(dataset)))
-    pipe = pipeline('fill-mask', model=model_name, top_k=5, device=device)
+    logging.info('Left with %i examples.', len(dataset))
+    pipe = pipeline('fill-mask', model=MODEL_NAME, top_k=5, device=DEVICE)
     result_dataset = Dataset.from_dict({'predictions': [], 'scores': [], 'page_id': [], 'sequence_number': []})
 
     # can safely batch as the input is already chunked into 4096 tokens per sequence
@@ -103,6 +111,6 @@ if __name__ == '__main__':
         })
 
     # save dataset
-    path = "wiki_predictions_{}_{}.jsonl".format(model_name.replace('/', '_'), config)
-    logging.info("Saving dataset to path {}".format(path))
-    result_dataset.to_json(path)
+    PATH = f"wiki_predictions_{MODEL_NAME.replace('/', '_')}_{CONFIG}.jsonl"
+    logging.info('Saving dataset to path %s', PATH)
+    result_dataset.to_json(PATH)
