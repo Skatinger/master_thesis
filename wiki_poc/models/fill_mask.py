@@ -1,6 +1,7 @@
 import signal
 import sys
 import logging
+import itertools
 import torch
 from transformers import pipeline
 from datasets import load_dataset, Dataset
@@ -11,16 +12,14 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 def signal_handler(_sig, _frame):
-    """_summary_
+    """allow signal handling, required when script is interrupted either with
+        ctrl+c or with a proper sigint by the job handling server. All processing is cached to disk,
+        this is just to ensure the job exits with a clean exit code and writes a short log to
+        more easily see the reason for the exit upon log inspection.
 
     Args:
         _sig (_type_): -
         _frame (_type_): -
-    Description:
-        allow signal handling, required when script is interrupted either with
-        ctrl+c or with a proper sigint by the job handling server. All processing is cached to disk,
-        this is just to ensure the job exits with a clean exit code and writes a short log to
-        more easily see the reason for the exit upon log inspection.
     """
     logging.info("Received SIGINT, exiting.")
     sys.exit(0)
@@ -86,19 +85,33 @@ if __name__ == '__main__':
 
     MODEL_NAME = sys.argv[1]
     CONFIG = sys.argv[2]
+    SHARD_SIZE = None
+
+    if len(sys.argv) == 3:
+        # defines the number of pages to process in one run. The number of examples per page varies,
+        # therefore the number of examples processed in one run is SHARD_SIZE * avg_examples_per_page
+        SHARD_SIZE = sys.argv[3]
     logging.info('Using model %s', MODEL_NAME)
     logging.info('Using device %s', DEVICE)
 
     # force redownload in case of corrupted cache
     dataset = load_dataset('rcds/wikipedia-for-mask-filling', CONFIG, split='train')
-    nb_shards = len(dataset) / 1000
-    # create a split of the dataset to test the pipeline and evaluation
-    dataset = dataset.shard(num_shards=nb_shards, index=0)
-    logging.info('Left with %i examples.', len(dataset))
+
+    # if only a subset of the dataset should be processed, create a subset of the dataset
+    if SHARD_SIZE is not None:
+        # need to create a set of page ids and then filter the dataset to only contain full pages
+        # otherwise the dataset will contain partial pages, e.g. examples can not be puzzled together
+        # to form a full page anymore
+        dataset_ids = set(dataset['id'])
+        shard_ids = [val for _, val in enumerate(itertools.islice(dataset_ids, SHARD_SIZE))]
+        dataset = dataset.filter(lambda x: x['id'] in shard_ids, num_proc=4)
+
+    logging.info('Left with %i examples (%i pages).', len(dataset), SHARD_SIZE)
     pipe = pipeline('fill-mask', model=MODEL_NAME, top_k=5, device=DEVICE)
     result_dataset = Dataset.from_dict({'predictions': [], 'scores': [], 'page_id': [], 'sequence_number': []})
 
     # can safely batch as the input is already chunked into 4096 tokens per sequence
+    # if the loop runs out of memory, reduce the batch size
     for example, out in zip(dataset, tqdm(pipe(KeyDataset(dataset, 'texts'), batch_size=8))):
         # get a prediction for every chunk in the batch
         tokens, scores = extract_result(out)
