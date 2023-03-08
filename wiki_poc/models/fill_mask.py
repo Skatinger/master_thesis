@@ -78,7 +78,7 @@ def extract_result(result):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         logging.info("Usage: python3 longformer_fill_mask.py <model_name> <dataset-config>")
         logging.info("Example: python3 longformer_fill_mask.py allenai/longformer-base-4096 original_4096")
         sys.exit()
@@ -87,12 +87,15 @@ if __name__ == '__main__':
     CONFIG = sys.argv[2]
     SHARD_SIZE = None
 
-    if len(sys.argv) == 3:
+    if len(sys.argv) == 4:
         # defines the number of pages to process in one run. The number of examples per page varies,
         # therefore the number of examples processed in one run is SHARD_SIZE * avg_examples_per_page
-        SHARD_SIZE = sys.argv[3]
+        SHARD_SIZE = int(sys.argv[3])
     logging.info('Using model %s', MODEL_NAME)
     logging.info('Using device %s', DEVICE)
+    logging.info('Using dataset config %s', CONFIG)
+    if SHARD_SIZE is not None:
+        logging.info('Using shard size %i', SHARD_SIZE)
 
     # force redownload in case of corrupted cache
     dataset = load_dataset('rcds/wikipedia-for-mask-filling', CONFIG, split='train')
