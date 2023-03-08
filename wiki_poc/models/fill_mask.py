@@ -79,8 +79,8 @@ def extract_result(result):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        logging.info("Usage: python3 longformer_fill_mask.py <model_name> <dataset-config>")
-        logging.info("Example: python3 longformer_fill_mask.py allenai/longformer-base-4096 original_4096")
+        logging.info("Usage: python3 fill_mask.py <model_name> <dataset-config>")
+        logging.info("Example: python3 fill_mask.py allenai/longformer-base-4096 original_4096")
         sys.exit()
 
     MODEL_NAME = sys.argv[1]
@@ -112,6 +112,9 @@ if __name__ == '__main__':
     logging.info('Left with %i examples (%i pages).', len(dataset), SHARD_SIZE)
     pipe = pipeline('fill-mask', model=MODEL_NAME, top_k=5, device=DEVICE)
     result_dataset = Dataset.from_dict({'predictions': [], 'scores': [], 'page_id': [], 'sequence_number': []})
+
+    # convert mask tokens to mask token format used by the model
+    dataset = dataset.map(lambda x: {'texts': x['text'].replace('<mask>', pipe.tokenizer.mask_token)})
 
     # can safely batch as the input is already chunked into 4096 tokens per sequence
     # if the loop runs out of memory, reduce the batch size
