@@ -12,7 +12,7 @@ Only names which fit the title of the wikipedia page are masked. However, this m
 person to be masked as well. For example the wife of JFK might be masked as well as JFK himself, as they are both referenced
 by the name Kennedy.
 
-The masking did not differentiate between first and lastname, and therefore the evaluation will not neither.
+The masking did not differentiate between first and lastname, and therefore the evaluation will neither.
 A prediction is therefore correct if part of the name (first, last or middle name) is correctly predicted.
 
 ### Computation of *best* prediction
@@ -23,7 +23,7 @@ All other words are tokenized by their case insensitive string. For each token g
 This gives a ranking of predicted tokens by their overall prediction score. The token with the best score is most likely the
 title of the wikipedia page. Simplified example:
 
-**Sentence:** *<mask> was the president of the United States in the years 2014 - 2018. <mask> was born in Nebraska. With his wife <mask>
+**Sentence:** *`<mask>` was the president of the United States in the years 2014 - 2018. `<mask>` was born in Nebraska. With his wife `<mask>`
 moved to Boston to follow his political career.*
 
 **Predictions (5 per mask) with their scores::**
