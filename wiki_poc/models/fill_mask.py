@@ -3,7 +3,7 @@ import sys
 import logging
 import itertools
 import torch
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer
 from datasets import load_dataset, Dataset
 from transformers.pipelines.pt_utils import KeyDataset
 from tqdm.auto import tqdm
@@ -110,11 +110,12 @@ if __name__ == '__main__':
         dataset = dataset.filter(lambda x: x['id'] in shard_ids, num_proc=4)
 
     logging.info('Left with %i examples (%i pages).', len(dataset), SHARD_SIZE)
-    pipe = pipeline('fill-mask', model=MODEL_NAME, top_k=5, device=DEVICE)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, truncation=True, padding='longest')
+    pipe = pipeline('fill-mask', model=MODEL_NAME, tokenizer=tokenizer, top_k=5, device=DEVICE)
     result_dataset = Dataset.from_dict({'predictions': [], 'scores': [], 'page_id': [], 'sequence_number': []})
 
     # convert mask tokens to mask token format used by the model
-    dataset = dataset.map(lambda x: {'texts': x['text'].replace('<mask>', pipe.tokenizer.mask_token)})
+    dataset = dataset.map(lambda x: {'texts': x['texts'].replace('<mask>', pipe.tokenizer.mask_token)})
 
     # can safely batch as the input is already chunked into 4096 tokens per sequence
     # if the loop runs out of memory, reduce the batch size
