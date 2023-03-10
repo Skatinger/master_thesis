@@ -3,13 +3,14 @@ import sys
 import logging
 import itertools
 import torch
-from transformers import pipeline, AutoTokenizer
+from typing import Dict, Union, Optional, List, Any, Tuple
+from pipelines import FillMaskPipelineWithTruncation
+from transformers import AutoTokenizer, AutoModelForMaskedLM
 from datasets import load_dataset, Dataset
 from transformers.pipelines.pt_utils import KeyDataset
 from tqdm.auto import tqdm
 
 logging.getLogger().setLevel(logging.INFO)
-
 
 def signal_handler(_sig, _frame):
     """allow signal handling, required when script is interrupted either with
@@ -24,16 +25,21 @@ def signal_handler(_sig, _frame):
     logging.info("Received SIGINT, exiting.")
     sys.exit(0)
 
-
 signal.signal(signal.SIGTERM, signal_handler)
 
 # use CUDA if available (ususally has ID 0), -1 is huggingface default for CPU
 DEVICE = 0 if torch.cuda.is_available() else -1
 
+def extract_result(result: Union[Dict, List[Dict]]) -> Tuple[List[str], List[float]]:
+    """extracts the relevant parts of the result of the fill-mask pipeline, removes unnecessary
+       text outputs. Kept outputs are the predicted strings and their score. Score is rounded to 3 digits after comma
 
-# extracts the relevant parts of the result of the fill-mask pipeline, removes unnecessary
-# text outputs. Kept outputs are the predicted strings and their score. Score is rounded to 3 digits after comma
-def extract_result(result):
+    Args:
+        result: model output of the fill-mask pipeline
+
+    Returns:
+        Tuple: of two lists, one containing the predicted strings, the other containing the scores
+    """
     # if we get no predictions, return empty arrays
     if len(result) < 1:
         return [], []
@@ -79,8 +85,8 @@ def extract_result(result):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        logging.info("Usage: python3 fill_mask.py <model_name> <dataset-config>")
-        logging.info("Example: python3 fill_mask.py allenai/longformer-base-4096 original_4096")
+        logging.info("Usage: python3 fill_mask.py <model_name> <dataset-config> <optional:shard_size>")
+        logging.info("Example: python3 fill_mask.py allenai/longformer-base-4096 original_4096 500")
         sys.exit()
 
     MODEL_NAME = sys.argv[1]
@@ -110,15 +116,19 @@ if __name__ == '__main__':
         dataset = dataset.filter(lambda x: x['id'] in shard_ids, num_proc=4)
 
     logging.info('Left with %i examples (%i pages).', len(dataset), SHARD_SIZE)
+    # initialize the model and pipeline
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, truncation=True, padding='longest')
-    pipe = pipeline('fill-mask', model=MODEL_NAME, tokenizer=tokenizer, top_k=5, device=DEVICE)
+    model = AutoModelForMaskedLM.from_pretrained(MODEL_NAME)
+    pipe = FillMaskPipelineWithTruncation(model=model, tokenizer=tokenizer, top_k=5, device=DEVICE)
+
+    # create a dataset to store the results
     result_dataset = Dataset.from_dict({'predictions': [], 'scores': [], 'page_id': [], 'sequence_number': []})
 
     # convert mask tokens to mask token format used by the model
     dataset = dataset.map(lambda x: {'texts': x['texts'].replace('<mask>', pipe.tokenizer.mask_token)})
 
-    # can safely batch as the input is already chunked into 4096 tokens per sequence
-    # if the loop runs out of memory, reduce the batch size
+    # can safely batch as the input is already chunked. Oversized examples will be truncated
+    # Hint: if the loop runs out of memory, reduce the batch size
     for example, out in zip(dataset, tqdm(pipe(KeyDataset(dataset, 'texts'), batch_size=8))):
         # get a prediction for every chunk in the batch
         tokens, scores = extract_result(out)
