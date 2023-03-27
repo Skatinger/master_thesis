@@ -28,3 +28,6 @@ datasets/news_articles/*
 
 
 wiki_poc/models/.credentials
+
+# results from model outputs
+wiki_poc/models/*.jsonl
