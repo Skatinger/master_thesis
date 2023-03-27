@@ -28,10 +28,10 @@ if __name__ == "__main__":
     # ensure api key is set
     assert openai.api_key is not None, "OPENAI_API_KEY environment variable not set."
 
-    CONFIG = "original"
+    CONFIG = "paraphrased"
     MODEL_NAME = "gpt-3.5-turbo"
 
-    user_prompt = "Who is the person refered to as <mask>? Only give the exact name without punctuation."
+    user_prompt = "Who is the person refered to as <mask>? Only give the exact name without punctuation. You are not allowed to respond with anything but the name, no more than 3 words."
 
     # dataset with initial pages
     dataset = load_dataset('Skatinger/wikipedia-persons-masked', CONFIG, split='train')
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     result_dataset = Dataset.from_dict({'prediction': [], 'page_id': [], 'input_length': []})
 
     # temporary miniature shard for testing
-    dataset = dataset.shard(5000, 1)
+    dataset = dataset.shard(200, 0)
 
     # iterate over pages in dataset
     for page in tqdm(dataset):
@@ -68,11 +68,8 @@ if __name__ == "__main__":
         result_dataset = result_dataset.add_item(
             {'prediction': response['choices'][0]['message']['content'],
              'page_id': page['id'], 'input_length': len(text)})
-        # print response for debugging
-        print(response)
 
     # save dataset
-    import pdb; pdb.set_trace()
     PATH = f"wiki_predictions_{MODEL_NAME.replace('/', '_')}_{CONFIG}.jsonl"
     logging.info('Saving dataset to path %s', PATH)
     result_dataset.to_json(PATH)
