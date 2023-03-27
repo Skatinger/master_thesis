@@ -25,3 +25,6 @@ datasets/news_articles/swissdox_newsarticles.tsv
 datasets/news_articles.jsonl
 datasets/news_articles/by_regex_*
 datasets/news_articles/*
+
+
+wiki_poc/models/.credentials
