@@ -2,6 +2,7 @@ import re
 import sys
 from typing import Dict, Union, Optional, List, Any, Tuple
 from datasets import Dataset, load_dataset
+import Levenshtein
 
 class SinglePredictionEvaluator:
 
@@ -24,16 +25,31 @@ class SinglePredictionEvaluator:
 
 
     # compute accuracy
-    def compute_accuracy(self):
+    # def compute_precision(self):
+    #     correct = 0
+    #     correct_predictions = []
+    #     incorrect_predictions = []
+    #     for prediction, label in zip(self.dataset["prediction"], self.gt["title"]):
+    #         if re.match(self.name_regex(label), prediction):
+    #             correct += 1
+    #             correct_predictions.append((prediction, label))
+    #         else:
+    #             incorrect_predictions.append((prediction, label))
+    #     return correct / len(self.dataset), correct_predictions, incorrect_predictions
+
+    def compute_precision(self, predictions, labels):
+        """takes an array of predictions and labels and computes the average levenshtein difference"""
+
         correct = 0
         correct_predictions = []
         incorrect_predictions = []
-        for prediction, label in zip(self.dataset["prediction"], self.gt["title"]):
+        for prediction, label in zip(predictions, labels):
+            distance = Levenshtein.distance(prediction, label)
             if re.match(self.name_regex(label), prediction):
                 correct += 1
-                correct_predictions.append((prediction, label))
+                correct_predictions.append((prediction, label, distance))
             else:
-                incorrect_predictions.append((prediction, label))
+                incorrect_predictions.append((prediction, label, distance))
         return correct / len(self.dataset), correct_predictions, incorrect_predictions
     
 
@@ -45,13 +61,15 @@ if __name__ == "__main__":
         result_path = "../models/wiki_predictions_gpt-3.5-turbo_paraphrased.jsonl"
 
     ev = SinglePredictionEvaluator(result_path)
-    accuracy, correct, incorrect = ev.compute_accuracy()
-    print(len(ev.dataset))
-    print(f"Accuracy: {accuracy:.2%}")
+    accuracy, correct, incorrect = ev.compute_precision(ev.dataset['prediction'], ev.gt['title'])
+    print(f"\n MODEL {result_path} \n")
     print("\n===== Correct Predictions:")
-    for pred, label in correct:
-        print(f"{pred:50} {label}")
+    for pred, label, dist in correct:
+        print(f"{pred:50} {label:100} {dist}")
     print("\n===== Incorrect predictions:")
-    for pred, label in incorrect:
+    for pred, label, dist in incorrect:
         # print prediction and label with same identation
-        print(f"{pred:50} {label}")
+        print(f"{pred:50} {label:100} {dist}")
+    print(f"\n===== Summary (for result {result_path}):")
+    print(f"Number of entries: {len(ev.dataset)}")
+    print(f"Accuracy: {accuracy:.2%}\n\n\n=====================")
