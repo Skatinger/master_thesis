@@ -4,6 +4,7 @@ from datasets import load_dataset
 from datasets import Dataset
 import logging
 from tqdm.auto import tqdm
+import time
 openai.organization = "org-JkswNfkhKMfjPPgyLUjElGPH"
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -81,6 +82,9 @@ if __name__ == "__main__":
         if index % 100 == 0:
             logging.info('Saving dataset intermediately to path %s', PATH)
             result_dataset.to_json(PATH)
+        
+        # sleep for 5 seconds to avoid rate limit
+        time.sleep(5)
 
     # save dataset
     logging.info('Saving dataset to path %s', PATH)
