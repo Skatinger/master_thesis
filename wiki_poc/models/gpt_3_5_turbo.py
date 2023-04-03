@@ -52,9 +52,6 @@ if __name__ == "__main__":
     
     else:
         result_dataset = Dataset.from_dict({'prediction': [], 'page_id': [], 'input_length': []})
-    
-    # temporary miniature shard for testing
-    dataset = dataset.shard(2, 0)
 
     # iterate over pages in dataset
     for index, page in enumerate(tqdm(dataset)):
