@@ -41,9 +41,18 @@ if __name__ == "__main__":
     # filter out pages from dataset which are not in the test set
     dataset = dataset.filter(lambda x: x["id"] in test_set_ids)
 
-    # prepare result dataset
-    result_dataset = Dataset.from_dict({'prediction': [], 'page_id': [], 'input_length': []})
-
+    # only process pages which have not been processed yet
+    if os.path.exists(PATH):
+        # store already processed results in result_dataset
+        result_dataset = Dataset.from_json(PATH)
+        # get set of page ids which have already been processed
+        processed_ids = set(result_dataset['page_id'])
+        # filter out pages from dataset which have already been processed
+        dataset = dataset.filter(lambda x: x["id"] not in processed_ids)
+    
+    else:
+        result_dataset = Dataset.from_dict({'prediction': [], 'page_id': [], 'input_length': []})
+    
     # temporary miniature shard for testing
     dataset = dataset.shard(2, 0)
 
