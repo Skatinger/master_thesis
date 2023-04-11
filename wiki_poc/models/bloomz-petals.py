@@ -64,14 +64,15 @@ if __name__ == "__main__":
         text = page[f"masked_text_{CONFIG}"][:1000]
         # add start and end prompt
         prompt = start_prompt + text + end_prompt
+        prompt_length = len(prompt)
         # tokenize text
         inputs = tokenizer(prompt, return_tensors="pt")["input_ids"].cuda()
         # generate prediction
         outputs = model.generate(inputs, max_new_tokens=5)
         # decode output
         prediction = tokenizer.decode(outputs[0])
-        # remove start and end prompt
-        prediction = prediction.replace(start_prompt, "").replace(end_prompt, "")
+        # remove prompts from prediction
+        prediction = prediction[prompt_length:]
         # add prediction to result dataset
         result_dataset = result_dataset.add_item(
             {
