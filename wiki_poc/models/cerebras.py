@@ -50,7 +50,7 @@ if __name__ == "__main__":
         result_dataset = Dataset.from_dict({'prediction': [], 'page_id': [], 'input_length': []})
 
     # load model
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, padding_side="left")
     model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
     pipe.tokenizer.pad_token_id = pipe.model.config.eos_token_id
