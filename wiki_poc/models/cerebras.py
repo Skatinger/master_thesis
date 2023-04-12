@@ -53,12 +53,13 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    pipe.tokenizer.pad_token_id = pipe.model.config.eos_token_id
 
     # prompts
     start_prompt = "The following text talks about a person but the person is referred to as <mask>.\n\n"
     end_prompt = "\n\nThe name of the person in the text referred to as <mask> is: "
 
-    gen = pipe(KeyDataset(dataset, 'texts'), batch_size=16, max_new_tokens=5, early_stopping=True)
+    gen = pipe(KeyDataset(dataset, 'text'), batch_size=16, max_new_tokens=5, early_stopping=True)
     for example, out in zip(dataset, tqdm(gen, total=len(dataset))):
         # get page id
         page_id = example['id']
