@@ -52,8 +52,12 @@ if __name__ == "__main__":
     # load model
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, padding_side="left")
     model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
-    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    model.to(DEVICE)
+    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device=DEVICE, framework="pt")
     pipe.tokenizer.pad_token_id = pipe.model.config.eos_token_id
+
+    # shorten text to 1000 characters
+    dataset = dataset.map(lambda x: {'text': x['text'][:1000]}, batched=True)
 
     # prompts
     start_prompt = "The following text talks about a person but the person is referred to as <mask>.\n\n"
