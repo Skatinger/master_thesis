@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # ensure api key is set
     assert openai.api_key is not None, "OPENAI_API_KEY environment variable not set."
 
-    CONFIG = "paraphrased"
+    CONFIG = "original"
     MODEL_NAME = "gpt-3.5-turbo"
     PATH = f"wiki_predictions_{MODEL_NAME.replace('/', '_')}_{CONFIG}.jsonl"
 
