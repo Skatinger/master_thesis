@@ -57,26 +57,26 @@ if __name__ == "__main__":
     pipe.tokenizer.pad_token_id = pipe.model.config.eos_token_id
 
     # shorten text to 1000 characters
-    dataset = dataset.map(lambda x: {'text': x['text'][:1000]}, batched=True)
+    dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": x[f"masked_text_{CONFIG}"][:1000]})
 
     # prompts
     start_prompt = "The following text talks about a person but the person is referred to as <mask>.\n\n"
     end_prompt = "\n\nThe name of the person in the text referred to as <mask> is: "
 
-    gen = pipe(KeyDataset(dataset, 'text'), batch_size=16, max_new_tokens=5, early_stopping=True)
+    # prepend start and end prompt to all examples
+    dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": start_prompt + x[f"masked_text_{CONFIG}"] + end_prompt})
+
+    gen = pipe(KeyDataset(dataset, f"masked_text_{CONFIG}"), batch_size=8, max_new_tokens=5, early_stopping=True, pad_token_id=50256)
     for example, out in zip(dataset, tqdm(gen, total=len(dataset))):
         # get page id
         page_id = example['id']
         # get input length
-        input_length = example['input_length']
-        # get prediction
-        print(out)
-        print(out[0]['generated_text'])
-        prediction = out[0]['generated_text'].split(end_prompt)[0].replace(start_prompt, "")
-        print(prediction)
+        input_length = len(example[f"masked_text_{CONFIG}"])
+        # get prediction and remove the input from the output
+        prediction = out[0]['generated_text'].replace(example[f"masked_text_{CONFIG}"], "")
         # append results to result_dataset
-        result_dataset.add_item({'prediction': prediction, 'page_id': page_id, 'input_length': input_length})
-    
+        result_dataset = result_dataset.add_item({'prediction': prediction, 'page_id': page_id, 'input_length': input_length})
+
     # save final dataset to file
     logging.info('Saving final dataset to path %s', PATH)
-    result_dataset.save_to_disk(PATH)
+    result_dataset.to_json(PATH)
