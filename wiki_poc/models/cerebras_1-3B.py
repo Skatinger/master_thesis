@@ -72,8 +72,8 @@ if __name__ == "__main__":
         page_id = example['id']
         # get input length
         input_length = len(example[f"masked_text_{CONFIG}"])
-        # get prediction
-        prediction = out[0]['generated_text'].split(end_prompt)[0].replace(start_prompt, "")
+        # get prediction and remove the input from the output
+        prediction = out[0]['generated_text'].replace(example[f"masked_text_{CONFIG}"], "")
         # append results to result_dataset
         result_dataset = result_dataset.add_item({'prediction': prediction, 'page_id': page_id, 'input_length': input_length})
 
