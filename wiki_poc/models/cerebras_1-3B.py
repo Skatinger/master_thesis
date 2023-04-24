@@ -64,7 +64,7 @@ if __name__ == "__main__":
     end_prompt = "\n\nThe name of the person in the text referred to as <mask> is: "
 
     # prepend start and end prompt to all examples
-    dataset = dataset.map(lambda x: {'text': start_prompt + x['text'] + end_prompt}, batched=True)
+    dataset = dataset.map(lambda x: {'text': start_prompt + x['text'] + end_prompt})
 
     gen = pipe(KeyDataset(dataset, 'text'), batch_size=16, max_new_tokens=5, early_stopping=True, device=DEVICE)
     for example, out in zip(dataset, tqdm(gen, total=len(dataset))):
