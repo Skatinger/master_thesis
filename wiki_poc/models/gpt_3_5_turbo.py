@@ -60,19 +60,38 @@ if __name__ == "__main__":
         # extract text from page
         text = page[f"masked_text_{CONFIG}"][:1000]
         # prompt openai api for prediction
-        response = openai.ChatCompletion.create(
-            model=MODEL_NAME,
-            messages=[
-                { "role": "user", "content": text + " " + user_prompt },
-            ],
-            temperature=0.5,
-            max_tokens=10,
-            top_p=1,
-            n=1,
-            frequency_penalty=0,
-            presence_penalty=0,
-            stop=["\n"]
-        )
+        try:
+            response = openai.ChatCompletion.create(
+                model=MODEL_NAME,
+                messages=[
+                    { "role": "user", "content": text + " " + user_prompt },
+                ],
+                temperature=0.5,
+                max_tokens=10,
+                top_p=1,
+                n=1,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=["\n"]
+            )
+        except Exception as e:
+            logging.error(e)
+            # sleep a few seconds, then try again
+            time.sleep(5)
+            response = openai.ChatCompletion.create(
+                model=MODEL_NAME,
+                messages=[
+                    { "role": "user", "content": text + " " + user_prompt },
+                ],
+                temperature=0.5,
+                max_tokens=10,
+                top_p=1,
+                n=1,
+                frequency_penalty=0,
+                presence_penalty=0,
+                stop=["\n"]
+            )
+
         # add prediction to result dataset
         result_dataset = result_dataset.add_item(
             {'prediction': response['choices'][0]['message']['content'],
