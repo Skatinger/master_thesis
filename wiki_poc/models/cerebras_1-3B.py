@@ -28,7 +28,7 @@ if __name__ == "__main__":
     DEVICE = 0 if torch.cuda.is_available() else -1
     
     CONFIG = "paraphrased"
-    MODEL_NAME_SHORT = "cerebras"
+    MODEL_NAME_SHORT = "cerebras_1_3B"
     PATH = f"wiki_predictions_{MODEL_NAME_SHORT}_{CONFIG}.jsonl"
 
     # dataset with initial pages
