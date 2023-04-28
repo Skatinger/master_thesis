@@ -36,13 +36,13 @@ def run_prediction(examples):
 
 if __name__ == "__main__":
 
-    MODEL_NAME = "cerebras/Cerebras-GPT-7B"
+    MODEL_NAME = "cerebras/Cerebras-GPT-6.7B"
 
     assert torch.cuda.is_available(), "CUDA is not available. Please install CUDA and try again."
     DEVICE = 0
     
     CONFIG = "paraphrased"
-    MODEL_NAME_SHORT = "cerebras_7B"
+    MODEL_NAME_SHORT = "cerebras_6_7B"
     PATH = f"wiki_predictions_{MODEL_NAME_SHORT}_{CONFIG}.jsonl"
 
     # dataset with initial pages
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     # get set of page ids which are in the test_set_ids.csv file
     test_set_ids = set([i.strip() for i in open("test_set_ids.csv").readlines()])
     # filter out pages from dataset which are not in the test set
-    dataset = dataset.filter(lambda x: x["id"] in test_set_ids)
+    dataset = dataset.filter(lambda x: x["id"] in test_set_ids, num_proc=8)
 
     # only process pages which have not been processed yet, load processed pages from jsonl file if exists
     if os.path.exists(PATH):
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     model_8bit.to(DEVICE)
 
     # shorten text to 1000 characters
-    dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": x[f"masked_text_{CONFIG}"][:1000]})
+    dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": x[f"masked_text_{CONFIG}"][:1000]}, num_proc=8)
 
     # prompts
     start_prompt = "The following text talks about a person but the person is referred to as <mask>.\n\n"
