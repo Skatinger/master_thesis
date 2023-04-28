@@ -64,7 +64,6 @@ if __name__ == "__main__":
     # load model
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, padding_side="left")
     model_8bit = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map="auto", load_in_8bit=True)
-    model_8bit.to(DEVICE)
 
     # shorten text to 1000 characters
     dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": x[f"masked_text_{CONFIG}"][:1000]}, num_proc=8)
