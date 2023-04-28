@@ -29,10 +29,11 @@ def run_prediction(examples):
     # tokenize inputs and move to GPU
     inputs = tokenizer(examples[f"masked_text_{CONFIG}"], return_tensors="pt", padding=True).to(DEVICE)
     # generate predictions
-    generated_ids = model_8bit.generate(**inputs, early_stopping=True, num_return_sequences=1)
+    generated_ids = model_8bit.generate(**inputs, early_stopping=True, num_return_sequences=1, max_new_tokens=5)
     # decode predictions
     outputs = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-    return { "prediction": outputs, "page_id": examples["id"], "input_length": len(examples[f"masked_text_{CONFIG}"]) }
+    input_lengths = [len(i) for i in examples[f"masked_text_{CONFIG}"]]
+    return { "prediction": outputs, "page_id": examples["id"], "input_length": input_lengths }
 
 if __name__ == "__main__":
 
@@ -63,6 +64,7 @@ if __name__ == "__main__":
 
     # load model
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, padding_side="left")
+    tokenizer.pad_token = tokenizer.eos_token # define pad token as eos token
     model_8bit = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map="auto", load_in_8bit=True)
 
     # shorten text to 1000 characters
