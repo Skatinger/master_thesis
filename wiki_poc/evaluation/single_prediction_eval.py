@@ -16,7 +16,7 @@ class SinglePredictionEvaluator:
         self.gt = self.gt.filter(lambda x: x["id"] in id_set, num_proc=4).sort("id")        
     
     def compute_precision_for_page(self, page):
-        distance = Levenshtein.distance(page["prediction"], page["title"], score_cutoff=5)
+        distance = Levenshtein.distance(page["prediction"], page["title"], score_cutoff=15)
         regex = "|".join(['.*(' + nameFragment + ').*' for nameFragment in page["title"].split()])
         if re.match(regex, page["prediction"]):
             return { "correct": 1, "prediction": page["prediction"], "title": page["title"], "distance": distance }
@@ -38,6 +38,7 @@ class SinglePredictionEvaluator:
         return correct / len(self.dataset), correct_predictions, incorrect_predictions, results
 
 if __name__ == "__main__":
+    print("THIS SHOULD NOT BE CALLED")
     # use argv[1] as path to result file
     if len(sys.argv) > 1:
         result_path = sys.argv[1]
@@ -52,12 +53,6 @@ if __name__ == "__main__":
     average_levenstein_incorrect = sum(incorrect['distance']) / len(incorrect)
     print(f"\n MODEL {result_path} \n")
     print("\n===== Correct Predictions: (first 20)")
-    # for pred, label, dist in correct[:20]:
-        # print(f"{pred:50} {label:100} {dist}")
-    # print("\n===== Incorrect predictions: (first 20)")
-    # for pred, label, dist in incorrect[:20]:
-        # print prediction and label with same identation
-        # print(f"{pred:50} {label:100} {dist}")
     print(f"\n===== Summary (for result {result_path}):")
     print(f"Number of entries: {len(ev.dataset)}")
     print(f"Accuracy: {accuracy:.2%}")
