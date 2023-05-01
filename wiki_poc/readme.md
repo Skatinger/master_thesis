@@ -5,6 +5,7 @@
 3. `pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113`
 4. `pip install -r requirements.txt`
 
+**Some jobs needs huggingface accelerate and bitsandbytes, check the correct versions for your GPU.**
 
 ## Ubelix
 When running on a normal machine all scripts can be executed directly. To run on ubelix, slurm jobs have to be defined

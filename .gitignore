@@ -31,6 +31,7 @@ wiki_poc/models/.credentials
 
 # results from model outputs
 wiki_poc/models/*.jsonl
+wiki_poc/results/*.jsonl
 
 wiki_poc/evaluation/__pycache__
 wiki_poc/models/__pycache__
