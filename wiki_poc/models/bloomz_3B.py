@@ -33,7 +33,7 @@ def run_prediction(examples):
     # decode predictions
     outputs = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
     # get prediction and remove the input from the output
-    predictions = [out['generated_text'].replace(examples[f"masked_text_{CONFIG}"][i], "") for i, out in enumerate(outputs)]
+    predictions = [out.replace(examples[f"masked_text_{CONFIG}"][i], "") for i, out in enumerate(outputs)]
     input_lengths = [len(i) for i in examples[f"masked_text_{CONFIG}"]]
     return { "prediction": predictions, "page_id": examples["id"], "input_length": input_lengths }
 
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     # prepend start and end prompt to all examples
     dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": start_prompt + x[f"masked_text_{CONFIG}"] + end_prompt})
 
-    result_dataset = dataset.map(run_prediction, batched=True, batch_size=2, remove_columns=dataset.column_names)
+    result_dataset = dataset.map(run_prediction, batched=True, batch_size=16, remove_columns=dataset.column_names)
 
     # save final dataset to file
     logging.info('Saving final dataset to path %s', PATH)
