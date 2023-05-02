@@ -44,11 +44,10 @@ if __name__ == "__main__":
     # prepare result dataset
     result_dataset = Dataset.from_dict({'prediction': [], 'page_id': [], 'input_length': []})
 
-    # temporary miniature shard for testing
-    dataset = dataset.shard(200, 0)
+    PATH = f"wiki_predictions_{MODEL_NAME.replace('/', '_')}_{CONFIG}.jsonl"
 
     # iterate over pages in dataset
-    for page in tqdm(dataset):
+    for index, page in enumerate(tqdm(dataset)):
         # extract text from page
         text = page[f"masked_text_{CONFIG}"][:1000]
         # prompt openai api for prediction
@@ -66,8 +65,12 @@ if __name__ == "__main__":
         result_dataset = result_dataset.add_item(
             {'prediction': response['choices'][0]['text'],
              'page_id': page['id'], 'input_length': len(text)})
+    
+        # periodically save file
+        if index % 100 == 0:
+            logging.info('Saving dataset intermediately to path %s', PATH)
+            result_dataset.to_json(PATH)
 
     # save dataset
-    PATH = f"wiki_predictions_{MODEL_NAME.replace('/', '_')}_{CONFIG}.jsonl"
     logging.info('Saving dataset to path %s', PATH)
     result_dataset.to_json(PATH)
