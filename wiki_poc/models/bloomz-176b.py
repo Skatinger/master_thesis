@@ -28,7 +28,7 @@ if __name__ == "__main__":
     MODEL_NAME = "bigscience/bloomz-petals"
 
     CONFIG = "paraphrased"
-    MODEL_NAME_SHORT = "bloomz-petals"
+    MODEL_NAME_SHORT = "bloomz-176b"
     PATH = f"wiki_predictions_{MODEL_NAME_SHORT}_{CONFIG}.jsonl"
 
     # dataset with initial pages
