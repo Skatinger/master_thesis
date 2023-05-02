@@ -29,7 +29,7 @@ def run_prediction(examples):
     # tokenize inputs and move to GPU
     inputs = tokenizer(examples[f"masked_text_{CONFIG}"], return_tensors="pt", padding=True).to(DEVICE)
     # generate predictions
-    generated_ids = model_8bit.generate(**inputs, early_stopping=True, num_return_sequences=1, max_new_tokens=5)
+    generated_ids = model_8bit.generate(**inputs, early_stopping=True, num_return_sequences=1, max_new_tokens=5, pad_token_id=tokenizer.eos_token_id)
     # decode predictions
     outputs = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
     # get prediction and remove the input from the output
