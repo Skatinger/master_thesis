@@ -79,7 +79,7 @@ if __name__ == "__main__":
     # prepend start and end prompt to all examples
     dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": start_prompt + x[f"masked_text_{CONFIG}"] + end_prompt})
 
-    result_dataset = dataset.map(run_prediction, batched=True, batch_size=16, remove_columns=dataset.column_names)
+    result_dataset = dataset.map(run_prediction, batched=True, batch_size=64, remove_columns=dataset.column_names)
 
     # save final dataset to file
     logging.info('Saving final dataset to path %s', PATH)
