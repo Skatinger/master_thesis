@@ -1,11 +1,9 @@
 import os
 import sys
 import torch
-from tqdm import tqdm
 import signal
 import logging
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
-from transformers.pipelines.pt_utils import KeyDataset
+from transformers import AutoTokenizer, AutoModelForCausalLM
 from datasets import load_dataset, Dataset
 
 logging.getLogger().setLevel(logging.INFO)
@@ -21,14 +19,33 @@ def signal_handler(_sig, _frame):
 
 signal.signal(signal.SIGTERM, signal_handler)
 
+global CONFIG
+global DEVICE
+global tokenizer
+global model_8bit
+
+# run predictions with model.generate instead of pipeline to save memory and speed up processing
+def run_prediction(examples):
+    # tokenize inputs and move to GPU
+    inputs = tokenizer(examples[f"masked_text_{CONFIG}"], return_tensors="pt", padding=True).to(DEVICE)
+    # generate predictions
+    generated_ids = model_8bit.generate(**inputs, early_stopping=True, num_return_sequences=1, max_new_tokens=5)
+    # decode predictions
+    outputs = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+    # get prediction and remove the input from the output
+    predictions = [out['generated_text'].replace(examples[f"masked_text_{CONFIG}"][i], "") for i, out in enumerate(outputs)]
+    input_lengths = [len(i) for i in examples[f"masked_text_{CONFIG}"]]
+    return { "prediction": predictions, "page_id": examples["id"], "input_length": input_lengths }
 
 if __name__ == "__main__":
 
-    MODEL_NAME = "cerebras/Cerebras-GPT-1.3B"
-    DEVICE = 0 if torch.cuda.is_available() else -1
+    MODEL_NAME = "cerebras/Cerebras-GPT-6.7B"
+
+    assert torch.cuda.is_available(), "CUDA is not available. Please install CUDA and try again."
+    DEVICE = 0
     
     CONFIG = "paraphrased"
-    MODEL_NAME_SHORT = "cerebras_1_3B"
+    MODEL_NAME_SHORT = "cerebras-6b7"
     PATH = f"wiki_predictions_{MODEL_NAME_SHORT}_{CONFIG}.jsonl"
 
     # dataset with initial pages
@@ -36,7 +53,7 @@ if __name__ == "__main__":
     # get set of page ids which are in the test_set_ids.csv file
     test_set_ids = set([i.strip() for i in open("test_set_ids.csv").readlines()])
     # filter out pages from dataset which are not in the test set
-    dataset = dataset.filter(lambda x: x["id"] in test_set_ids)
+    dataset = dataset.filter(lambda x: x["id"] in test_set_ids, num_proc=8)
 
     # only process pages which have not been processed yet, load processed pages from jsonl file if exists
     if os.path.exists(PATH):
@@ -46,18 +63,14 @@ if __name__ == "__main__":
         processed_ids = set(result_dataset['page_id'])
         # filter out pages from dataset which have already been processed
         dataset = dataset.filter(lambda x: x["id"] not in processed_ids)
-    else:
-        result_dataset = Dataset.from_dict({'prediction': [], 'page_id': [], 'input_length': []})
 
     # load model
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, padding_side="left")
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
-    model.to(DEVICE)
-    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device=DEVICE, framework="pt")
-    pipe.tokenizer.pad_token_id = pipe.model.config.eos_token_id
+    tokenizer.pad_token = tokenizer.eos_token # define pad token as eos token
+    model_8bit = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map="auto", load_in_8bit=True)
 
     # shorten text to 1000 characters
-    dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": x[f"masked_text_{CONFIG}"][:1000]})
+    dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": x[f"masked_text_{CONFIG}"][:1000]}, num_proc=8)
 
     # prompts
     start_prompt = "The following text talks about a person but the person is referred to as <mask>.\n\n"
@@ -66,16 +79,7 @@ if __name__ == "__main__":
     # prepend start and end prompt to all examples
     dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": start_prompt + x[f"masked_text_{CONFIG}"] + end_prompt})
 
-    gen = pipe(KeyDataset(dataset, f"masked_text_{CONFIG}"), batch_size=16, max_new_tokens=5, early_stopping=True, pad_token_id=50256)
-    for example, out in zip(dataset, tqdm(gen, total=len(dataset))):
-        # get page id
-        page_id = example['id']
-        # get input length
-        input_length = len(example[f"masked_text_{CONFIG}"])
-        # get prediction and remove the input from the output
-        prediction = out[0]['generated_text'].replace(example[f"masked_text_{CONFIG}"], "")
-        # append results to result_dataset
-        result_dataset = result_dataset.add_item({'prediction': prediction, 'page_id': page_id, 'input_length': input_length})
+    result_dataset = dataset.map(run_prediction, batched=True, batch_size=2, remove_columns=dataset.column_names)
 
     # save final dataset to file
     logging.info('Saving final dataset to path %s', PATH)

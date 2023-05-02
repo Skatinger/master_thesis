@@ -39,13 +39,13 @@ def run_prediction(examples):
 
 if __name__ == "__main__":
 
-    MODEL_NAME = "cerebras/Cerebras-GPT-6.7B"
+    MODEL_NAME = "cerebras/Cerebras-GPT-1.3B"
 
     assert torch.cuda.is_available(), "CUDA is not available. Please install CUDA and try again."
     DEVICE = 0
     
     CONFIG = "paraphrased"
-    MODEL_NAME_SHORT = "cerebras_6_7B"
+    MODEL_NAME_SHORT = "cerebras-1b3"
     PATH = f"wiki_predictions_{MODEL_NAME_SHORT}_{CONFIG}.jsonl"
 
     # dataset with initial pages
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     # prepend start and end prompt to all examples
     dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": start_prompt + x[f"masked_text_{CONFIG}"] + end_prompt})
 
-    result_dataset = dataset.map(run_prediction, batched=True, batch_size=2, remove_columns=dataset.column_names)
+    result_dataset = dataset.map(run_prediction, batched=True, batch_size=32, remove_columns=dataset.column_names)
 
     # save final dataset to file
     logging.info('Saving final dataset to path %s', PATH)
