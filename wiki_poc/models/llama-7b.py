@@ -67,6 +67,7 @@ if __name__ == "__main__":
     # load model
     MODEL_WEIGHTS_PATH = '/home/alex/.cache/llama-converted/'
     tokenizer = LlamaTokenizer.from_pretrained(MODEL_WEIGHTS_PATH)
+    tokenizer.pad_token = tokenizer.eos_token # define pad token as eos token
     model_8bit = LlamaForCausalLM.from_pretrained(MODEL_WEIGHTS_PATH, device_map="auto", load_in_8bit=True)
 
     # shorten text to 1000 characters
