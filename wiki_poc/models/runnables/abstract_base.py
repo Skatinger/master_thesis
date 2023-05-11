@@ -28,8 +28,8 @@ class AbstractRunner():
         self.base_path = f"results/{self.model_name}"
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.tokenizer = self.get_tokenizer()
-        self.model = self.get_model()
+        # self.tokenizer = self.get_tokenizer()
+        # self.model = self.get_model()
 
     def set_options(self, options):
         self.options = options
@@ -77,6 +77,9 @@ class AbstractRunner():
         for config in ['paraphrased', 'original']:
             self.config = config
             df = self.prepare_examples()
+
+            self.tokenizer = self.get_tokenizer()
+            self.model = self.get_model()
 
             # run model on examples
             logging.info(f"Running model {self.model_name} for {self.config} config")
