@@ -1,15 +1,18 @@
 import re
 import sys
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 import Levenshtein
 
 class SinglePredictionEvaluator:
 
-    def __init__(self, result_path: str):
+    def __init__(self, result_path: str, gt: Dataset = None):
         print("Loading result dataset...")
         self.dataset = load_dataset("json", data_files=result_path, split="train").sort("page_id")
-        print("Loading ground truth dataset...")
-        self.gt = load_dataset("Skatinger/wikipedia-persons-masked", split="train")
+        if not gt:
+            print("Loading ground truth dataset...")
+            self.gt = load_dataset("Skatinger/wikipedia-persons-masked", split="train")
+        else:
+            self.gt = gt
         # only keep gt for pages which are in the result dataset
         print("Filtering ground truth dataset...")
         id_set = set(self.dataset["page_id"])
