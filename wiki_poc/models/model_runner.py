@@ -86,6 +86,9 @@ def main():
             logging.info("  - %s", model)
 
         for model_name in model_names:
+            # TODO: get prepared examples dataset and pass it to run_model,
+            # so that it doesn't have to be loaded for each model, as prompts are the same for all models
+            # of the same model class
             run_model(model_name, test_set)
     else:
         # retrieve all models of all runners
