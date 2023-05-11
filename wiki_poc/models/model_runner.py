@@ -21,12 +21,8 @@ def runners():
     }
 
 
-def run_model(model_name, test_set): #, options):
+def run_model(model_name, test_set):
     model_class = model_name.split("-")[0]
-    print(model_class)
-    print("MODEL NAME")
-    print(model_name)
-
     # initilize runner for model class
     options = {}
     runner = runners()[model_class](model_name, test_set, options)
@@ -59,12 +55,15 @@ def load_test_set():
     dataset = dataset.filter(lambda x: x["id"] in test_set_ids, num_proc=8)
     return dataset
 
-def check_model_exists(model_name):
+def get_all_model_names():
+    """returns a list of all names of available models"""
     nested = [runner.names().keys() for runner in runners().values()]
-    model_names = [item for sublist in nested for item in sublist]
-    if model_name not in model_names:
+    return [item for sublist in nested for item in sublist]
+
+def check_model_exists(model_name):
+    if model_name not in get_all_model_names():
         raise ValueError(f"Model {model_name} does not exist. ",
-                         "Please choose one of the following models: ", model_names)
+                         "Please choose one of the following models: ", get_all_model_names())
 
 def main():
     model_to_run, model_size_to_run, model_class_to_run, options = parse_options()
@@ -97,7 +96,7 @@ def main():
             run_model(model_name, test_set)
     else:
         # retrieve all models of all runners
-        model_names = list([runner.names().values() for runner in runners().values()][0])
+        model_names = get_all_model_names()
         logging.info(f"Following models will be run:")
         for model in model_names:
             logging.info("  - %s", model)
