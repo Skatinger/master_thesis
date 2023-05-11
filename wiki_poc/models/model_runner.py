@@ -7,25 +7,20 @@ from datasets import load_dataset
 logging.basicConfig(level=logging.INFO)
 
 
-# from runnables.bloomz.bloomz_base import BloomzRunner
+from runnables.bloomz.bloomz_base import BloomzRunner
 from runnables.cerebras.cerebras_base import CerebrasRunner
 
 def runners():
     return {
-        # "bloomz": BloomzRunner,
+        "bloomz": BloomzRunner,
         "cerebras": CerebrasRunner
     }
 
 
 def run_model(model_name, test_set): #, options):
-    # Customize this function to run your model with the given options
-    # print(f"Running {model_name}_{model_size}B with options: {options}")
-
-    model_class = model_name.split("/")[0]
+    model_class = model_name.split("-")[0]
     print(model_class)
-
     print("MODEL NAME")
-
     print(model_name)
 
     # initilize runner for model class
@@ -36,6 +31,7 @@ def run_model(model_name, test_set): #, options):
 def parse_options():
     parser = argparse.ArgumentParser(description="Run machine learning models with different configurations and options.")
     parser.add_argument("-m", "--model", help="Run a specific model. Format: model_name (e.g., bloomz)", type=str)
+    parser.add_argument("-c", "--model-class", help="Run all models of a specific class. Format: model_class (e.g., bloomz-1b1)", type=str)
     parser.add_argument("-d", "--dry-run", help="Print out all models which would be run, but don't run them.")
     parser.add_argument("-s", "--size", help="Run all models with a the same size. Options: T, XS, S, M, L, XL Format: model_size (e.g., 5b)", type=str)
     parser.add_argument("-o", "--options", help="Specify options for the model. Format: option1=value1,option2=value2", type=str)
@@ -47,7 +43,7 @@ def parse_options():
             key, value = option.split("=")
             options[key] = value
 
-    return args.model, options
+    return args.model, args.size, args.model_class, options
 
 def load_test_set():
     assert os.path.exists("test_set_ids.csv"), "test_set_ids.csv file not found. Please run generate_test_set_ids.py first." 
@@ -62,18 +58,25 @@ def load_test_set():
 
 def main():
     # load the test set of pages
-    test_set = []# load_test_set()
+    test_set = load_test_set()
 
-    model_to_run, options = parse_options()
-    models_dir = "runnables"
+    model_to_run, model_size_to_run, model_class_to_run, options = parse_options()
 
-    print("got here")
-    print(model_to_run)
-    print(options)
-
+    # run a single model instance
     if model_to_run:
-        model_name, model_size = model_to_run.split("_")
-        run_model(model_name, model_size, test_set, options)
+        logging.info(f"Running model {model_to_run}")
+        run_model(model_to_run, test_set) # , model_size, test_set, options)
+    
+    # run all models of a specific class
+    elif model_class_to_run:
+        # retrieve all models of the specified class
+        model_names = list(runners()[model_class_to_run].names().values())
+        logging.info(f"Following models will be run:")
+        for model in model_names:
+            logging.info("  - %s", model)
+
+        for model_name in model_names:
+            run_model(model_name, test_set)
     else:
         # retrieve all models of all runners
         model_names = list([runner.names().values() for runner in runners().values()][0])

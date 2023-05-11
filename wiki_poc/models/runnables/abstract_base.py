@@ -7,14 +7,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from datasets import load_dataset, Dataset
 
 
-from abc import ABC, abstractmethod
-
-global CONFIG
-global DEVICE
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-global tokenizer
-global model_8bit
-
+from abc import ABC, abstractmethod, abstractproperty
 
 class AbstractRunner():
 
@@ -30,8 +23,10 @@ class AbstractRunner():
         print("starting with", model_name, dataset, options)
         self.model_name = model_name
         self.dataset = dataset
+        self.input_length = 1000
         self.set_options(options)
         self.base_path = f"results/{self.model_name}"
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.tokenizer = self.get_tokenizer()
         self.model = self.get_model()
@@ -39,55 +34,63 @@ class AbstractRunner():
     def set_options(self, options):
         self.options = options
     
+    @staticmethod
     def start_prompt():
         return "The following text talks about a person but the person is referred to as <mask>.\n\n"
 
+    @staticmethod
     def end_prompt():
         return "\n\nThe name of the person in the text referred to as <mask> is: "
 
-    @abstractmethod
+    @staticmethod
+    @abstractproperty
     def names(self):
         pass
 
     def get_tokenizer(self):
-        print("GETTING tokenizer")
-        print("for model", self.model_name)
-        tokenizer = AutoTokenizer.from_pretrained(self.model_name, padding_side="left")
+        logging.info(f"Loading tokenizer for {self.model_name}")
+        model_path = self.names()[self.model_name]
+        tokenizer = AutoTokenizer.from_pretrained(model_path, padding_side="left")
         tokenizer.pad_token = tokenizer.eos_token # define pad token as eos token
         return tokenizer
 
     def get_model(self):
-        return AutoModelForCausalLM.from_pretrained(self.model_name).to(DEVICE)
+        """retrieves model from huggingface model hub and load it to specified device"""
+        logging.info(f"Loading model for {self.model_name}")
+        model_path = self.names()[self.model_name]
+        return AutoModelForCausalLM.from_pretrained(model_path, load_in_8bit=True).to(self.device)
 
-    @abstractmethod
+    @staticmethod
+    @abstractproperty
     def sizes(self):
-        pass
-
-    @abstractmethod
-    def short_names(self):
         pass
 
     def run_model(self):
         for config in ['paraphrased', 'original']:
-            logging.info(f"Runnig {self.model_name} for {config}")
-        # pre- and append prompt to examples
+            self.config = config
+            logging.info(f"Runnig {self.model_name} for {self.config}")
+            # shorten input text to max length given
+            df = self.dataset.map(lambda x: {f"masked_text_{self.config}": x[f"masked_text_{self.config}"][:self.input_length]}, num_proc=8)
+            # pre- and append prompt to examples
             start, end = self.start_prompt(), self.end_prompt()
-            df = self.dataset.map(lambda x: {f"masked_text_{config}": start + x[f"masked_text_{config}"] + end})
+            df = df.map(lambda x: {f"masked_text_{self.config}": start + x[f"masked_text_{self.config}"] + end})
             # run model on examples
-            logging.info(f"Running model {self.model_name} for {config} config")
+            logging.info(f"Running model {self.model_name} for {self.config} config")
             result_df = df.map(self.make_predictions, batched=True, batch_size=2, remove_columns=df.column_names)
-            PATH = f"{self.base_path}_{config}.json"
+            PATH = f"{self.base_path}_{self.config}.json"
             result_df.to_json(PATH)
 
 
     def make_predictions(self, examples):
         # tokenize inputs and move to GPU
-        inputs = self.tokenizer(examples[f"masked_text_{CONFIG}"], return_tensors="pt", padding=True).to(DEVICE)
+        texts = examples[f"masked_text_{self.config}"]
+        inputs = self.tokenizer(texts, return_tensors="pt", padding=True).to(self.device)
         # generate predictions
-        generated_ids = model_8bit.generate(**inputs, early_stopping=True, num_return_sequences=1, max_new_tokens=5)
+        pad_token = self.tokenizer.eos_token_id
+        generated_ids = self.model.generate(**inputs, early_stopping=True, num_return_sequences=1, pad_token_id=pad_token, max_new_tokens=5)
         # decode predictions
-        outputs = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+        outputs = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
         # get prediction and remove the input from the output
-        predictions = [out.replace(examples[f"masked_text_{CONFIG}"][i], "") for i, out in enumerate(outputs)]
-        input_lengths = [len(i) for i in examples[f"masked_text_{CONFIG}"]]
+        predictions = [out.replace(examples[f"masked_text_{self.config}"][i], "") for i, out in enumerate(outputs)]
+        input_lengths = [len(i) for i in examples[f"masked_text_{self.config}"]]
         return { "prediction": predictions, "page_id": examples["id"], "input_length": input_lengths }
