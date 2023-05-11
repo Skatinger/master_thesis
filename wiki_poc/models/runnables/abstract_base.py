@@ -65,15 +65,19 @@ class AbstractRunner():
     def sizes(self):
         pass
 
+    def prepare_examples(self):
+        # shorten input text to max length given
+        df = self.dataset.map(lambda x: {f"masked_text_{self.config}": x[f"masked_text_{self.config}"][:self.input_length]}, num_proc=8)
+        # pre- and append prompt to examples
+        start, end = self.start_prompt(), self.end_prompt()
+        df = df.map(lambda x: {f"masked_text_{self.config}": start + x[f"masked_text_{self.config}"] + end})
+        return df
+
     def run_model(self):
         for config in ['paraphrased', 'original']:
             self.config = config
-            logging.info(f"Runnig {self.model_name} for {self.config}")
-            # shorten input text to max length given
-            df = self.dataset.map(lambda x: {f"masked_text_{self.config}": x[f"masked_text_{self.config}"][:self.input_length]}, num_proc=8)
-            # pre- and append prompt to examples
-            start, end = self.start_prompt(), self.end_prompt()
-            df = df.map(lambda x: {f"masked_text_{self.config}": start + x[f"masked_text_{self.config}"] + end})
+            df = self.prepare_examples()
+
             # run model on examples
             logging.info(f"Running model {self.model_name} for {self.config} config")
             result_df = df.map(self.make_predictions, batched=True, batch_size=2, remove_columns=df.column_names)
