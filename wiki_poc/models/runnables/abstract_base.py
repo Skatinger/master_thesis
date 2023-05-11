@@ -58,7 +58,7 @@ class AbstractRunner():
         """retrieves model from huggingface model hub and load it to specified device"""
         logging.info(f"Loading model for {self.model_name}")
         model_path = self.names()[self.model_name]
-        return AutoModelForCausalLM.from_pretrained(model_path, load_in_8bit=True).to(self.device)
+        return AutoModelForCausalLM.from_pretrained(model_path, load_in_8bit=True, device_map="auto").to(self.device)
 
     @staticmethod
     @abstractproperty
