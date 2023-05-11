@@ -2,7 +2,7 @@ import argparse
 import importlib
 import os
 import logging
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 logging.basicConfig(level=logging.INFO)
 
 # TODOS:
@@ -46,13 +46,21 @@ def parse_options():
     return args.model, args.size, args.model_class, options
 
 def load_test_set():
-    assert os.path.exists("test_set_ids.csv"), "test_set_ids.csv file not found. Please run generate_test_set_ids.py first." 
-    # load full dataset
-    dataset = load_dataset('Skatinger/wikipedia-persons-masked', split='train')
-    # get set of page ids which are in the test_set_ids.csv file
-    test_set_ids = set([i.strip() for i in open("test_set_ids.csv").readlines()])
-    # filter out pages from dataset which are not in the test set
-    dataset = dataset.filter(lambda x: x["id"] in test_set_ids, num_proc=8)
+    """load test dataset from cache or generates it from the full dataset and caches it"""
+    # load cached dataset if it exists
+    if os.path.exists("reduced_test_set"):
+        dataset = Dataset.load_from_disk("reduced_test_set")
+    else:
+        assert os.path.exists("test_set_ids.csv"), "test_set_ids.csv file not found. Please run generate_test_set_ids.py first."
+        logging.info("No cached test dataset found, generating it from full dataset.")
+        # load full dataset
+        dataset = load_dataset('Skatinger/wikipedia-persons-masked', split='train')
+        # get set of page ids which are in the test_set_ids.csv file
+        test_set_ids = set([i.strip() for i in open("test_set_ids.csv").readlines()])
+        # filter out pages from dataset which are not in the test set
+        dataset = dataset.filter(lambda x: x["id"] in test_set_ids, num_proc=8)
+        # save dataset to cache
+        dataset.save_to_disk("reduced_test_set")
     return dataset
 
 def get_all_model_names():

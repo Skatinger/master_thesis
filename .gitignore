@@ -36,3 +36,6 @@ wiki_poc/results/*.jsonl
 wiki_poc/evaluation/__pycache__
 wiki_poc/models/__pycache__
 wiki_poc/models/.ipynb_checkpoints
+
+# cache for pipeline
+wiki_poc/models/reduced_test_set
