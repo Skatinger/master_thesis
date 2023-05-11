@@ -5,6 +5,11 @@ import logging
 from datasets import load_dataset
 logging.basicConfig(level=logging.INFO)
 
+# TODOS:
+# - allow passing a key specifying where to save results, to identify the run
+# - allow passing a key specifying where to load results from, to continue a run
+# - add checkpointing for longer processing of single models
+
 
 from runnables.bloomz.bloomz_base import BloomzRunner
 from runnables.cerebras.cerebras_base import CerebrasRunner

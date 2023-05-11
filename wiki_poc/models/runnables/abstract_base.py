@@ -1,11 +1,7 @@
-import os
-import sys
 import torch
-import signal
 import logging
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from datasets import load_dataset, Dataset
-
 
 from abc import ABC, abstractmethod, abstractproperty
 
@@ -79,6 +75,10 @@ class AbstractRunner():
             df = df.map(lambda x: {f"masked_text_{config}": start + x[f"masked_text_{config}"] + end})
             self.examples[config] = df
 
+    def get_path(self, config):
+        """returns path to save results to"""
+        return f"{self.base_path}_{self.config}_{self.input_length}.json"
+
     def run_model(self):
         # prepare examples for different configs
         self.prepare_examples()
@@ -94,7 +94,7 @@ class AbstractRunner():
             logging.info(f"Running model {self.model_name} for {self.config} config")
             batch_size = self.batch_sizes()[self.model_name]
             result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names)
-            PATH = f"{self.base_path}_{self.config}_{self.input_length}.json"
+            PATH = self.get_path(config)
             result_df.to_json(PATH)
 
     def make_predictions(self, examples):
