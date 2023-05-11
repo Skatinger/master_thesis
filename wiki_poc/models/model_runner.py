@@ -3,7 +3,6 @@ import importlib
 import os
 import logging
 from datasets import load_dataset
-import multiprocessing
 logging.basicConfig(level=logging.INFO)
 
 
@@ -63,8 +62,6 @@ def check_model_exists(model_name):
                          "Please choose one of the following models: ", model_names)
 
 def main():
-    multiprocessing.set_start_method('spawn')
-
     model_to_run, model_size_to_run, model_class_to_run, options = parse_options()
     if model_to_run:
         check_model_exists(model_to_run)

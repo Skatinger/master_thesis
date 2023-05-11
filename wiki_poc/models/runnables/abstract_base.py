@@ -55,7 +55,12 @@ class AbstractRunner():
         """retrieves model from huggingface model hub and load it to specified device"""
         logging.info(f"Loading model for {self.model_name}")
         model_path = self.names()[self.model_name]
-        return AutoModelForCausalLM.from_pretrained(model_path, load_in_8bit=True, device_map="auto")
+        # if GPU is available, load in 8bit mode
+        if torch.cuda.is_available():
+            return AutoModelForCausalLM.from_pretrained(model_path, load_in_8bit=True, device_map="auto")
+        else:
+            logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
+            return AutoModelForCausalLM.from_pretrained(model_path)
 
     @staticmethod
     @abstractproperty
@@ -63,28 +68,34 @@ class AbstractRunner():
         pass
 
     def prepare_examples(self):
-        # shorten input text to max length given
-        df = self.dataset.map(lambda x: {f"masked_text_{self.config}": x[f"masked_text_{self.config}"][:self.input_length]}, num_proc=8)
-        # pre- and append prompt to examples
-        start, end = self.start_prompt(), self.end_prompt()
-        df = df.map(lambda x: {f"masked_text_{self.config}": start + x[f"masked_text_{self.config}"] + end})
-        return df
+        """shortens input text to max length given and pre- and append prompt to examples"""
+        logging.info(f"Preparing examples for {self.model_name}")
+        self.examples = {}
+        for config in ['paraphrased', 'original']:
+            # shorten input text to max length given
+            df = self.dataset.map(lambda x: {f"masked_text_{config}": x[f"masked_text_{config}"][:self.input_length]}, num_proc=8)
+            # pre- and append prompt to examples
+            start, end = self.start_prompt(), self.end_prompt()
+            df = df.map(lambda x: {f"masked_text_{config}": start + x[f"masked_text_{config}"] + end})
+            self.examples[config] = df
 
     def run_model(self):
+        # prepare examples for different configs
+        self.prepare_examples()
+        # load tokenizer and model
+        self.tokenizer = self.get_tokenizer()
+        self.model = self.get_model()
+
+        # run model for different configs
         for config in ['paraphrased', 'original']:
             self.config = config
-            df = self.prepare_examples()
-
-            self.tokenizer = self.get_tokenizer()
-            self.model = self.get_model()
-
+            df = self.examples[config]
             # run model on examples
             logging.info(f"Running model {self.model_name} for {self.config} config")
             batch_size = self.batch_sizes()[self.model_name]
             result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names)
             PATH = f"{self.base_path}_{self.config}_{self.input_length}.json"
             result_df.to_json(PATH)
-
 
     def make_predictions(self, examples):
         # tokenize inputs and move to GPU
