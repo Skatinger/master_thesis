@@ -55,15 +55,25 @@ def load_test_set():
     dataset = dataset.filter(lambda x: x["id"] in test_set_ids, num_proc=8)
     return dataset
 
+def check_model_exists(model_name):
+    nested = [runner.names().keys() for runner in runners().values()]
+    model_names = [item for sublist in nested for item in sublist]
+    if model_name not in model_names:
+        raise ValueError(f"Model {model_name} does not exist. ",
+                         "Please choose one of the following models: ", model_names)
 
 def main():
+    model_to_run, model_size_to_run, model_class_to_run, options = parse_options()
+    if model_to_run:
+        check_model_exists(model_to_run)
+
     # load the test set of pages
     test_set = load_test_set()
 
-    model_to_run, model_size_to_run, model_class_to_run, options = parse_options()
-
     # run a single model instance
     if model_to_run:
+        # check that the model exists
+        check_model_exists(model_to_run)
         logging.info(f"Running model {model_to_run}")
         run_model(model_to_run, test_set) # , model_size, test_set, options)
     
