@@ -28,9 +28,6 @@ class AbstractRunner():
         self.base_path = f"results/{self.model_name}"
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        # self.tokenizer = self.get_tokenizer()
-        # self.model = self.get_model()
-
     def set_options(self, options):
         self.options = options
     
@@ -83,7 +80,8 @@ class AbstractRunner():
 
             # run model on examples
             logging.info(f"Running model {self.model_name} for {self.config} config")
-            result_df = df.map(self.make_predictions, batched=True, batch_size=2, remove_columns=df.column_names)
+            batch_size = self.sizes()[self.model_name]
+            result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names)
             PATH = f"{self.base_path}_{self.config}.json"
             result_df.to_json(PATH)
 
