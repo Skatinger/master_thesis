@@ -3,7 +3,7 @@ import importlib
 import os
 import logging
 from datasets import load_dataset
-
+import multiprocessing
 logging.basicConfig(level=logging.INFO)
 
 
@@ -69,6 +69,8 @@ def main():
 
     # load the test set of pages
     test_set = load_test_set()
+
+    multiprocessing.set_start_method('spawn')
 
     # run a single model instance
     if model_to_run:
