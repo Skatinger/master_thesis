@@ -82,7 +82,7 @@ class AbstractRunner():
             logging.info(f"Running model {self.model_name} for {self.config} config")
             batch_size = self.sizes()[self.model_name]
             result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names)
-            PATH = f"{self.base_path}_{self.config}.json"
+            PATH = f"{self.base_path}_{self.config}_{self.input_length}.json"
             result_df.to_json(PATH)
 
 
