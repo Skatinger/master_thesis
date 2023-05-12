@@ -18,11 +18,13 @@ class AbstractRunner():
         """
 
         logging.info("Initializing runner for model %s", model_name)
+        # key to identify the run in the results
+        self.key = options["key"]
         self.model_name = model_name
         self.dataset = dataset
         self.input_length = 1000
         self.set_options(options)
-        self.base_path = f"results/{self.model_name}"
+        self.base_path = f"results/{self.key}/{self.model_name}"
         self.configs = ['paraphrased', 'original']
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

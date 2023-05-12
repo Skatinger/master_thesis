@@ -1,13 +1,11 @@
 import argparse
-import importlib
 import os
 import logging
+import datetime
 from datasets import load_dataset, Dataset
 logging.basicConfig(level=logging.INFO)
 
 # TODOS:
-# - allow passing a key specifying where to save results, to identify the run
-# - allow passing a key specifying where to load results from, to continue a run
 # - add checkpointing for longer processing of single models
 
 
@@ -20,10 +18,9 @@ def runners():
         "cerebras": CerebrasRunner
     }
 
-def run_model(model_name, test_set):
+def run_model(model_name, test_set, options):
     model_class = model_name.split("-")[0]
     # initilize runner for model class
-    options = {}
     runner = runners()[model_class](model_name, test_set, options)
     runner.run_model()
 
@@ -33,6 +30,9 @@ def parse_options():
     parser.add_argument("-c", "--model-class", help="Run all models of a specific class. Format: model_class (e.g., bloomz-1b1)", type=str)
     # parser.add_argument("-d", "--dry-run", help="Print out all models which would be run, but don't run them.")
     parser.add_argument("-nc", "--no-cache", help="Don't use cached results, run all models again.")
+    keyhelp = """Specify a key to identify the run. This key will be used to save results and to load them again.
+               If no key is specified, a new key will be generated for each run."""
+    parser.add_argument("-k", "--key", help=keyhelp, type=str)
     parser.add_argument("-s", "--size", help="Run all models with a the same size. Options: T, XS, S, M, L, XL Format: model_size (e.g., 5b)", type=str)
     parser.add_argument("-o", "--options", help="Specify options for the model. Format: option1=value1,option2=value2", type=str)
 
@@ -81,6 +81,13 @@ def main():
     if model_to_run:
         check_model_exists(model_to_run)
 
+    if not options["key"]:
+        # generate key from time and date
+        options["key"] = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    
+    # create folder for run
+    os.makedirs(f"results/{options['key']}", exist_ok=True)
+
     # load the test set of pages
     test_set = load_test_set()
 
@@ -89,7 +96,7 @@ def main():
         # check that the model exists
         check_model_exists(model_to_run)
         logging.info(f"Running model {model_to_run}")
-        run_model(model_to_run, test_set) # , model_size, test_set, options)
+        run_model(model_to_run, test_set, options)
     
     # run all models of a specific class
     elif model_class_to_run:
@@ -103,7 +110,7 @@ def main():
             # TODO: get prepared examples dataset and pass it to run_model,
             # so that it doesn't have to be loaded for each model, as prompts are the same for all models
             # of the same model class
-            run_model(model_name, test_set)
+            run_model(model_name, test_set, options)
     else:
         # retrieve all models of all runners
         model_names = get_all_model_names()
@@ -112,7 +119,7 @@ def main():
             logging.info("  - %s", model)
 
         for model_name in model_names:
-            run_model(model_name, test_set) #, model_size, options)
+            run_model(model_name, test_set, options)
 
 if __name__ == "__main__":
     main()
