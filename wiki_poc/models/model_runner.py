@@ -1,7 +1,7 @@
 import argparse
 import os
 import logging
-import datetime
+from datetime import datetime
 from datasets import load_dataset, Dataset
 logging.basicConfig(level=logging.INFO)
 
@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO)
 # - add checkpointing for longer processing of single models
 
 
-from wiki_poc.models.runners.bloomz.bloomz_runner import BloomzRunner
-from wiki_poc.models.runners.cerebras.cerebras_runner import CerebrasRunner
+from .runners.bloomz.bloomz_runner import BloomzRunner
+from .runners.cerebras.cerebras_runner import CerebrasRunner
 
 def runners():
     return {
@@ -48,19 +48,19 @@ def parse_options():
 def load_test_set():
     """load test dataset from cache or generates it from the full dataset and caches it"""
     # load cached dataset if it exists
-    if os.path.exists("reduced_test_set"):
-        dataset = Dataset.load_from_disk("reduced_test_set")
+    if os.path.exists("models/cache/reduced_test_set"):
+        dataset = Dataset.load_from_disk("models/cache/reduced_test_set")
     else:
-        assert os.path.exists("test_set_ids.csv"), "test_set_ids.csv file not found. Please run generate_test_set_ids.py first."
+        assert os.path.exists("models/test_set_ids.csv"), "test_set_ids.csv file not found. Please run generate_test_set_ids.py first."
         logging.info("No cached test dataset found, generating it from full dataset.")
         # load full dataset
         dataset = load_dataset('Skatinger/wikipedia-persons-masked', split='train')
         # get set of page ids which are in the test_set_ids.csv file
-        test_set_ids = set([i.strip() for i in open("test_set_ids.csv").readlines()])
+        test_set_ids = set([i.strip() for i in open("models/test_set_ids.csv").readlines()])
         # filter out pages from dataset which are not in the test set
         dataset = dataset.filter(lambda x: x["id"] in test_set_ids, num_proc=8)
         # save dataset to cache
-        dataset.save_to_disk("reduced_test_set")
+        dataset.save_to_disk("models/cache/reduced_test_set")
     return dataset
 
 def get_all_model_names(model_class=None):
@@ -81,9 +81,11 @@ def main():
     if model_to_run:
         check_model_exists(model_to_run)
 
-    if not options["key"]:
+    if not "key" in options.keys():
         # generate key from time and date
         options["key"] = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    key = options["key"]
+    logging.info(f"Using cache key {key}")
     
     # create folder for run
     os.makedirs(f"results/{options['key']}", exist_ok=True)
