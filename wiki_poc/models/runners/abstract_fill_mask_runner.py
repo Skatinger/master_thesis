@@ -1,0 +1,132 @@
+from abstract_runner import AbstractRunner
+import logging
+import torch
+import os
+from typing import Dict, List, Tuple, Union
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+class AbstractFillMaskRunner(AbstractRunner):
+
+    def get_model(self):
+        """retrieves model from huggingface model hub and load it to specified device"""
+        logging.info(f"Loading model for {self.model_name}")
+        model_path = self.names()[self.model_name]
+        # if GPU is available, load in 8bit mode
+        if torch.cuda.is_available():
+            return AutoModelForCausalLM.from_pretrained(model_path, load_in_8bit=True, device_map="auto")
+        else:
+            logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
+            return AutoModelForCausalLM.from_pretrained(model_path)
+    
+    def get_tokenizer(self):
+        logging.info(f"Loading tokenizer for {self.model_name}")
+        model_path = self.names()[self.model_name]
+        tokenizer = AutoTokenizer.from_pretrained(model_path, truncation=True, padding="longest")
+        return tokenizer
+    
+    def prepare_examples(self):
+        """shortens input text to max length given and replaces masks in the text with the correct
+           mask for the model used. (e.g. <mask>, <MASK>, etc.)
+           # TODO: don't prepare examples for cached results
+        """
+        logging.info(f"Preparing examples for {self.model_name}")
+        self.examples = {}
+        for config in ['paraphrased', 'original']:
+            # shorten input text to max length given
+            df = self.dataset.map(lambda x: {f"masked_text_{config}": x[f"masked_text_{config}"][:self.input_length]}, num_proc=8)
+            # convert mask tokens to mask token format used by the model
+            df = df.map(lambda x: {'texts': x['texts'].replace('<mask>', self.tokenizer.mask_token)})
+            self.examples[config] = df
+
+    def run_model(self):
+        # check if results already exist
+        cached = self.check_cache()
+        if all(cached.values()):
+            logging.info(f"Results already exist, skipping model {self.model_name}")
+            return
+        # load tokenizer
+        self.tokenizer = self.get_tokenizer()
+        # prepare examples for different configs
+        self.prepare_examples()
+        # load tokenizer and model
+        self.model = self.get_model()
+
+        # run model for different configs
+        for config in self.configs:
+            if cached[config]:
+                logging.info(f"Results already exist for {config} config, skipping")
+                continue
+            df = self.examples[config]
+            # make config available for whole runner instance
+            self.config = config
+            # run model on examples
+            logging.info(f"Running model {self.model_name} for {config} config")
+            batch_size = self.batch_sizes()[self.model_name]
+            result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names)
+            PATH = self.get_path(config)
+            result_df.to_json(PATH)
+
+    def make_predictions(self, examples):
+        # tokenize inputs and move to GPU
+        texts = examples[f"masked_text_{self.config}"]
+        inputs = self.tokenizer(texts, return_tensors='pt').to(self.device)
+        # generate predictions
+        generated_ids = self.model.generate(**inputs, top_k=5)
+        # decode predictions
+        outputs = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+        # return predictions and input lengths
+        tokens, scores = self.extract_result(outputs)
+        input_lengths = [len(i) for i in examples[f"masked_text_{self.config}"]]
+        return { "prediction": tokens, "page_id": examples["id"], "input_length": input_lengths, "score": scores }
+
+    def extract_result(self, result: Union[Dict, List[Dict]]) -> Tuple[List[str], List[float]]:
+        """extracts the relevant parts of the result of the fill-mask pipeline, removes unnecessary
+        text outputs. Kept outputs are the predicted strings and their score. Score is rounded to 3 digits after comma
+
+        Args:
+            result: model output of the fill-mask pipeline
+
+        Returns:
+            Tuple: of two lists, one containing the predicted strings, the other containing the scores
+        """
+        # if we get no predictions, return empty arrays
+        if len(result) < 1:
+            return [], []
+        # result is an array with results for each input sequence. If there was only a single input sequence, the array
+        # will only contain a single element.
+        # each input sequence has a result for each mask, e.g a sequence with 2 masks will have 2 results in the array
+        # representing the sequence results
+        # for each result of a mask, there are five predictions with token and score
+        results_tokens = []
+        results_scores = []
+        # iterate over all processed sequences
+        for sequence_results in result:
+            # if there was only a single mask, the result is not an array of arrays with each array containing 5
+            # prediction hashes, but a single array containing 5 prediction hashes. This is why we need to check if
+            # the result is an array of arrays and convert it to an array of arrays if it is not
+
+            # first check if the sequence result itself is an array. If it is not, we need to convert it to an array
+            if not isinstance(sequence_results, list):
+                sequence_results = [sequence_results]
+
+            # then, after the sequence result is definitely an array, check if the first element is an array.
+            # if it is not, this was a sequence with a single mask. We need to convert the array to an array of arrays
+            if not isinstance(sequence_results[0], list):
+                sequence_results = [sequence_results]
+
+            # iterate over all masks in the sequence, e.g. the predictions for those masks
+            for mask_result in sequence_results:
+                # if only a single mask was present in the sequence, it's just a dict, without array.
+                # Wrap it in this case to make the following code work for both cases
+                if isinstance(mask_result, dict):
+                    mask_result = [mask_result]
+
+                # format of mask_result should be: [{token_str: predicted token, score: predicted sore, ...}, {...}]
+                # we only need the token_str and score, so we extract those and append them to the results
+                results_tokens.append([prediction['token_str'] for prediction in mask_result])
+                results_scores.append([round(prediction['score'], 3) for prediction in mask_result])
+        # return format is a an array of length of input sequences, with each array
+        # containing an array of 5 predictions for each mask, e.g.
+        # [sequence1_results, ...] where sequence1_results = [results_for_mask1, ...] where
+        # results_for_mask1 = [(token_str, score), (...), ...]
+        return results_tokens, results_scores
