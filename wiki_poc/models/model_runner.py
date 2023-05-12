@@ -27,7 +27,7 @@ def run_model(model_name, test_set):
     options = {}
     runner = runners()[model_class](model_name, test_set, options)
     # check cache for results
-    if runner.results_exist(model_name):
+    if runner.results_exist():
         logging.info(f"Cache for {model_name} exists, skipping.")
     else:
         runner.run_model()
