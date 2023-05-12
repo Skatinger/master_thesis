@@ -26,13 +26,18 @@ def run_model(model_name, test_set):
     # initilize runner for model class
     options = {}
     runner = runners()[model_class](model_name, test_set, options)
-    runner.run_model()
+    # check cache for results
+    if runner.results_exist(model_name):
+        logging.info(f"Cache for {model_name} exists, skipping.")
+    else:
+        runner.run_model()
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Run machine learning models with different configurations and options.")
     parser.add_argument("-m", "--model", help="Run a specific model. Format: model_name (e.g., bloomz)", type=str)
     parser.add_argument("-c", "--model-class", help="Run all models of a specific class. Format: model_class (e.g., bloomz-1b1)", type=str)
-    parser.add_argument("-d", "--dry-run", help="Print out all models which would be run, but don't run them.")
+    # parser.add_argument("-d", "--dry-run", help="Print out all models which would be run, but don't run them.")
+    parser.add_argument("-nc", "--no-cache", help="Don't use cached results, run all models again.")
     parser.add_argument("-s", "--size", help="Run all models with a the same size. Options: T, XS, S, M, L, XL Format: model_size (e.g., 5b)", type=str)
     parser.add_argument("-o", "--options", help="Specify options for the model. Format: option1=value1,option2=value2", type=str)
 
@@ -63,9 +68,12 @@ def load_test_set():
         dataset.save_to_disk("reduced_test_set")
     return dataset
 
-def get_all_model_names():
-    """returns a list of all names of available models"""
-    nested = [runner.names().keys() for runner in runners().values()]
+def get_all_model_names(model_class=None):
+    """returns a list of all names of available models, optionally filtered by model class"""
+    if model_class:
+        nested = [runner.names().keys() for runner in runners().values() if runner.__name__.lower().startswith(model_class)]
+    else:
+        nested = [runner.names().keys() for runner in runners().values()]
     return [item for sublist in nested for item in sublist]
 
 def check_model_exists(model_name):
@@ -81,7 +89,6 @@ def main():
     # load the test set of pages
     test_set = load_test_set()
 
-
     # run a single model instance
     if model_to_run:
         # check that the model exists
@@ -92,7 +99,7 @@ def main():
     # run all models of a specific class
     elif model_class_to_run:
         # retrieve all models of the specified class
-        model_names = list(runners()[model_class_to_run].names().values())
+        model_names = get_all_model_names(model_class_to_run)
         logging.info(f"Following models will be run:")
         for model in model_names:
             logging.info("  - %s", model)

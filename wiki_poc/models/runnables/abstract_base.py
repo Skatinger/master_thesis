@@ -1,4 +1,5 @@
 import torch
+import os
 import logging
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from datasets import load_dataset, Dataset
@@ -26,6 +27,10 @@ class AbstractRunner():
 
     def set_options(self, options):
         self.options = options
+    
+    def results_exist(self):
+        """checks if results for current config already exist"""
+        return os.path.exists(self.get_path(self.config))
     
     @staticmethod
     def start_prompt():
