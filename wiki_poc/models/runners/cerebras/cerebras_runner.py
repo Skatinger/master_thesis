@@ -1,5 +1,5 @@
 
-from ..abstract_base import AbstractRunner
+from ..abstract_runner import AbstractRunner
 
 
 class CerebrasRunner(AbstractRunner):

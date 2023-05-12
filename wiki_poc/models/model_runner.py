@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO)
 # - add checkpointing for longer processing of single models
 
 
-from runnables.bloomz.bloomz_base import BloomzRunner
-from runnables.cerebras.cerebras_base import CerebrasRunner
+from wiki_poc.models.runners.bloomz.bloomz_runner import BloomzRunner
+from wiki_poc.models.runners.cerebras.cerebras_runner import CerebrasRunner
 
 def runners():
     return {
