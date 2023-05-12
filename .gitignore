@@ -42,3 +42,4 @@ wiki_poc/models/cache/*
 
 # ignore any interpreter import compilations
 *.pyc
+__pycache__
