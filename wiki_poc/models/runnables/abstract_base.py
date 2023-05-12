@@ -17,7 +17,7 @@ class AbstractRunner():
                                       Defaults to {}.
         """
 
-        print("starting with", model_name, dataset, options)
+        logging.info("Initializing runner for model %s", model_name)
         self.model_name = model_name
         self.dataset = dataset
         self.input_length = 1000
