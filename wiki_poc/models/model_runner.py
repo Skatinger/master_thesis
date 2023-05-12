@@ -20,17 +20,12 @@ def runners():
         "cerebras": CerebrasRunner
     }
 
-
 def run_model(model_name, test_set):
     model_class = model_name.split("-")[0]
     # initilize runner for model class
     options = {}
     runner = runners()[model_class](model_name, test_set, options)
-    # check cache for results
-    if runner.results_exist():
-        logging.info(f"Cache for {model_name} exists, skipping.")
-    else:
-        runner.run_model()
+    runner.run_model()
 
 def parse_options():
     parser = argparse.ArgumentParser(description="Run machine learning models with different configurations and options.")

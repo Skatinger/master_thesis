@@ -23,14 +23,15 @@ class AbstractRunner():
         self.input_length = 1000
         self.set_options(options)
         self.base_path = f"results/{self.model_name}"
+        self.configs = ['paraphrased', 'original']
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def set_options(self, options):
         self.options = options
     
-    def results_exist(self):
+    def results_exist(self, config):
         """checks if results for current config already exist"""
-        return os.path.exists(self.get_path(self.config))
+        return os.path.exists(self.get_path(config))
     
     @staticmethod
     def start_prompt():
@@ -82,9 +83,21 @@ class AbstractRunner():
 
     def get_path(self, config):
         """returns path to save results to"""
-        return f"{self.base_path}_{self.config}_{self.input_length}.json"
+        return f"{self.base_path}_{config}_{self.input_length}.json"
+
+    def check_cache(self):
+        """checks if results already exist for configs, returns dict with config as key and bool as value"""
+        cached = {}
+        for config in self.configs:
+            cached[config] = self.results_exist(config)
+        return cached
 
     def run_model(self):
+        # check if results already exist
+        cached = self.check_cache()
+        if all(cached.values()):
+            logging.info(f"Results already exist, skipping model {self.model_name}")
+            return
         # prepare examples for different configs
         self.prepare_examples()
         # load tokenizer and model
@@ -92,11 +105,15 @@ class AbstractRunner():
         self.model = self.get_model()
 
         # run model for different configs
-        for config in ['paraphrased', 'original']:
-            self.config = config
+        for config in self.configs:
+            if cached[config]:
+                logging.info(f"Results already exist for {config} config, skipping")
+                continue
             df = self.examples[config]
+            # make config available for whole runner instance
+            self.config = config
             # run model on examples
-            logging.info(f"Running model {self.model_name} for {self.config} config")
+            logging.info(f"Running model {self.model_name} for {config} config")
             batch_size = self.batch_sizes()[self.model_name]
             result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names)
             PATH = self.get_path(config)
