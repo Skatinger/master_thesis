@@ -84,6 +84,7 @@ def main():
     if key is None:
         # generate key from time and date
         key = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    options["key"] = key
     logging.info(f"Using cache key {key}")
     
     # create folder for run
