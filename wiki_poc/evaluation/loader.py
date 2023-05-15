@@ -47,8 +47,27 @@ class ResultLoader():
     def load_by_class(self, model_class):
         pass
 
-    def load_by_name(self, model_name):
-        pass
+    def load_by_name(self, key, model_name):
+        file_names = self.result_file_names(key)
+        models = {}
+        for file_name in file_names:
+            # skip file if it doesn't match the model name
+            if not file_name.startswith(model_name):
+                continue
+            name, size, config, inputsize = self.parse_name(file_name)
+            logging.info(f"loading dataset from: results/{key}/{file_name}")
+
+            if not models.get(name):
+                models[name] = {}
+            
+            if not models.get(name).get(size):
+                models[name][size] = {
+                    "size": float(re.sub('b', '.', size)), # store size as float
+                    "inputsize": inputsize
+                }
+            
+            models[name][size][config] = load_dataset("json", data_files=f"results/{key}/{file_name}")
+        return models
 
     def parse_name(self, filename):
         model_name, rest = filename.split("-")  # Split the filename by underscores
