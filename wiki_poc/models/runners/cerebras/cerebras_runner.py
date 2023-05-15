@@ -7,7 +7,7 @@ class CerebrasRunner(AbstractRunner):
     @staticmethod
     def names():
         return {
-            "cerebras-111m": "cerebras/Cerebras-GPT-111M",
+            "cerebras-0b111": "cerebras/Cerebras-GPT-111M",
             "cerebras-1b3": "cerebras/Cerebras-GPT-1.3B",
             "cerebras-2b7": "cerebras/Cerebras-GPT-2.7B",
             "cerebras-6b7": "cerebras/Cerebras-GPT-6.7B",
@@ -17,7 +17,7 @@ class CerebrasRunner(AbstractRunner):
     @staticmethod
     def sizes():
         return {
-            "XXS": "cerebras-111m",
+            "XXS": "cerebras-0b111",
             "XS": "cerebras-1b3",
             "M": "cerebras-2b7",
             "L": "cerebras-6b7",
@@ -27,7 +27,7 @@ class CerebrasRunner(AbstractRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "cerebras-111m": 256,
+            "cerebras-0b111": 256,
             "cerebras-1b3": 128,
             "cerebras-2b7": 128,
             "cerebras-6b7": 64,
