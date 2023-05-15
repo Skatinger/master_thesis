@@ -25,8 +25,8 @@ class BloomzRunner(AbstractRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "bloomz-1b1": 64,
-            "bloomz-1b7": 64,
-            "bloomz-3b": 64,
+            "bloomz-1b1": 128,
+            "bloomz-1b7": 128,
+            "bloomz-3b": 128,
             "bloomz-7b1": 64,
         }
