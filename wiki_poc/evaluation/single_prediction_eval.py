@@ -5,9 +5,9 @@ import Levenshtein
 
 class SinglePredictionEvaluator:
 
-    def __init__(self, result_path: str, gt: Dataset = None):
-        print("Loading result dataset...")
-        self.dataset = load_dataset("json", data_files=result_path, split="train").sort("page_id")
+    def __init__(self, result_dataset: Dataset = None, result_path: str = None, gt: Dataset = None):
+        if result_path:
+            self.dataset = load_dataset("json", data_files=result_path, split="train").sort("page_id")
         if not gt:
             print("Loading ground truth dataset...")
             self.gt = load_dataset("Skatinger/wikipedia-persons-masked", split="train")
@@ -25,6 +25,46 @@ class SinglePredictionEvaluator:
             return { "correct": 1, "prediction": page["prediction"], "title": page["title"], "distance": distance }
         else:
             return { "correct": 0, "prediction": page["prediction"], "title": page["title"], "distance": distance }
+    
+    @staticmethod
+    def compute_precision_for_page(page):
+        distance = Levenshtein.distance(page["prediction"], page["title"], score_cutoff=15)
+        regex = "|".join(['.*(' + nameFragment + ').*' for nameFragment in page["title"].split()])
+        if re.match(regex, page["prediction"]):
+            return { "correct": 1, "prediction": page["prediction"], "title": page["title"], "distance": distance }
+        else:
+            return { "correct": 0, "prediction": page["prediction"], "title": page["title"], "distance": distance }
+    
+    @staticmethod
+    def compute_metrics(gt, data):
+        results = {}
+        # only keep ground truth entries with a mask
+        input_length = 1000 # TODO: dynamic
+        gt_with_mask = {}
+        gt_with_mask['original'] = gt.filter(lambda x: '<mask>' in x['masked_text_original'][:input_length])
+        gt_with_mask['paraphrased'] = gt.filter(lambda x: '<mask>' in x['masked_text_paraphrased'][:input_length])
+        for key, models in data.items():
+            for model_name, model in models.items():
+                for config in ['original', 'paraphrased']:
+                    dataset = model[config]['train']
+                    gt = gt_with_mask[config]
+                    ## add ground truth label to each prediction
+                    mappable = dataset.add_column("title", gt["title"])
+                    # filter out examples which did not include a mask
+                    
+                    # compute precision
+                    computed = mappable.map(SinglePredictionEvaluator.compute_precision_for_page, num_proc=4, remove_columns=mappable.column_names)
+                    # compute metrics over computed results
+                    correct_predictions = computed.filter(lambda x: x['correct'] == 1)
+                    incorrect_predictions = computed.filter(lambda x: x['correct'] == 0)
+                    correct = len(correct_predictions)
+                    model[config]["result"] = {}
+                    model[config]["result"]["data"] = computed
+                    model[config]["result"]["accuracy"] = correct / len(dataset)
+                    model[config]["result"]["correct_predictions"] = correct_predictions
+                    model[config]["result"]["incorrect_predictions"] = incorrect_predictions
+        return data
+
 
     def compute_precision(self): # , predictions, labels):
         """takes an array of predictions and labels and computes the average levenshtein difference"""
@@ -38,7 +78,10 @@ class SinglePredictionEvaluator:
         correct_predictions = results.filter(lambda x: x['correct'] == 1)
         incorrect_predictions = results.filter(lambda x: x['correct'] == 0)
         correct = len(correct_predictions)
-        return correct / len(self.dataset), correct_predictions, incorrect_predictions, results
+        return correct / len(self.dataset), correct_predictions, incorrect_predictions, 
+
+    # def compute_metrics(self):
+    #     pass
 
 if __name__ == "__main__":
     print("THIS SHOULD NOT BE CALLED")
@@ -48,7 +91,7 @@ if __name__ == "__main__":
     else:
         result_path = "../models/wiki_predictions_gpt-3.5-turbo_paraphrased.jsonl"
 
-    ev = SinglePredictionEvaluator(result_path)
+    ev = SinglePredictionEvaluator(result_path=result_path)
     accuracy, correct, incorrect, results = ev.compute_precision() # ev.dataset['prediction'], ev.gt['title'])
     levenstein_below_3_in_correct = correct.filter(lambda x: x['distance'] < 3)
     levenstein_below_3_in_incorrect = incorrect.filter(lambda x: x['distance'] < 3)
@@ -72,13 +115,3 @@ if __name__ == "__main__":
     save_path = f"results-{file_name}.json"
     print(f"Writing results to {save_path}")
     results.to_json(save_path)
-    # with open(save_path, "w") as f:
-    #     json.dump({
-    #         "path": result_path,
-    #         "accuracy": accuracy,
-    #         "average_levenstein_correct": average_levenstein_correct,
-    #         "average_levenstein_incorrect": average_levenstein_incorrect,
-    #         "levenstein_below_3_in_correct": levenstein_below_3_in_correct,
-    #         "correct": correct,
-    #         "incorrect": incorrect
-    #     }, f)
