@@ -43,7 +43,7 @@ def parse_options():
             key, value = option.split("=")
             options[key] = value
 
-    return args.model, args.size, args.model_class, options
+    return args.model, args.size, args.model_class, args.key, options
 
 def load_test_set():
     """load test dataset from cache or generates it from the full dataset and caches it"""
@@ -77,14 +77,13 @@ def check_model_exists(model_name):
                          "Please choose one of the following models: ", get_all_model_names())
 
 def main():
-    model_to_run, model_size_to_run, model_class_to_run, options = parse_options()
+    model_to_run, model_size_to_run, model_class_to_run, key, options = parse_options()
     if model_to_run:
         check_model_exists(model_to_run)
 
-    if not "key" in options.keys():
+    if key is None:
         # generate key from time and date
-        options["key"] = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    key = options["key"]
+        key = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     logging.info(f"Using cache key {key}")
     
     # create folder for run
