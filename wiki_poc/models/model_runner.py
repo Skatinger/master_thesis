@@ -87,7 +87,7 @@ def main():
     logging.info(f"Using cache key {key}")
     
     # create folder for run
-    os.makedirs(f"results/{options['key']}", exist_ok=True)
+    os.makedirs(f"results/{key}", exist_ok=True)
 
     # load the test set of pages
     test_set = load_test_set()
