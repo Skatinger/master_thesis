@@ -51,12 +51,12 @@ def load_test_set():
     if os.path.exists("models/cache/reduced_test_set"):
         dataset = Dataset.load_from_disk("models/cache/reduced_test_set")
     else:
-        assert os.path.exists("models/test_set_ids.csv"), "test_set_ids.csv file not found. Please run generate_test_set_ids.py first."
+        assert os.path.exists("test_set_ids.csv"), "test_set_ids.csv file not found. Please run generate_test_set_ids.py first."
         logging.info("No cached test dataset found, generating it from full dataset.")
         # load full dataset
         dataset = load_dataset('Skatinger/wikipedia-persons-masked', split='train')
         # get set of page ids which are in the test_set_ids.csv file
-        test_set_ids = set([i.strip() for i in open("models/test_set_ids.csv").readlines()])
+        test_set_ids = set([i.strip() for i in open("test_set_ids.csv").readlines()])
         # filter out pages from dataset which are not in the test set
         dataset = dataset.filter(lambda x: x["id"] in test_set_ids, num_proc=8)
         # save dataset to cache
