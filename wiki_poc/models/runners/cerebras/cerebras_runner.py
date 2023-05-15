@@ -4,6 +4,15 @@ from ..abstract_runner import AbstractRunner
 
 class CerebrasRunner(AbstractRunner):
 
+
+    @staticmethod
+    def start_prompt():
+        return "The following text talks about a person but the person is referred to as <mask>."
+
+    @staticmethod
+    def end_prompt():
+        return "The name of the person referred to as mask is NOT <mask>. If the name is not <mask>, what is the name?"
+
     @staticmethod
     def names():
         return {
