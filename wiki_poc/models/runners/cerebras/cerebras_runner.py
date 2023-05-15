@@ -38,7 +38,7 @@ class CerebrasRunner(AbstractRunner):
         return {
             "cerebras-0b111": 256,
             "cerebras-1b3": 128,
-            "cerebras-2b7": 128,
+            "cerebras-2b7": 64,
             "cerebras-6b7": 64,
             "cerebras-13b": 32,
         }
