@@ -34,6 +34,8 @@ class AbstractFillMaskRunner(AbstractRunner):
         for config in ['paraphrased', 'original']:
             # shorten input text to max length given
             df = self.dataset.map(lambda x: {f"masked_text_{config}": x[f"masked_text_{config}"][:self.input_length]}, num_proc=8)
+            # remove all examples which do no longer contain a mask
+            df = df.filter(lambda x: '<mask>' in f"masked_text_{config}", num_proc=8)
             # convert mask tokens to mask token format used by the model
             df = df.map(lambda x: {'texts': x['texts'].replace('<mask>', self.tokenizer.mask_token)})
             self.examples[config] = df

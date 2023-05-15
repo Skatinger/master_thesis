@@ -4,7 +4,7 @@
 import os
 import re
 import logging
-from models.model_runner import get_all_model_names
+from models.model_runner import get_all_model_names, load_test_set
 from datasets import load_dataset
 
 
@@ -12,6 +12,9 @@ class ResultLoader():
 
     def result_file_names(self, key):
         return os.listdir(f"results/{key}")
+
+    def load_gt(self):
+        return load_test_set()
 
     def load(self, key, model_name = None, model_class = None):
         """loads and returns all results as dict. can be filtered by model_class or model_name
@@ -31,11 +34,14 @@ class ResultLoader():
             if not models.get(name):
                 models[name] = {}
             
-            models[name][size] = {
-                "size": float(re.sub('[mb]', '.', size)), # store size as float
-                "inputsize": inputsize,
-                config: load_dataset("json", data_files=f"results/{key}/{file_name}")
-            }
+            if not models.get(name).get(size):
+                models[name][size] = {
+                    "size": float(re.sub('b', '.', size)), # store size as float
+                    "inputsize": inputsize
+                }
+            
+            models[name][size][config] = load_dataset("json", data_files=f"results/{key}/{file_name}")
+
         return models
     
     def load_by_class(self, model_class):
@@ -48,7 +54,6 @@ class ResultLoader():
         model_name, rest = filename.split("-")  # Split the filename by underscores
         size, config, inputsize = rest.split("_")  # Split the remaining part by hyphen to get size, config, and inputsize
         inputsize = inputsize.rstrip(".json")  # Remove the ".json" extension from inputsize
-        # size = # float(re.sub('[mb]', '.', size))
         return model_name, size, config, inputsize
 
 
