@@ -42,6 +42,8 @@ class ResultLoader():
             
             models[name][size][config] = load_dataset("json", data_files=f"results/{key}/{file_name}")
 
+        if len(models) == 0:
+            logging.warning(f"No results found for key {key}")
         return models
     
     def load_by_class(self, model_class):
@@ -67,6 +69,8 @@ class ResultLoader():
                 }
             
             models[name][size][config] = load_dataset("json", data_files=f"results/{key}/{file_name}")
+        if len(models) == 0:
+            logging.warning(f"No results found for model {model_name} and key {key}")
         return models
 
     def parse_name(self, filename):
