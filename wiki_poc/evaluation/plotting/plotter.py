@@ -1,6 +1,9 @@
 import argparse
 import matplotlib
 import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import logging
 matplotlib.use('agg')
 
 print(matplotlib.get_backend())
@@ -10,21 +13,27 @@ from evaluation.single_prediction_eval import SinglePredictionEvaluator
 
 class Plotter():
 
+    def __init__(self, key: str = "") -> None:
+        self.key = key
+
     @staticmethod
-    def plotters():
+    def plotters() -> dict:
         return {
             "accuracy-overview": AccuracyOverviewPlotter(),
+            "levensthein-distance": LevenstheinDistancePlotter()
         }
 
     @staticmethod
-    def parse_options():
+    def parse_options() -> tuple:
         parser = argparse.ArgumentParser(description="Run machine learning models with different configurations and options.")
         parser.add_argument("-n", "--name", help="Name of specific chart that should be created", type=str)
         parser.add_argument("-k", "--key", help="Name of the results key", type=str)
+        parser.add_argument("-m", "--model", help="Name of the model that should be plotted", type=str)
         args = parser.parse_args()
-        return args.name, args.key
+        return args.name, args.key, args.model
 
-    def plot(self, data, key = "", name = None):
+    def plot(self, data: dict, key: str = "", name = None) -> None:
+        self.key = key
         if name is None:
             self.plot_all(data, key)
         else:
@@ -38,9 +47,50 @@ class Plotter():
         self.plotters()[name].build(data, key)
 
 
+class LevenstheinDistancePlotter(Plotter):
+
+    """creates a plot for every model, showing how correctness and edit-distance correlate
+    """
+
+    def build(self, data: dict, key: str) -> None:
+        """takes a dictionary of results and plots a barplot showing the correlation between
+            correctness and edit-distance for every model and configuration in the dictionary"""
+        for model_class, models in data.items():
+            for model, data in models.items():
+                for config in ['original', 'paraphrased']:
+                    results = data[config]['result']['data']
+                    self._plot_single(results, model, config, key)
+
+
+    def _plot_single(self, results: dict, model_name: str, config: str, key: str) -> None:
+        """takes a dictionary of results and plots a barplot showing the correlation between"""
+        plt.figure(figsize=(12,8))
+        # Convert the data to a pandas DataFrame
+        df = pd.DataFrame({ 'distance': results['distance'], 'correct': results['correct']})
+        # # Group the data by score and correctness to count the entries with the same score
+        df_agg = df.groupby(['distance', 'correct']).size().reset_index(name='count')
+
+        # Map the values of the 'correct' column to their respective terms
+        df_agg['correctness'] = df_agg['correct'].replace({1: 'correct', 0: 'incorrect'})
+        df_agg.drop('correct', axis=1, inplace=True)
+
+        # Define the barplot using seaborn
+        ax = sns.barplot(x='distance', y='count', hue='correctness', data=df_agg)
+
+        # # Add labels and a title
+        plt.xlabel('Score')
+        plt.ylabel('Count')
+        ax.legend(title="")
+        plt.title('Results by Score and Correctness')
+        plt.savefig(f"evaluation/plotting/plots/{key}_{model_name}_{config}_levensthein_distance.png")
+
+
+
 class AccuracyOverviewPlotter(Plotter):
 
-    def build(self, data, key):
+    """creates a plot including every models accuracies for all configs"""
+
+    def build(self, data):
         sizes = []
         accuracies = []
         labels = []
@@ -66,22 +116,22 @@ class AccuracyOverviewPlotter(Plotter):
         plt.ylabel('Accuracy')
         plt.title('Accuracy by Model Size and Configuration')
         plt.grid(True)
-        plt.savefig(f"evaluation/plotting/plots/plot_{key}.png")
+        plt.savefig(f"evaluation/plotting/plots/plot_{self.key}.png")
 
 
 def main():
     # key for result dataset from command line arguments
-    name, key = Plotter.parse_options()
+    name, key, model = Plotter.parse_options()
     print("creating loader")
     loader = ResultLoader()
     print("loading ground truth")
     gt = loader.load_gt()
-    results = loader.load(key) #, 'bloomz-1b7')
-
+    if model is not None:
+        results = loader.load(key, model)
+    else:
+        results = loader.load(key)
 
     computed = SinglePredictionEvaluator.compute_metrics(gt, results)
-
-    # import pdb; pdb.set_trace()
     plotter = Plotter()
     plotter.plot(name=name, data=computed, key=key)
 
