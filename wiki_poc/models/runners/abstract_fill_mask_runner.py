@@ -1,4 +1,4 @@
-from abstract_runner import AbstractRunner
+from .abstract_runner import AbstractRunner
 import logging
 import torch
 import os

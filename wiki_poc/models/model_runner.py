@@ -11,11 +11,13 @@ logging.basicConfig(level=logging.INFO)
 
 from .runners.bloomz.bloomz_runner import BloomzRunner
 from .runners.cerebras.cerebras_runner import CerebrasRunner
+from .runners.roberta_runner import RobertaRunner
 
 def runners():
     return {
         "bloomz": BloomzRunner,
-        "cerebras": CerebrasRunner
+        "cerebras": CerebrasRunner,
+        "roberta": RobertaRunner,
     }
 
 def run_model(model_name, test_set, options):
