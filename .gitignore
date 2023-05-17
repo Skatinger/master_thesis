@@ -32,6 +32,8 @@ wiki_poc/models/.credentials
 # results from model outputs
 wiki_poc/models/*.jsonl
 wiki_poc/results/*.jsonl
+# keep large model outputs versioned, as they are expensive to compute
+!wiki_poc/results/large_models/*
 
 wiki_poc/evaluation/__pycache__
 wiki_poc/models/__pycache__
