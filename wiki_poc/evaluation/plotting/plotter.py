@@ -90,7 +90,7 @@ class AccuracyOverviewPlotter(Plotter):
 
     """creates a plot including every models accuracies for all configs"""
 
-    def build(self, data):
+    def build(self, data, key):
         sizes = []
         accuracies = []
         labels = []
@@ -116,12 +116,13 @@ class AccuracyOverviewPlotter(Plotter):
         plt.ylabel('Accuracy')
         plt.title('Accuracy by Model Size and Configuration')
         plt.grid(True)
-        plt.savefig(f"evaluation/plotting/plots/plot_{self.key}.png")
+        plt.savefig(f"evaluation/plotting/plots/plot_{key}.png")
 
 
 def main():
     # key for result dataset from command line arguments
     name, key, model = Plotter.parse_options()
+    assert key is not None, "No key provided"
     print("creating loader")
     loader = ResultLoader()
     print("loading ground truth")
