@@ -61,7 +61,7 @@ class AbstractFillMaskRunner(AbstractRunner):
         # load tokenizer and model
         self.model = self.get_model()
         # load pipeline
-        pipe = FillMaskPipelineWithTruncation(model=self.model, tokenizer=self.tokenizer, top_k=5, device=self.device)
+        pipe = FillMaskPipelineWithTruncation(model=self.model, tokenizer=self.tokenizer, top_k=5)
 
         # run model for different configs
         for config in self.configs:
