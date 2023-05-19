@@ -8,22 +8,22 @@ class RobertaRunner(AbstractFillMaskRunner):
     @staticmethod
     def names():
         return {
-            "roberta-base": "roberta-base",
-            "roberta-large": "roberta-large",
+            "roberta-0b125": "roberta-base",
+            "roberta-0b355": "roberta-large",
         }
     
     @staticmethod
     def sizes():
         return {
-            "XXS": "roberta-base", # 125M
-            "XS": "roberta-large", # 355M
+            "XXS": "roberta-0b125", # 125M
+            "XS": "roberta-0b355", # 355M
         }
 
     @staticmethod
     def batch_sizes():
         return {
-            "roberta-base": 64,
-            "roberta-large": 64,
+            "roberta-0b125": 64,
+            "roberta-0b355": 64,
         }
 
     def _model_loader(self):
