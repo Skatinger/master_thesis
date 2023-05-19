@@ -1,6 +1,7 @@
 
 
 from .abstract_fill_mask_runner import AbstractFillMaskRunner
+from transformers import RobertaForMaskedLM
 
 class RobertaRunner(AbstractFillMaskRunner):
 
@@ -24,3 +25,6 @@ class RobertaRunner(AbstractFillMaskRunner):
             "roberta-base": 64,
             "roberta-large": 64,
         }
+
+    def _model_loader(self):
+        return RobertaForMaskedLM

@@ -3,9 +3,17 @@ import logging
 import torch
 import os
 from typing import Dict, List, Tuple, Union
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from datasets import Dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer, RobertaTokenizer
+from transformers import pipeline
+from tqdm.auto import tqdm
+from transformers.pipelines.pt_utils import KeyDataset
+
 
 class AbstractFillMaskRunner(AbstractRunner):
+
+    def _model_loader(self):
+        return AutoModelForCausalLM
 
     def get_model(self):
         """retrieves model from huggingface model hub and load it to specified device"""
@@ -13,15 +21,15 @@ class AbstractFillMaskRunner(AbstractRunner):
         model_path = self.names()[self.model_name]
         # if GPU is available, load in 8bit mode
         if torch.cuda.is_available():
-            return AutoModelForCausalLM.from_pretrained(model_path, load_in_8bit=True, device_map="auto")
+            return self._model_loader().from_pretrained(model_path, load_in_8bit=True, device_map="auto")
         else:
             logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
-            return AutoModelForCausalLM.from_pretrained(model_path)
+            return self._model_loader().from_pretrained(model_path)
     
     def get_tokenizer(self):
         logging.info(f"Loading tokenizer for {self.model_name}")
         model_path = self.names()[self.model_name]
-        tokenizer = AutoTokenizer.from_pretrained(model_path, truncation=True, padding="longest")
+        tokenizer = RobertaTokenizer.from_pretrained(model_path, truncation=True, padding="longest", padding_side="left")
         return tokenizer
     
     def prepare_examples(self):
@@ -35,9 +43,9 @@ class AbstractFillMaskRunner(AbstractRunner):
             # shorten input text to max length given
             df = self.dataset.map(lambda x: {f"masked_text_{config}": x[f"masked_text_{config}"][:self.input_length]}, num_proc=8)
             # remove all examples which do no longer contain a mask
-            df = df.filter(lambda x: '<mask>' in f"masked_text_{config}", num_proc=8)
+            df = df.filter(lambda x: '<mask>' in x[f"masked_text_{config}"], num_proc=8)
             # convert mask tokens to mask token format used by the model
-            df = df.map(lambda x: {'texts': x['texts'].replace('<mask>', self.tokenizer.mask_token)})
+            df = df.map(lambda x: {'text': x['text'].replace('<mask>', self.tokenizer.mask_token)})
             self.examples[config] = df
 
     def run_model(self):
@@ -52,6 +60,8 @@ class AbstractFillMaskRunner(AbstractRunner):
         self.prepare_examples()
         # load tokenizer and model
         self.model = self.get_model()
+        # load pipeline
+        pipe = FillMaskPipelineWithTruncation(model=self.model, tokenizer=self.tokenizer, top_k=5, device=self.device)
 
         # run model for different configs
         for config in self.configs:
@@ -64,22 +74,33 @@ class AbstractFillMaskRunner(AbstractRunner):
             # run model on examples
             logging.info(f"Running model {self.model_name} for {config} config")
             batch_size = self.batch_sizes()[self.model_name]
-            result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names)
+            result_df = self.run_pipe(df.select([1,2,3]), batch_size=batch_size, pipe=pipe, config=config)
+            # concat predictions per page to single string
+            # e.g. [He, Mark, John, ...] -> He Mark John ...
+            result_df = result_df.map(lambda x: {'predictions': self.convert_to_result(x['predictions'])})
             PATH = self.get_path(config)
             result_df.to_json(PATH)
+    
+    def convert_to_result(self, lists):
+        """converts a list of lists to a single string with duplicate entries removed"""
+        flattened_list = [item for sublist in lists for item in sublist]
+        flattened_list = [item.strip() for item in flattened_list]
+        unique_list = list(set(flattened_list))
+        return ', '.join(unique_list)
 
-    def make_predictions(self, examples):
-        # tokenize inputs and move to GPU
-        texts = examples[f"masked_text_{self.config}"]
-        inputs = self.tokenizer(texts, return_tensors='pt').to(self.device)
-        # generate predictions
-        generated_ids = self.model.generate(**inputs, top_k=5)
-        # decode predictions
-        outputs = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-        # return predictions and input lengths
-        tokens, scores = self.extract_result(outputs)
-        input_lengths = [len(i) for i in examples[f"masked_text_{self.config}"]]
-        return { "prediction": tokens, "page_id": examples["id"], "input_length": input_lengths, "score": scores }
+    def run_pipe(self, dataset, pipe, config, batch_size=2):
+        result_dataset = Dataset.from_dict({'predictions': [], 'scores': [], 'page_id': [], 'sequence_number': []})
+        for example, out in zip(dataset, pipe(KeyDataset(dataset, f"masked_text_{config}"), batch_size=batch_size)):
+            # get a prediction for every chunk in the batch
+            tokens, _scores = self.extract_result(out)
+            # # add the predictions to the dataset
+            result_dataset = result_dataset.add_item({
+                'predictions': tokens,
+                'page_id': example['id'],
+                'input_length': self.input_length
+            })
+
+        return result_dataset
 
     def extract_result(self, result: Union[Dict, List[Dict]]) -> Tuple[List[str], List[float]]:
         """extracts the relevant parts of the result of the fill-mask pipeline, removes unnecessary
@@ -132,3 +153,25 @@ class AbstractFillMaskRunner(AbstractRunner):
         # [sequence1_results, ...] where sequence1_results = [results_for_mask1, ...] where
         # results_for_mask1 = [(token_str, score), (...), ...]
         return results_tokens, results_scores
+
+
+
+# small helper class
+from transformers.pipelines import FillMaskPipeline
+from transformers.pipelines.base import GenericTensor
+class FillMaskPipelineWithTruncation(FillMaskPipeline):
+    """Overwrite the fill-mask pipeline to allow for truncation of the input text and parsing preprocessing parameters.
+    Args:
+        same arguments as FillMaskPipeline, extended with truncation and padding parameters for the tokenizer.
+    Returns:
+        same as FillMaskPipeline
+    """    
+    def preprocess(self, inputs, return_tensors=None, **preprocess_parameters) -> Dict[str, GenericTensor]:
+        """Overwrites the preprocess method of the fill-mask pipeline to allow for truncation of the input text."""
+        preprocess_parameters["truncation"] = True
+        preprocess_parameters["padding"] = 'max_length'
+        if return_tensors is None:
+            return_tensors = self.framework
+        model_inputs = self.tokenizer(inputs, return_tensors=return_tensors, truncation=True, padding='max_length')
+        self.ensure_exactly_one_mask_token(model_inputs)
+        return model_inputs
