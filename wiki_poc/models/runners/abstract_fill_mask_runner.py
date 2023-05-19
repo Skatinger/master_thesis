@@ -74,7 +74,7 @@ class AbstractFillMaskRunner(AbstractRunner):
             # run model on examples
             logging.info(f"Running model {self.model_name} for {config} config")
             batch_size = self.batch_sizes()[self.model_name]
-            result_df = self.run_pipe(df.select([1,2,3]), batch_size=batch_size, pipe=pipe, config=config)
+            result_df = self.run_pipe(df, batch_size=batch_size, pipe=pipe, config=config)
             # concat predictions per page to single string
             # e.g. [He, Mark, John, ...] -> He Mark John ...
             result_df = result_df.map(lambda x: {'predictions': self.convert_to_result(x['predictions'])})
