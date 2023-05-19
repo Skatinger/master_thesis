@@ -27,6 +27,17 @@ Ensure you load python env and cuda when running without default options.
 `build-masked`: uses the sentences preprocessed in `build-*` and masks entities identified as the person on which 
 the wikipedia article is about.
 
+## modules
+### models
+Run different models with different configurations. Can choose which models, model groups or model sizes.
+Add own models by extending the corresponding abstract runners.
+- `python -m models.model_runner -h` for explanations and options.
+
+### evaluation
+- `python -m evaluation.loader -h`: can load different results and ground truth
+- `python -m evaluation.single_prediction_eval <result file-path>`: for quick evals, should be imported and not called directly
+- `python -m evaluation.plotting.plotter -h`: builds different plots for given results.
+
 ### Good to Know
 Texts are split to sentences for paraphrasing only, as this will ensure the paraphrasing only does small changes on the
 sentence structure, but not change the full text. Sentences are then joined back together to a text, to improve the
