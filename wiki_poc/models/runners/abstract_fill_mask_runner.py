@@ -5,7 +5,6 @@ import os
 from typing import Dict, List, Tuple, Union
 from datasets import Dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, RobertaTokenizer
-from transformers import pipeline
 from tqdm.auto import tqdm
 from transformers.pipelines.pt_utils import KeyDataset
 
@@ -61,7 +60,8 @@ class AbstractFillMaskRunner(AbstractRunner):
         # load tokenizer and model
         self.model = self.get_model()
         # load pipeline
-        pipe = FillMaskPipelineWithTruncation(model=self.model, tokenizer=self.tokenizer, top_k=5)
+        device_number = 0 if torch.cuda.is_available() else -1
+        pipe = FillMaskPipelineWithTruncation(model=self.model, tokenizer=self.tokenizer, top_k=5, device=device_number)
 
         # run model for different configs
         for config in self.configs:
@@ -77,7 +77,7 @@ class AbstractFillMaskRunner(AbstractRunner):
             result_df = self.run_pipe(df, batch_size=batch_size, pipe=pipe, config=config)
             # concat predictions per page to single string
             # e.g. [He, Mark, John, ...] -> He Mark John ...
-            result_df = result_df.map(lambda x: {'predictions': self.convert_to_result(x['predictions'])})
+            result_df = result_df.map(lambda x: {'prediction': self.convert_to_result(x['prediction'])})
             PATH = self.get_path(config)
             result_df.to_json(PATH)
     
@@ -89,7 +89,7 @@ class AbstractFillMaskRunner(AbstractRunner):
         return ', '.join(unique_list)
 
     def run_pipe(self, dataset, pipe, config, batch_size=2):
-        result_dataset = Dataset.from_dict({'predictions': [], 'scores': [], 'page_id': [], 'sequence_number': []})
+        result_dataset = Dataset.from_dict({'prediction': [], 'scores': [], 'page_id': [], 'sequence_number': []})
         for example, out in zip(dataset, tqdm(pipe(KeyDataset(dataset, f"masked_text_{config}"), batch_size=batch_size))):
             # get a prediction for every chunk in the batch
             tokens, _scores = self.extract_result(out)
