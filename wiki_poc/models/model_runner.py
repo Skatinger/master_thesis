@@ -45,8 +45,11 @@ def parse_options():
         for option in args.options.split(","):
             key, value = option.split("=")
             options[key] = value
-
-    return args.model, args.size, args.model_class, args.key, args.exclude.split(","), options
+    if args.exclude:
+        args.exclude = args.exclude.split(",")
+    else:
+        args.exclude = []
+    return args.model, args.size, args.model_class, args.key, args.exclude, options
 
 def load_test_set():
     """load test dataset from cache or generates it from the full dataset and caches it"""
@@ -66,13 +69,26 @@ def load_test_set():
         dataset.save_to_disk("models/cache/reduced_test_set")
     return dataset
 
-def get_all_model_names(model_class=None):
+def get_models_by_size(model_size):
+    """returns a list of all models of a specific size"""
+    model_names = []
+    sizes_per_model = [runner.sizes() for runner in runners().values()]
+    for model in sizes_per_model:
+        if model_size in model.keys():
+            model_names.append(model[model_size])
+    return model_names
+
+def get_all_model_names(model_class=None, model_size=None):
     """returns a list of all names of available models, optionally filtered by model class"""
-    if model_class:
-        nested = [runner.names().keys() for runner in runners().values() if runner.__name__.lower().startswith(model_class)]
+    if model_class and model_size:
+        return [runners()[model_class].sizes()[model_size]]
+    elif model_class:
+        return list(runners()[model_class].names().keys())
+    elif model_size:
+        return get_models_by_size(model_size)
     else:
         nested = [runner.names().keys() for runner in runners().values()]
-    return [item for sublist in nested for item in sublist]
+        return [item for sublist in nested for item in sublist]
 
 def check_model_exists(model_name):
     if model_name not in get_all_model_names():
@@ -113,7 +129,7 @@ def main():
     # run all models of a specific class
     elif model_class_to_run:
         # retrieve all models of the specified class
-        model_names = get_all_model_names(model_class_to_run)
+        model_names = get_all_model_names(model_class=model_class_to_run, model_size=model_size_to_run)
         if len(excluded) > 0:
             # remove excluded models
             model_names = [model for model in model_names if model not in excluded]
@@ -125,6 +141,19 @@ def main():
             # TODO: get prepared examples dataset and pass it to run_model,
             # so that it doesn't have to be loaded for each model, as prompts are the same for all models
             # of the same model class
+            run_model(model_name, test_set, options)
+    # run all models of a specific size
+    elif model_size_to_run:
+        # retrieve all models of the specified size
+        model_names = get_all_model_names(model_size=model_size_to_run)
+        if len(excluded) > 0:
+            # remove excluded models
+            model_names = [model for model in model_names if model not in excluded]
+        logging.info(f"Following models will be run:")
+        for model in model_names:
+            logging.info("  - %s", model)
+
+        for model_name in model_names:
             run_model(model_name, test_set, options)
     else:
         # retrieve all models of all runners
