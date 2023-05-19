@@ -20,7 +20,7 @@ class AbstractFillMaskRunner(AbstractRunner):
         model_path = self.names()[self.model_name]
         # if GPU is available, load in 8bit mode
         if torch.cuda.is_available():
-            return self._model_loader().from_pretrained(model_path, load_in_8bit=True, device_map="auto")
+            return self._model_loader().from_pretrained(model_path, device=self.device, dtype=torch.float16)
         else:
             logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
             return self._model_loader().from_pretrained(model_path)
