@@ -22,8 +22,8 @@ class RobertaRunner(AbstractFillMaskRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "roberta-0b125": 64,
-            "roberta-0b355": 64,
+            "roberta-0b125": 256,
+            "roberta-0b355": 256,
         }
 
     def _model_loader(self):
