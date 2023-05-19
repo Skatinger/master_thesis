@@ -90,7 +90,7 @@ class AbstractFillMaskRunner(AbstractRunner):
 
     def run_pipe(self, dataset, pipe, config, batch_size=2):
         result_dataset = Dataset.from_dict({'predictions': [], 'scores': [], 'page_id': [], 'sequence_number': []})
-        for example, out in zip(dataset, pipe(KeyDataset(dataset, f"masked_text_{config}"), batch_size=batch_size)):
+        for example, out in zip(dataset, tqdm(pipe(KeyDataset(dataset, f"masked_text_{config}"), batch_size=batch_size))):
             # get a prediction for every chunk in the batch
             tokens, _scores = self.extract_result(out)
             # # add the predictions to the dataset
