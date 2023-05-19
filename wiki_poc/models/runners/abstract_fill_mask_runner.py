@@ -95,7 +95,7 @@ class AbstractFillMaskRunner(AbstractRunner):
             tokens, _scores = self.extract_result(out)
             # # add the predictions to the dataset
             result_dataset = result_dataset.add_item({
-                'predictions': tokens,
+                'prediction': tokens,
                 'page_id': example['id'],
                 'input_length': self.input_length
             })
