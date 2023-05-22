@@ -2,9 +2,7 @@ from .abstract_runner import AbstractRunner
 import logging
 import torch
 import os
-from typing import Dict, List, Tuple, Union
-from transformers import T5ForConditionalGeneration, T5Tokenizer
-
+from transformers import AutoTokenizer
 
 class AbstractTextToTextRunner(AbstractRunner):
 
@@ -14,20 +12,16 @@ class AbstractTextToTextRunner(AbstractRunner):
         model_path = self.names()[self.model_name]
         # if GPU is available, load in 8bit mode
         if torch.cuda.is_available():
-            return T5ForConditionalGeneration.from_pretrained(model_path, load_in_8bit=True, device_map="auto")
+            return self.__model_loader().from_pretrained(model_path, load_in_8bit=True, device_map="auto")
         else:
             logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
-            return T5ForConditionalGeneration.from_pretrained(model_path)
+            return self.__model_loader().from_pretrained(model_path)
     
     def get_tokenizer(self):
         logging.info(f"Loading tokenizer for {self.model_name}")
         model_path = self.names()[self.model_name]
-        tokenizer = T5Tokenizer.from_pretrained(model_path, truncation=True, padding="longest", max_length="model_max_length")
+        tokenizer = AutoTokenizer.from_pretrained(model_path, truncation=True, padding="longest")
         return tokenizer
-
-    def start_prompt(self):
-        """returns the prompt to start the model with"""
-        return "Answer the question: Who is referred to as <mask> in the following text?\n\n"
 
     def run_model(self):
         # check if results already exist
