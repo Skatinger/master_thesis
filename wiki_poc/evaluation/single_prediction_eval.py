@@ -49,11 +49,15 @@ class SinglePredictionEvaluator:
                     dataset = model[config]['train']
                     gt = gt_with_mask[config]
                     ## add ground truth label to each prediction
-                    mappable = dataset.add_column("title", gt["title"])
-                    # filter out examples which did not include a mask
-                    
+                    # some legacy examples contain predictions for examples which do not
+                    # contain a mask, the prediction therefore cannot be correct. remove those
+                    # in case any exist.
+                    ids = set(gt['id'])
+                    dataset = dataset.filter(lambda x: x['page_id'] in ids)
+                    # make sure only the examples which were actually predicted
+                    mappable = dataset.add_column("title", gt["title"])                    
                     # compute precision
-                    computed = mappable.map(SinglePredictionEvaluator.compute_precision_for_page, num_proc=4, remove_columns=mappable.column_names)
+                    computed = mappable.map(SinglePredictionEvaluator.compute_precision_for_page, num_proc=8, remove_columns=mappable.column_names)
                     # compute metrics over computed results
                     correct_predictions = computed.filter(lambda x: x['correct'] == 1)
                     incorrect_predictions = computed.filter(lambda x: x['correct'] == 0)
