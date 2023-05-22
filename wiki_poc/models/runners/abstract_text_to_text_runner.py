@@ -22,7 +22,7 @@ class AbstractTextToTextRunner(AbstractRunner):
     def get_tokenizer(self):
         logging.info(f"Loading tokenizer for {self.model_name}")
         model_path = self.names()[self.model_name]
-        tokenizer = T5Tokenizer.from_pretrained(model_path, truncation=True, padding="longest")
+        tokenizer = T5Tokenizer.from_pretrained(model_path, truncation=True, padding="longest", max_length="model_max_length")
         return tokenizer
 
     def start_prompt(self):
