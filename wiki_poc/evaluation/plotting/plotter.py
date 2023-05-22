@@ -28,6 +28,7 @@ class Plotter():
         parser = argparse.ArgumentParser(description="Run machine learning models with different configurations and options.")
         parser.add_argument("-n", "--name", help="Name of specific chart that should be created", type=str)
         parser.add_argument("-k", "--key", help="Name of the results key", type=str)
+        # parser.add_argument("-e", "--exclude", help="Exclude specific models from the run. Format: model_name1,model_name2", type=str)
         parser.add_argument("-m", "--model", help="Name of the model that should be plotted", type=str)
         args = parser.parse_args()
         return args.name, args.key, args.model
@@ -42,6 +43,7 @@ class Plotter():
     def plot_all(self, data, key):
         for name in self.plotters().keys():
             self.plot_one(data, name, key)
+            matplotlib.pyplot.close()
 
     def plot_one(self, data, name, key):
         self.plotters()[name].build(data, key)
@@ -117,6 +119,8 @@ class AccuracyOverviewPlotter(Plotter):
         plt.title('Accuracy by Model Size and Configuration')
         plt.grid(True)
         plt.savefig(f"evaluation/plotting/plots/plot_{key}.png")
+        # ensure pyplot does not run out of memory when too many plots are created
+        matplotlib.pyplot.close()
 
 
 def main():
