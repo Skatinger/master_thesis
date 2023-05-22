@@ -13,6 +13,7 @@ from .runners.bloomz.bloomz_runner import BloomzRunner
 from .runners.cerebras.cerebras_runner import CerebrasRunner
 from .runners.roberta_runner import RobertaRunner
 from .runners.t5.t5_runner import T5Runner
+from .runners.pythia.pythia_runner import PythiaRunner
 
 def runners():
     return {
@@ -20,6 +21,7 @@ def runners():
         "cerebras": CerebrasRunner,
         "roberta": RobertaRunner,
         "t5": T5Runner,
+        "pythia": PythiaRunner,
     }
 
 def run_model(model_name, test_set, options):

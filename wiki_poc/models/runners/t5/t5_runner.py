@@ -1,5 +1,8 @@
 
 from ..abstract_text_to_text_runner import AbstractTextToTextRunner
+from transformers import T5ForConditionalGeneration, T5Tokenizer
+import torch
+import logging
 
 
 class T5Runner(AbstractTextToTextRunner):
@@ -37,3 +40,24 @@ class T5Runner(AbstractTextToTextRunner):
             "t5-3b": 128,
             "t5-11b": 64,
         }
+
+    def get_model(self):
+        """retrieves model from huggingface model hub and load it to specified device"""
+        logging.info(f"Loading model for {self.model_name}")
+        model_path = self.names()[self.model_name]
+        # if GPU is available, load in 8bit mode
+        if torch.cuda.is_available():
+            return T5ForConditionalGeneration.from_pretrained(model_path, load_in_8bit=True, device_map="auto")
+        else:
+            logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
+            return T5ForConditionalGeneration.from_pretrained(model_path)
+    
+    def get_tokenizer(self):
+        logging.info(f"Loading tokenizer for {self.model_name}")
+        model_path = self.names()[self.model_name]
+        tokenizer = T5Tokenizer.from_pretrained(model_path, truncation=True, padding="longest", max_length="model_max_length")
+        return tokenizer
+
+    def start_prompt(self):
+        """returns the prompt to start the model with"""
+        return "Answer the question: Who is referred to as <mask> in the following text?\n\n"
