@@ -23,6 +23,7 @@ class AbstractRunner():
         self.model_name = model_name
         self.dataset = dataset
         self.input_length = 1000
+        self.save_memory = options["save_memory"]
         self.set_options(options)
         self.base_path = f"results/{self.key}/{self.model_name}"
         self.configs = ['paraphrased', 'original']
@@ -121,6 +122,8 @@ class AbstractRunner():
             # run model on examples
             logging.info(f"Running model {self.model_name} for {config} config")
             batch_size = self.batch_sizes()[self.model_name]
+            if self.save_memory:
+                batch_size = max(batch_size // 4, 1)
             result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names)
             PATH = self.get_path(config)
             result_df.to_json(PATH)
