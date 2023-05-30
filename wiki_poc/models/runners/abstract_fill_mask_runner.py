@@ -18,7 +18,7 @@ class AbstractFillMaskRunner(AbstractRunner):
         """retrieves model from huggingface model hub and load it to specified device"""
         logging.info(f"Loading model for {self.model_name}")
         model_path = self.names()[self.model_name]
-        # if GPU is available, load in 8bit mode
+        # if GPU is available pipeline will run on GPU
         if torch.cuda.is_available():
             return self._model_loader().from_pretrained(model_path)
         else:
@@ -60,8 +60,7 @@ class AbstractFillMaskRunner(AbstractRunner):
         # load tokenizer and model
         self.model = self.get_model()
         # load pipeline
-        device_number = 0 if torch.cuda.is_available() else -1
-        pipe = FillMaskPipelineWithTruncation(model=self.model, tokenizer=self.tokenizer, top_k=5, device=device_number)
+        pipe = FillMaskPipelineWithTruncation(model=self.model, tokenizer=self.tokenizer, top_k=5, device=self.device_number)
 
         # run model for different configs
         for config in self.configs:

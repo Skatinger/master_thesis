@@ -27,8 +27,8 @@ class AbstractRunner():
         self.set_options(options)
         self.base_path = f"results/{self.key}/{self.model_name}"
         self.configs = ['paraphrased', 'original']
-        device_number = options["device"]
-        self.device = torch.device(f"cuda:{device_number}" if torch.cuda.is_available() else "cpu")
+        self.device_number = options["device"]
+        self.device = torch.device(f"cuda:{self.device_number}" if torch.cuda.is_available() else "cpu")
         logging.info(f"Set device to {self.device}")
 
     def set_options(self, options):
@@ -64,7 +64,7 @@ class AbstractRunner():
         model_path = self.names()[self.model_name]
         # if GPU is available, load in 8bit mode
         if torch.cuda.is_available():
-            return AutoModelForCausalLM.from_pretrained(model_path, load_in_8bit=True, device_map="auto")
+            return AutoModelForCausalLM.from_pretrained(model_path, load_in_8bit=True).to(self.device)
         else:
             logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
             return AutoModelForCausalLM.from_pretrained(model_path)
