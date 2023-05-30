@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod, abstractproperty
 
 class AbstractRunner():
 
-    def __init__(self, model_name, dataset, options = {}):
+    def __init__(self, model_name, dataset, options = {"device": 0}):
         """_summary_
 
         Args:
@@ -26,7 +26,9 @@ class AbstractRunner():
         self.set_options(options)
         self.base_path = f"results/{self.key}/{self.model_name}"
         self.configs = ['paraphrased', 'original']
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device_number = options["device"]
+        self.device = torch.device(f"cuda:{device_number}" if torch.cuda.is_available() else "cpu")
+        logging.info(f"Set device to {self.device}")
 
     def set_options(self, options):
         self.options = options

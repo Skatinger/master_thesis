@@ -34,7 +34,7 @@ def parse_options():
     parser = argparse.ArgumentParser(description="Run machine learning models with different configurations and options.")
     parser.add_argument("-m", "--model", help="Run a specific model. Format: model_name (e.g., bloomz)", type=str)
     parser.add_argument("-c", "--model-class", help="Run all models of a specific class. Format: model_class (e.g., bloomz-1b1)", type=str)
-    # parser.add_argument("-d", "--dry-run", help="Print out all models which would be run, but don't run them.")
+    parser.add_argument("-d", "--device", help="Device to use, by default using GPU 0.")
     parser.add_argument("-e", "--exclude", help="Exclude specific models from the run. Format: model_name1,model_name2", type=str)
     parser.add_argument("-nc", "--no-cache", help="Don't use cached results, run all models again.")
     keyhelp = """Specify a key to identify the run. This key will be used to save results and to load them again.
@@ -53,7 +53,7 @@ def parse_options():
         args.exclude = args.exclude.split(",")
     else:
         args.exclude = []
-    return args.model, args.size, args.model_class, args.key, args.exclude, options
+    return args.model, args.size, args.model_class, args.key, args.exclude, args.device, options
 
 def load_test_set():
     """load test dataset from cache or generates it from the full dataset and caches it"""
@@ -100,7 +100,7 @@ def check_model_exists(model_name):
                          "Please choose one of the following models: ", get_all_model_names())
 
 def main():
-    model_to_run, model_size_to_run, model_class_to_run, key, excluded, options = parse_options()
+    model_to_run, model_size_to_run, model_class_to_run, key, excluded, device, options = parse_options()
     if model_to_run:
         check_model_exists(model_to_run)
     
@@ -115,6 +115,10 @@ def main():
         # generate key from time and date
         key = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     options["key"] = key
+    if device is None:
+        options["device"] = 0
+    else:
+        options["device"] = device
     logging.info(f"Using cache key {key}")
     
     # create folder for run
