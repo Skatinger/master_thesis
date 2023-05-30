@@ -63,7 +63,7 @@ class MPTInstructRunner(AbstractRunner):
             return transformers.AutoModelForCausalLM.from_pretrained(
                 model_path,
                 config=config,
-                torch_dtype=torch.bfloat16,
+                torch_dtype=torch.float16,
                 trust_remote_code=True,
                 load_in_8bit=True,
                 device_map="auto"
@@ -73,6 +73,6 @@ class MPTInstructRunner(AbstractRunner):
             return transformers.AutoModelForCausalLM.from_pretrained(
                 model_path,
                 config=config,
-                torch_dtype=torch.bfloat16,
+                torch_dtype=torch.float16,
                 trust_remote_code=True,
             )
