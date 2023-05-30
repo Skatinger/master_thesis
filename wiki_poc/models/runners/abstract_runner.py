@@ -28,11 +28,9 @@ class AbstractRunner():
         self.base_path = f"results/{self.key}/{self.model_name}"
         self.configs = ['paraphrased', 'original']
         self.device_number = options["device"]
-        # set the device number as environment variable so any models using the `devicemap=auto` option
-        # will load the model to the correct GPU
-        os.environ["CUDA_VISIBLE_DEVICES"] = self.device_number
         self.device = torch.device(f"cuda:{self.device_number}" if torch.cuda.is_available() else "cpu")
-        logging.info(f"Set device to {self.device}")
+        logging.info(f"""Set device to {self.device}. CAREFUL: When using device_map=auto the gpus will be selected automatically,
+                     even when a device has been passed.""")
 
     def set_options(self, options):
         self.options = options
