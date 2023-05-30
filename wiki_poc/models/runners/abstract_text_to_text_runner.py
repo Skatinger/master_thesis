@@ -47,7 +47,7 @@ class AbstractTextToTextRunner(AbstractRunner):
             logging.info(f"Running model {self.model_name} for {config} config")
             batch_size = self.batch_sizes()[self.model_name]
             if self.save_memory:
-                batch_size = max(batch_size // 4, 1)
+                batch_size = 1
             result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names)
             PATH = self.get_path(config)
             result_df.to_json(PATH)

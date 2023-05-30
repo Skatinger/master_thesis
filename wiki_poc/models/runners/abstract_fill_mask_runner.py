@@ -75,7 +75,7 @@ class AbstractFillMaskRunner(AbstractRunner):
             logging.info(f"Running model {self.model_name} for {config} config")
             batch_size = self.batch_sizes()[self.model_name]
             if self.save_memory:
-                batch_size = max(batch_size // 4, 1)
+                batch_size = 1
             result_df = self.run_pipe(df, batch_size=batch_size, pipe=pipe, config=config)
             # concat predictions per page to single string
             # e.g. [He, Mark, John, ...] -> He Mark John ...

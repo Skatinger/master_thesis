@@ -124,6 +124,8 @@ def main():
     
     if save_memory:
         options["save_memory"] = True
+    else:
+        options["save_memory"] = False
 
     
     # create folder for run
