@@ -48,7 +48,11 @@ class MPTInstructRunner(AbstractRunner):
 
     def get_tokenizer(self):
         logging.info(f"Loading tokenizer for {self.model_name}")
-        return AutoTokenizer.from_pretrained("EleutherAI/gpt-neox-20b")
+        tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neox-20b")
+        # have to add a padding token, as processing is done in batches and required inputs to be padded,
+        # but this tokenizer does not have a pad token by default.
+        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+        return tokenizer
 
     def get_model(self):
         """retrieves model from huggingface model hub and load it to specified device"""
