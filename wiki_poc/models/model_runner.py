@@ -14,6 +14,7 @@ from .runners.cerebras.cerebras_runner import CerebrasRunner
 from .runners.roberta_runner import RobertaRunner
 from .runners.t5.t5_runner import T5Runner
 from .runners.pythia.pythia_runner import PythiaRunner
+from .runners.mpt_instruct.mpt_instruct_runner import MPTInstructRunner
 
 def runners():
     return {
@@ -22,6 +23,7 @@ def runners():
         "roberta": RobertaRunner,
         "t5": T5Runner,
         "pythia": PythiaRunner,
+        "mpt-instruct": MPTInstructRunner,
     }
 
 def run_model(model_name, test_set, options):
