@@ -23,7 +23,7 @@ def runners():
         "roberta": RobertaRunner,
         "t5": T5Runner,
         "pythia": PythiaRunner,
-        "mpt-instruct": MPTInstructRunner,
+        "mpt_instruct": MPTInstructRunner,
     }
 
 def run_model(model_name, test_set, options):
