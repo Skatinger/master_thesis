@@ -26,7 +26,7 @@ class T5Runner(AbstractTextToTextRunner):
         return {
             "XXS": "t5-0b060",
             "XS": "t5-0b220",
-            "M": "t5-0b770",
+            "S": "t5-0b770",
             "L": "t5-3b",
             "XL": "t5-11b",
         }
@@ -35,8 +35,8 @@ class T5Runner(AbstractTextToTextRunner):
     def batch_sizes():
         return {
             "t5-0b060": 1024,
-            "t5-0b220": 1024,
-            "t5-0b770": 512,
+            "t5-0b220": 512,
+            "t5-0b770": 256,
             "t5-3b": 128,
             "t5-11b": 32,
         }

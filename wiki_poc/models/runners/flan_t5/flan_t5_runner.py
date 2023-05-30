@@ -34,9 +34,9 @@ class FlanT5Runner(AbstractTextToTextRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "flan_t5-0b080": 1024,
-            "flan_t5-0b250": 1024,
-            "flan_t5-0b780": 512,
+            "flan_t5-0b080": 512,
+            "flan_t5-0b250": 512,
+            "flan_t5-0b780": 256,
             "flan_t5-3b": 128,
             "flan_t5-11b": 32,
         }

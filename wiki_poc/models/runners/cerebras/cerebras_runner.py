@@ -27,7 +27,7 @@ class CerebrasRunner(AbstractRunner):
     def sizes():
         return {
             "XXS": "cerebras-0b111",
-            "XS": "cerebras-1b3",
+            "S": "cerebras-1b3",
             "M": "cerebras-2b7",
             "L": "cerebras-6b7",
             "XL": "cerebras-13b",
