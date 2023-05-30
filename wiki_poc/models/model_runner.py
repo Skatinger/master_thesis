@@ -15,6 +15,7 @@ from .runners.roberta_runner import RobertaRunner
 from .runners.t5.t5_runner import T5Runner
 from .runners.pythia.pythia_runner import PythiaRunner
 from .runners.mpt_instruct.mpt_instruct_runner import MPTInstructRunner
+from .runners.incite_instruct.incite_instruct_runner import InciteInstructRunner
 
 def runners():
     return {
@@ -24,6 +25,7 @@ def runners():
         "t5": T5Runner,
         "pythia": PythiaRunner,
         "mpt_instruct": MPTInstructRunner,
+        "incite_instruct": InciteInstructRunner,
     }
 
 def run_model(model_name, test_set, options):
