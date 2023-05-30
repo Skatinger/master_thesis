@@ -65,9 +65,7 @@ class MPTInstructRunner(AbstractRunner):
                 config=config,
                 torch_dtype=torch.float16,
                 trust_remote_code=True,
-                load_in_8bit=True,
-                device_map="auto"
-            )
+            ).to(self.device)
         else:
             logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
             return transformers.AutoModelForCausalLM.from_pretrained(
