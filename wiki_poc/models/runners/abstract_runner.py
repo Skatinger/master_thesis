@@ -8,31 +8,52 @@ from abc import ABC, abstractmethod, abstractproperty
 
 class AbstractRunner():
 
-    def __init__(self, model_name, dataset, options = {"device": 0}):
+    def __init__(self, model_name, dataset, options = {"device": 0, "k_runs": 1, "save_memory": False, "key": "default"}):
         """_summary_
 
         Args:
             dataset (_type_): _description_
-            options (dict, optional): Could pass options for model SIZE, CONFIG (original/paraphrased).
-                                      Defaults to {}.
+            options (dict, optional): Could pass options for:
+                - input length (in characters)
+                - number of runs (top_k)
+                - save memory (bool) if true, the runner will reduce batch size to 1
+                - device (int) the device to run the model on (only used if device_map is not set to auto)
+                - configs (list) the configs to run the model on (e.g. original, paraphrased)
         """
 
         logging.info("Initializing runner for model %s", model_name)
+        # make sure all required options are set
         # key to identify the run in the results
         self.key = options["key"]
         self.model_name = model_name
         self.dataset = dataset
+
+        # set default values for options
         self.input_length = 1000
-        self.save_memory = options["save_memory"]
-        self.set_options(options)
-        self.base_path = f"results/{self.key}/{self.model_name}"
+        self.k_runs = 1
+        self.save_memory = False
+        self.device_number = "0"
         self.configs = ['paraphrased', 'original']
-        self.device_number = options["device"]
+
+        # overwrite default values if options are passed
+        self.set_options(options)
+
+        self.base_path = f"results/{self.key}/{self.model_name}"
         self.device = torch.device(f"cuda:{self.device_number}" if torch.cuda.is_available() else "cpu")
         logging.info(f"""Set device to {self.device}. CAREFUL: When using device_map=auto the gpus will be selected automatically,
                      even when a device has been passed.""")
 
     def set_options(self, options):
+        if "input_length" in options:
+            self.input_length = options["input_length"]
+        if "k_runs" in options:
+            self.k_runs = options["k_runs"]
+        if "save_memory" in options:
+            self.save_memory = options["save_memory"]
+        if "device" in options:
+            self.device_number = options["device"]
+        if "configs" in options:
+            self.configs = options["configs"]
         self.options = options
     
     def results_exist(self, config):
