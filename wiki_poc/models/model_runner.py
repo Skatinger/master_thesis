@@ -150,15 +150,15 @@ def main():
     os.makedirs(f"results/{key}", exist_ok=True)
 
     # load the test set of pages
-    if options["ids_file_path"]:
+    if "ids_file_path" in options.keys():
         test_set = load_test_set(ids_file_path=options["ids_file_path"])
     else:
         test_set = load_test_set()
     # only select a range if specified
     if fast:
-        dataset = dataset.select(range(100))
+        test_set = test_set.select(range(100))
     elif dry_run:
-        dataset = dataset.select(range(10))
+        test_set = test_set.select(range(10))
 
     # run a single model instance
     if model_to_run:
