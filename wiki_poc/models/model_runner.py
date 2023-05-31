@@ -41,12 +41,15 @@ def parse_options():
     parser.add_argument("-m", "--model", help="Run a specific model. Format: model_name (e.g., bloomz)", type=str)
     parser.add_argument("-c", "--model-class", help="Run all models of a specific class. Format: model_class (e.g., bloomz-1b1)", type=str)
     parser.add_argument("-d", "--device", help="Device to use, by default using GPU 0.", type=str)
+    parser.add_argument("-dr", "--dry-run", help="Run with only 10 examples for each model.", action="store_true")
     parser.add_argument("-e", "--exclude", help="Exclude specific models from the run. Format: model_name1,model_name2", type=str)
+    parser.add_argument("-tk", "--top-k", help="top k predictions for each model. k=5 takes 5x longer than k=1.", type=int)
     parser.add_argument("-sm", "--save-memory", help="pass to use only a portion of memory in case not a full 80GB are available.", action="store_true")
     parser.add_argument("-nc", "--no-cache", help="Don't use cached results, run all models again.")
     keyhelp = """Specify a key to identify the run. This key will be used to save results and to load them again.
                If no key is specified, a new key will be generated for each run."""
     parser.add_argument("-k", "--key", help=keyhelp, type=str)
+    parser.add_argument("-f", "--fast", help="Run only a subset of examples for each model.", action="store_true")
     parser.add_argument("-s", "--size", help="Run all models with a the same size. Options: T, XS, S, M, L, XL Format: model_size (e.g., 5b)", type=str)
     parser.add_argument("-o", "--options", help="Specify options for the model. Format: option1=value1,option2=value2", type=str)
 
@@ -60,24 +63,31 @@ def parse_options():
         args.exclude = args.exclude.split(",")
     else:
         args.exclude = []
-    return args.model, args.size, args.model_class, args.key, args.exclude, args.device, args.save_memory, options
+    if not args.top_k:
+        args.top_k = 1
 
-def load_test_set():
-    """load test dataset from cache or generates it from the full dataset and caches it"""
+    return args.model, args.size, args.model_class, args.key, args.exclude, args.device, args.save_memory, args.top_k, args.fast, args.dry_run, options
+
+def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_set_ids.csv"):
+    """load test dataset from cache or generates it from the full dataset and caches it
+    Args:
+        path (str, optional): path to cache. Defaults to "models/cache/reduced_test_set".
+        ids_file_path (str, optional): path to file with page ids of test set. Defaults to "test_set_ids.csv".
+    """
     # load cached dataset if it exists
-    if os.path.exists("models/cache/reduced_test_set"):
-        dataset = Dataset.load_from_disk("models/cache/reduced_test_set")
+    if os.path.exists(path):
+        dataset = Dataset.load_from_disk(path)
     else:
-        assert os.path.exists("test_set_ids.csv"), "test_set_ids.csv file not found. Please run generate_test_set_ids.py first."
+        assert os.path.exists(ids_file_path), f"{ids_file_path} file not found. Please run generate_test_set_ids.py first."
         logging.info("No cached test dataset found, generating it from full dataset.")
         # load full dataset
         dataset = load_dataset('Skatinger/wikipedia-persons-masked', split='train')
         # get set of page ids which are in the test_set_ids.csv file
-        test_set_ids = set([i.strip() for i in open("test_set_ids.csv").readlines()])
+        test_set_ids = set([i.strip() for i in open(ids_file_path).readlines()])
         # filter out pages from dataset which are not in the test set
         dataset = dataset.filter(lambda x: x["id"] in test_set_ids, num_proc=8)
         # save dataset to cache
-        dataset.save_to_disk("models/cache/reduced_test_set")
+        dataset.save_to_disk(path)
     return dataset
 
 def get_models_by_size(model_size):
@@ -107,7 +117,7 @@ def check_model_exists(model_name):
                          "Please choose one of the following models: ", get_all_model_names())
 
 def main():
-    model_to_run, model_size_to_run, model_class_to_run, key, excluded, device, save_memory, options = parse_options()
+    model_to_run, model_size_to_run, model_class_to_run, key, excluded, device, save_memory, top_k, fast, dry_run, options = parse_options()
     if model_to_run:
         check_model_exists(model_to_run)
     
@@ -132,13 +142,23 @@ def main():
         options["save_memory"] = True
     else:
         options["save_memory"] = False
+    
+    options["top_k"] = top_k
 
     
     # create folder for run
     os.makedirs(f"results/{key}", exist_ok=True)
 
     # load the test set of pages
-    test_set = load_test_set()
+    if options["ids_file_path"]:
+        test_set = load_test_set(ids_file_path=options["ids_file_path"])
+    else:
+        test_set = load_test_set()
+    # only select a range if specified
+    if fast:
+        dataset = dataset.select(range(100))
+    elif dry_run:
+        dataset = dataset.select(range(10))
 
     # run a single model instance
     if model_to_run:
