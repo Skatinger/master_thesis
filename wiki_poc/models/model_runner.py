@@ -37,7 +37,23 @@ def run_model(model_name, test_set, options):
     runner.run_model()
 
 def parse_options():
-    parser = argparse.ArgumentParser(description="Run machine learning models with different configurations and options.")
+    description = """Run machine learning models with different configurations and options.
+                     Options are:
+                          - paraphrased (run on paraphrased dataset)
+                          - original (run on original dataset)
+                    
+                     Examples:
+                        Run all models on paraphrased and original dataset:
+                            python -m wiki_poc.models.model_runner
+                        Run model class on paraphrased dataset:
+                            python -m wiki_poc.models.model_runner -c bloomz paraphrased
+                        Run specific model sizes:
+                            python -m wiki_poc.models.model_runner -s XS
+                        Run specific model type and exlude some:
+                            python -m wiki_poc.models.model_runner -c bloomz -e bloomz-1b1
+                        
+    """
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument("-m", "--model", help="Run a specific model. Format: model_name (e.g., bloomz)", type=str)
     parser.add_argument("-c", "--model-class", help="Run all models of a specific class. Format: model_class (e.g., bloomz-1b1)", type=str)
     parser.add_argument("-d", "--device", help="Device to use, by default using GPU 0.", type=str)
@@ -66,7 +82,8 @@ def parse_options():
     if not args.top_k:
         args.top_k = 1
 
-    return args.model, args.size, args.model_class, args.key, args.exclude, args.device, args.save_memory, args.top_k, args.fast, args.dry_run, options
+    return args.model, args.size, args.model_class, args.key, args.exclude, args.device, args.save_memory, \
+           args.top_k, args.fast, args.dry_run, options
 
 def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_set_ids.csv"):
     """load test dataset from cache or generates it from the full dataset and caches it
