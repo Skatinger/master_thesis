@@ -160,7 +160,7 @@ def main():
     else:
         options["save_memory"] = False
     
-    options["top_k"] = top_k
+    options["k_runs"] = top_k
 
     
     # create folder for run
