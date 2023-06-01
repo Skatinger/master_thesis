@@ -132,8 +132,6 @@ class AbstractRunner():
         # load tokenizer and model
         self.tokenizer = self.get_tokenizer()
         self.model = self.get_model()
-        if self.model.hf_device_map:
-            logging.info(f"Using device map: {self.model.hf_device_map}")
 
         # run model for different configs
         for config in self.configs:
