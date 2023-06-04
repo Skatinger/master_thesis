@@ -47,6 +47,15 @@ class AbstractFillMaskRunner(AbstractRunner):
             df = df.map(lambda x: {'text': x['text'].replace('<mask>', self.tokenizer.mask_token)})
             self.examples[config] = df
 
+    def load_pipe(self):
+        logging.info(f"Loading pipeline for {self.model_name}")
+        # specify gpu if available
+        if torch.cuda.is_available():
+            return FillMaskPipelineWithTruncation(model=self.model, tokenizer=self.tokenizer, top_k=self.k_runs, device=self.device_number)
+        else:
+            logging.warning("GPU not available, loading pipeline in FP32 mode on CPU. This will be very slow.")
+            return FillMaskPipelineWithTruncation(model=self.model, tokenizer=self.tokenizer, top_k=self.k_runs, device=-1)
+
     def run_model(self):
         # check if results already exist
         cached = self.check_cache()
@@ -60,7 +69,7 @@ class AbstractFillMaskRunner(AbstractRunner):
         # load tokenizer and model
         self.model = self.get_model()
         # load pipeline
-        pipe = FillMaskPipelineWithTruncation(model=self.model, tokenizer=self.tokenizer, top_k=5, device=self.device_number)
+        pipe = self.load_pipe()
 
         # run model for different configs
         for config in self.configs:
@@ -76,30 +85,45 @@ class AbstractFillMaskRunner(AbstractRunner):
             if self.save_memory:
                 batch_size = 1
             result_df = self.run_pipe(df, batch_size=batch_size, pipe=pipe, config=config)
-            # concat predictions per page to single string
-            # e.g. [He, Mark, John, ...] -> He Mark John ...
-            result_df = result_df.map(lambda x: {'prediction': self.convert_to_result(x['prediction'])})
             PATH = self.get_path(config)
             result_df.to_json(PATH)
     
     def convert_to_result(self, lists):
-        """converts a list of lists to a single string with duplicate entries removed"""
-        flattened_list = [item for sublist in lists for item in sublist]
-        flattened_list = [item.strip() for item in flattened_list]
-        unique_list = list(set(flattened_list))
-        return ', '.join(unique_list)
+        # """converts a list of lists to a single string with duplicate entries removed"""
+        predictions = {}
+        for i in range(self.k_runs):
+            predictions[f"prediction_{i}"] = []
+        # collect every k-th prediction of all predicted masks, and concat them to a single string
+        for k in range(self.k_runs):
+            all_k_predictions = []
+            # find the k-th prediction for all predictions
+            for sublist in lists:
+                # ensure model actually returned k predictions for a mask, if not, skip
+                if len(sublist) <= k:
+                    continue
+                all_k_predictions.append(sublist[k].strip())
+            # remove duplicates
+            unique_predictions = list(set(all_k_predictions))
+            # and join to string
+            predictions[f"prediction_{k}"] = ' '.join(unique_predictions)
+        return predictions
 
     def run_pipe(self, dataset, pipe, config, batch_size=2):
-        result_dataset = Dataset.from_dict({'prediction': [], 'scores': [], 'page_id': [], 'sequence_number': []})
+        preds = {}
+        for i in range(self.k_runs):
+            preds[f"prediction_{i}"] = []
+        preds['input_id'] = []
+        preds['input_length'] = []
+        result_dataset = Dataset.from_dict(preds)
         for example, out in zip(dataset, tqdm(pipe(KeyDataset(dataset, f"masked_text_{config}"), batch_size=batch_size))):
             # get a prediction for every chunk in the batch
             tokens, _scores = self.extract_result(out)
+            # split predictions to columns
+            item = self.convert_to_result(tokens)
             # # add the predictions to the dataset
-            result_dataset = result_dataset.add_item({
-                'prediction': tokens,
-                'page_id': example['id'],
-                'input_length': self.input_length
-            })
+            item['page_id'] = example['id']
+            item['input_length'] = self.input_length
+            result_dataset = result_dataset.add_item(item)
 
         return result_dataset
 
