@@ -48,19 +48,37 @@ class AbstractTextToTextRunner(AbstractRunner):
             batch_size = self.batch_sizes()[self.model_name]
             if self.save_memory:
                 batch_size = 1
-            result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names)
+            # load cached predictions if they exist for this config, pass their column
+            # names to the processing so they won't get processed again
+            cached_cols = self.cached_predictions[config].column_names if config in self.cached_predictions else {}
+
+            result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names,
+                               fn_kwargs={'k_runs': self.k_runs, 'cached_cols': cached_cols, 'config': self.config})
+            # add already processed columns to result
+            for col_name in cached_cols:
+                if col_name not in ['page_id', 'input_length']:
+                    result_df = result_df.add_column(col_name, self.cached_predictions[config][col_name])           
             PATH = self.get_path(config)
             result_df.to_json(PATH)
 
-    def make_predictions(self, examples):
+    def make_predictions(self, examples, config, k_runs=1, cached_cols=[]):
         # tokenize inputs and move to GPU
-        texts = examples[f"masked_text_{self.config}"]
+        texts = examples[f"masked_text_{config}"]
         inputs = self.tokenizer(texts, return_tensors="pt", padding=True).to(self.device)
-        # generate predictions
+        # compute lengths of the inputs to store with the result
+        input_lengths = [len(i) for i in examples[f"masked_text_{config}"]]
         pad_token = self.tokenizer.eos_token_id
-        generated_ids = self.model.generate(**inputs, early_stopping=True, num_return_sequences=1, pad_token_id=pad_token, max_new_tokens=5)
-        # decode predictions
-        outputs = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-        # get prediction and remove the input from the output
-        input_lengths = [len(i) for i in examples[f"masked_text_{self.config}"]]
-        return { "prediction": outputs, "page_id": examples["id"], "input_length": input_lengths }
+
+        predictions = {}
+        # generate predictions
+        for k in range(k_runs):
+            if f"prediction_{k}" in cached_cols:
+                continue
+            generated_ids = self.model.generate(**inputs, early_stopping=True,
+                                                num_return_sequences=1, pad_token_id=pad_token, max_new_tokens=5)
+            # decode predictions and remove the input from the output
+            predictions[f"prediction_{k}"] = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+        
+        predictions["page_id"] = examples["id"]
+        predictions["input_length"] = input_lengths
+        return predictions
