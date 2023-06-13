@@ -43,12 +43,12 @@ class PythiaRunner(AbstractRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "pythia-0b070": 2048,
-            "pythia-0b160": 2048,
-            "pythia-0b410": 1024,
-            "pythia-1b": 1024,
-            "pythia-1b4": 512,
-            "pythia-2b8": 512,
-            "pythia-6b9": 128,
+            "pythia-0b070": 1024,
+            "pythia-0b160": 1024,
+            "pythia-0b410": 512,
+            "pythia-1b": 256,
+            "pythia-1b4": 256,
+            "pythia-2b8": 256,
+            "pythia-6b9": 64,
             "pythia-12b": 64,
         }
