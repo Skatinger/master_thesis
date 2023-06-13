@@ -34,11 +34,11 @@ class T5Runner(AbstractTextToTextRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "t5-0b060": 1024,
+            "t5-0b060": 512,
             "t5-0b220": 256,
-            "t5-0b770": 256,
-            "t5-3b": 128,
-            "t5-11b": 32,
+            "t5-0b770": 128,
+            "t5-3b": 32,
+            "t5-11b": 8,
         }
 
     def get_model(self):

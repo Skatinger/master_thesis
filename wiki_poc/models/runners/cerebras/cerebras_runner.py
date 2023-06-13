@@ -36,9 +36,9 @@ class CerebrasRunner(AbstractRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "cerebras-0b111": 256,
-            "cerebras-1b3": 128,
-            "cerebras-2b7": 64,
-            "cerebras-6b7": 64,
-            "cerebras-13b": 32,
+            "cerebras-0b111": 128,
+            "cerebras-1b3": 32,
+            "cerebras-2b7": 32,
+            "cerebras-6b7": 8,
+            "cerebras-13b": 8,
         }

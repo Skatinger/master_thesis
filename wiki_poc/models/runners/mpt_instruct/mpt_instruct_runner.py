@@ -43,7 +43,7 @@ class MPTInstructRunner(AbstractRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "mpt_instruct-6.7b": 64,
+            "mpt_instruct-6.7b": 16,
         }
 
     def get_tokenizer(self):
