@@ -185,7 +185,7 @@ class AbstractRunner():
 
         predictions = {}
         # model generates k sequences for each input, all concated to one list
-        generated_ids = self.model.generate(**inputs, num_beams=3, early_stopping=True, num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        generated_ids = self.model.generate(**inputs, num_beams=k_runs, early_stopping=True, num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
         # decode predictions
         outputs = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
         # split outputs into len(inputs) lists to store them as independent predictions
