@@ -6,6 +6,10 @@ from datasets import load_dataset, Dataset
 
 from abc import ABC, abstractmethod, abstractproperty
 
+# TODO: caching for columns is no longer working correctly, model will always predict top_k results,
+#       regardless of wether they are cached or not (e.g. 2 predictions cached, but 5 requested)
+
+
 class AbstractRunner():
 
     def __init__(self, model_name, dataset, options = {"device": 0, "k_runs": 1, "save_memory": False, "key": "default"}):
@@ -179,18 +183,21 @@ class AbstractRunner():
         # generate predictions
         pad_token = self.tokenizer.eos_token_id
 
-        # only keep predictions which have the same page_id as the id of the examples
-        # this allows to return only the samples for this batch, not all samples at once
         predictions = {}
-        for k in range(k_runs):
-            # don't run for columns which already exist
-            if f"prediction_{k}" in cached_cols:
-                continue
-            generated_ids = self.model.generate(**inputs, early_stopping=True, num_return_sequences=1, pad_token_id=pad_token, max_new_tokens=5)
-            # decode predictions
-            outputs = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-            # get prediction and remove the input from the output and append it to the result
-            predictions[f"prediction_{k}"] = [out.replace(examples[f"masked_text_{config}"][i], "") for i, out in enumerate(outputs)]
+        # model generates k sequences for each input, all concated to one list
+        generated_ids = self.model.generate(**inputs, num_beams=5, early_stopping=True, num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        # decode predictions
+        outputs = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+        # split outputs into len(inputs) lists to store them as independent predictions
+        result = [outputs[i * k_runs: (i + 1) * k_runs] for i in range(len(texts))]
+        # initialize predictions dict
+        for i in range(k_runs):
+            predictions[f"prediction_{i}"] = []
+        # get prediction and remove the input from the output, append prediction to the result
+        for k, generated_sequences in enumerate(result):
+            # for every generated sequence for this example
+            for i, out in enumerate(generated_sequences):
+                predictions[f"prediction_{i}"].append(out.replace(examples[f"masked_text_{config}"][k], ""))
         
         # append additional info with page_id and input_length for each example
         predictions['page_id'] = examples['id']

@@ -4,6 +4,9 @@ import torch
 import os
 from transformers import AutoTokenizer
 
+# TODO: caching for columns is no longer working correctly, model will always predict top_k results,
+#       regardless of wether they are cached or not (e.g. 2 predictions cached, but 5 requested)
+
 class AbstractTextToTextRunner(AbstractRunner):
 
     def get_model(self):
@@ -71,14 +74,22 @@ class AbstractTextToTextRunner(AbstractRunner):
 
         predictions = {}
         # generate predictions
-        for k in range(k_runs):
-            if f"prediction_{k}" in cached_cols:
-                continue
-            generated_ids = self.model.generate(**inputs, early_stopping=True,
-                                                num_return_sequences=1, pad_token_id=pad_token, max_new_tokens=5)
-            # decode predictions and remove the input from the output
-            predictions[f"prediction_{k}"] = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
-        
+        generated_ids = self.model.generate(**inputs, early_stopping=True, num_beams=5,
+                                            num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        # decode predictions
+        outputs = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+
+        # split outputs into len(inputs) lists to store them as independent predictions
+        result = [outputs[i * k_runs: (i + 1) * k_runs] for i in range(len(texts))]
+
+        for i in range(k_runs):
+            predictions[f"prediction_{i}"] = []
+        for k, generated_responses in enumerate(result):
+            # for every generated sequence for this example
+            for i, out in enumerate(generated_responses):
+                predictions[f"prediction_{i}"].append(out)
+
+        # add page_id and input_length to the result
         predictions["page_id"] = examples["id"]
         predictions["input_length"] = input_lengths
         return predictions
