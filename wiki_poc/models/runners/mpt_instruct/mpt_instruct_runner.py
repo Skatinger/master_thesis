@@ -48,7 +48,7 @@ class MPTInstructRunner(AbstractRunner):
 
     def get_tokenizer(self):
         logging.info(f"Loading tokenizer for {self.model_name}")
-        tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neox-20b")
+        tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neox-20b", padding_side="left")
         # have to add a padding token, as processing is done in batches and required inputs to be padded,
         # but this tokenizer does not have a pad token by default.
         tokenizer.add_special_tokens({'pad_token': '[PAD]'})
