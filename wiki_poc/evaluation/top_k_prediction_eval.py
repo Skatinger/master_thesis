@@ -32,25 +32,25 @@ class TopKPredictionEvaluator:
             return { "correct": 0, "prediction": page["prediction"], "title": page["title"], "distance": min_distance }
     
     @staticmethod
-    def compute_metrics(gt, data):
+    def compute_metrics(gt, data, configs=['original', 'paraphrased']):
         # TODO: dynamic, field input_length in the result dataset is a representation of the input length
         # given to the model, not the length of the input text
-        input_length = 1000
         gt_with_mask = {}
         # only keep ground truth entries with a mask, as only those were predicted
-        gt_with_mask['original'] = gt.filter(lambda x: '<mask>' in x['masked_text_original'][:input_length])
-        gt_with_mask['paraphrased'] = gt.filter(lambda x: '<mask>' in x['masked_text_paraphrased'][:input_length])
+        gt_with_mask['original'] = gt
+        gt_with_mask['paraphrased'] = gt
         for _key, models in data.items():
             for _model_name, model in models.items():
-                for config in ['original', 'paraphrased']:
+                for config in configs:
                     dataset = model[config]['train']
                     gt = gt_with_mask[config]
                     ## add ground truth label to each prediction
                     # some legacy examples contain predictions for examples which do not
                     # contain a mask, the prediction therefore cannot be correct. remove those
                     # in case any exist.
-                    ids = set(gt['id'])
-                    dataset = dataset.filter(lambda x: x['page_id'] in ids)
+                    ids = set(dataset['page_id'])
+                    # dataset = dataset.filter(lambda x: x['page_id'] in ids)
+                    gt = gt.filter(lambda x: x['id'] in ids)
                     # make sure only the examples which were actually predicted
                     mappable = dataset.add_column("title", gt["title"])                    
                     # compute precision
@@ -81,6 +81,9 @@ def main():
     key = sys.argv[1]
     model_name = sys.argv[2] if len(sys.argv) > 2 else None
 
+    # change this if only one config was used
+    configs = ['paraphrased', 'original']
+
     loader = ResultLoader()
     print("loading ground truth")
     gt = loader.load_gt()
@@ -92,7 +95,7 @@ def main():
     from datasets import disable_caching
     disable_caching()
     print("computing metrics")
-    results = TopKPredictionEvaluator.compute_metrics(gt, results)
+    results = TopKPredictionEvaluator.compute_metrics(gt, results, configs)
 
     # print results
     json_results = {'key': key}
@@ -100,7 +103,7 @@ def main():
         for m_name, model in models.items():
             name = f"{model_class}-{m_name}"
             json_results[name] = {}
-            for config in ['original', 'paraphrased']:
+            for config in configs:
                 print(f"Model: {name:<15} Config: {config}")
                 print(f"Accuracy: {model[config]['result']['accuracy']}")
                 print(f"Precision: {model[config]['result']['precision']}")
