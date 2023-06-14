@@ -23,10 +23,10 @@ class PythiaRunner(AbstractRunner):
             "pythia-0b160": "EleutherAI/pythia-160m",
             "pythia-0b410": "EleutherAI/pythia-410m",
             # "pythia-1b": "EleuterAI/pythia-1b",
-            # "pythia-1b4": "EleutherAI/pythia-1.4b",
-            # "pythia-2b8": "EleutherAI/pythia-2.8b",
-            # "pythia-6b9": "EleutherAI/pythia-6.9b",
-            # "pythia-12b": "EleutherAI/pythia-12b",
+            "pythia-1b4": "EleutherAI/pythia-1.4b",
+            "pythia-2b8": "EleutherAI/pythia-2.8b",
+            "pythia-6b9": "EleutherAI/pythia-6.9b",
+            "pythia-12b": "EleutherAI/pythia-12b",
         }
     
     @staticmethod
@@ -34,10 +34,10 @@ class PythiaRunner(AbstractRunner):
         return {
             "XXS": "pythia-0b410",
             # "XS": "pythia-1b",
-            # "S": "pythia-1b4",
-            # "M": "pythia-2b8",
-            # "L": "pythia-6b9",
-            # "XL": "pythia-12b",
+            "S": "pythia-1b4",
+            "M": "pythia-2b8",
+            "L": "pythia-6b9",
+            "XL": "pythia-12b",
         }
 
     @staticmethod
@@ -47,8 +47,8 @@ class PythiaRunner(AbstractRunner):
             "pythia-0b160": 64,
             "pythia-0b410": 32,
             # "pythia-1b": 8,
-            # "pythia-1b4": 8,
-            # "pythia-2b8": 8,
-            # "pythia-6b9": 4,
-            # "pythia-12b": 4,
+            "pythia-1b4": 8,
+            "pythia-2b8": 8,
+            "pythia-6b9": 4,
+            "pythia-12b": 4,
         }
