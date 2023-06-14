@@ -25,12 +25,12 @@ at what point is it useless to send any more characters to the model. This impro
 if __name__ == "__main__":
 
     # ensure required test ids file exists
-    assert os.path.exists("test_set_ids.csv"), "test_set_ids.csv file not found. Please run generate_test_set_ids.py first."
+    assert os.path.exists("../../../test_set_ids.csv"), "test_set_ids.csv file not found. Please run generate_test_set_ids.py first."
     # ensure api key is set
     assert openai.api_key is not None, "OPENAI_API_KEY environment variable not set."
 
-    CONFIG = "original"
-    MODEL_NAME = "gpt-3.5-turbo"
+    CONFIG = "paraphrased"
+    MODEL_NAME = "gpt-3.5-turbo-0613"
     PATH = f"wiki_predictions_{MODEL_NAME.replace('/', '_')}_{CONFIG}.jsonl"
 
     user_prompt = "Who is the person refered to as <mask>? Only give the exact name without punctuation. You are not allowed to respond with anything but the name, no more than 3 words."
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # dataset with initial pages
     dataset = load_dataset('Skatinger/wikipedia-persons-masked', CONFIG, split='train')
     # get set of page ids which are in the test_set_ids.csv file
-    test_set_ids = set([i.strip() for i in open("test_set_ids.csv").readlines()])
+    test_set_ids = set([i.strip() for i in open("../../../test_set_ids.csv").readlines()])
     # filter out pages from dataset which are not in the test set
     dataset = dataset.filter(lambda x: x["id"] in test_set_ids)
 
