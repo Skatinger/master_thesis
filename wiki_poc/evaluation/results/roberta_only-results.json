@@ -1,0 +1,23 @@
+{
+    "key": "roberta_only",
+    "roberta-0b125": {
+        "original": {
+            "accuracy": 0.23558418033611753,
+            "precision": 15.99700982486117
+        },
+        "paraphrased": {
+            "accuracy": 0.18926315789473686,
+            "precision": 15.977753058954393
+        }
+    },
+    "roberta-0b355": {
+        "original": {
+            "accuracy": 0.2314581865754252,
+            "precision": 15.990869565217391
+        },
+        "paraphrased": {
+            "accuracy": 0.206,
+            "precision": 15.97342871742463
+        }
+    }
+}
