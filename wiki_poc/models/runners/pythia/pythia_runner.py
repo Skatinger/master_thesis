@@ -45,9 +45,9 @@ class PythiaRunner(AbstractRunner):
         return {
             "pythia-0b070": 128,
             "pythia-0b160": 64,
-            "pythia-0b410": 64,
-            "pythia-1b": 16,
-            "pythia-1b4": 16,
+            "pythia-0b410": 32,
+            "pythia-1b": 8,
+            "pythia-1b4": 8,
             "pythia-2b8": 8,
             "pythia-6b9": 4,
             "pythia-12b": 4,
