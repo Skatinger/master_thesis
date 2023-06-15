@@ -21,5 +21,5 @@ class InciteInstructRunner(AbstractRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "incite_instruct-3b": 32,
+            "incite_instruct-3b": 16,
         }
