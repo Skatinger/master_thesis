@@ -31,19 +31,19 @@ class MPTInstructRunner(AbstractRunner):
     @staticmethod
     def names():
         return {
-            "mpt_instruct-6.7b": "mosaicml/mpt-7b-instruct"
+            "mpt_instruct-6b7": "mosaicml/mpt-7b-instruct"
         }
     
     @staticmethod
     def sizes():
         return {
-            "L": "mpt_instruct-6.7b",
+            "L": "mpt_instruct-6b7",
         }
 
     @staticmethod
     def batch_sizes():
         return {
-            "mpt_instruct-6.7b": 16,
+            "mpt_instruct-6b7": 16,
         }
 
     def get_tokenizer(self):
