@@ -16,20 +16,23 @@ class TopKPredictionEvaluator:
         ## compute accuracy with regex
         regex = "|".join(['.*(' + nameFragment + ').*' for nameFragment in page["title"].split()])
         predicted_string = ""
+        any_correct = False
         # iterate predictions, add all matching predictions to a prediction_string
         min_distance = sys.maxsize
         for i in range(k_runs):
             prediction = page["prediction_" + str(i)]
             if re.match(regex, prediction):
-                predicted_string += f" {prediction}"
+                any_correct = True
                 # use the minimum distance of all predictions which were classified as correct
                 min_distance = distances[f"prediction_{i}"] if distances[f"prediction_{i}"] < min_distance else min_distance
+            predicted_string += f" {prediction}"
+
 
         # if we got any correct predictions for the page
-        if len(predicted_string) > 0:
-            return { "correct": 1, "prediction": page["prediction"], "title": page["title"], "distance": min_distance }
+        if any_correct > 0:
+            return { "correct": 1, "prediction": predicted_string, "title": page["title"], "distance": min_distance }
         else:
-            return { "correct": 0, "prediction": page["prediction"], "title": page["title"], "distance": min_distance }
+            return { "correct": 0, "prediction": predicted_string, "title": page["title"], "distance": min_distance }
     
     @staticmethod
     def compute_metrics(gt, data, configs=['original', 'paraphrased']):
@@ -40,6 +43,7 @@ class TopKPredictionEvaluator:
         gt_with_mask['original'] = gt
         gt_with_mask['paraphrased'] = gt
         for _key, models in data.items():
+            print("Processing results for: " + _key)
             for _model_name, model in models.items():
                 for config in configs:
                     dataset = model[config]['train']
@@ -54,7 +58,7 @@ class TopKPredictionEvaluator:
                     # make sure only the examples which were actually predicted
                     mappable = dataset.add_column("title", gt["title"])                    
                     # compute precision
-                    k_runs = sum(key.startswith("prediction_") for key in data.keys())
+                    k_runs = sum(key.startswith("prediction_") for key in mappable.column_names)
                     if k_runs == 0:
                         # legacy result format, only one prediction per example with key 'prediction'.
                         # add a key 'prediction_0' to each example with the same value as 'prediction'
@@ -66,10 +70,16 @@ class TopKPredictionEvaluator:
                     incorrect_predictions = computed.filter(lambda x: x['correct'] == 0)
                     correct = len(correct_predictions)
                     # take the average of the column 'distance' to get the average levenshtein distance
-                    average_precision = sum(correct_predictions['distance']) / len(correct_predictions)
+                    if correct == 0:
+                        average_precision = 0
+                        accuracy = 0
+                    else:
+                        average_precision = sum(correct_predictions['distance']) / correct
+                        accuracy = correct / len(dataset)
+                    
                     model[config]["result"] = {}
                     model[config]["result"]["data"] = computed
-                    model[config]["result"]["accuracy"] = correct / len(dataset)
+                    model[config]["result"]["accuracy"] = accuracy
                     model[config]["result"]["precision"] = average_precision
                     model[config]["result"]["correct_predictions"] = correct_predictions
                     model[config]["result"]["incorrect_predictions"] = incorrect_predictions
