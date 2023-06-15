@@ -39,6 +39,6 @@ class CerebrasRunner(AbstractRunner):
             "cerebras-0b111": 128,
             "cerebras-1b3": 32,
             "cerebras-2b7": 16,
-            "cerebras-6b7": 8,
-            "cerebras-13b": 8,
+            "cerebras-6b7": 4,
+            "cerebras-13b": 4,
         }
