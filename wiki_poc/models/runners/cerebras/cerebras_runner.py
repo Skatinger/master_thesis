@@ -11,7 +11,7 @@ class CerebrasRunner(AbstractRunner):
 
     @staticmethod
     def end_prompt():
-        return "The name of the person referred to as mask is NOT <mask>. If the name is not <mask>, what is the name?"
+        return "The name of the person referred to as mask is NOT <mask>, it's full name is "
 
     @staticmethod
     def names():
