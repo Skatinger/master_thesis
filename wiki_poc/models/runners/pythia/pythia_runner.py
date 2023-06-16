@@ -22,7 +22,7 @@ class PythiaRunner(AbstractRunner):
             "pythia-0b070": "EleutherAI/pythia-70m",
             "pythia-0b160": "EleutherAI/pythia-160m",
             "pythia-0b410": "EleutherAI/pythia-410m",
-            # "pythia-1b": "EleuterAI/pythia-1b",
+            # "pythia-1b": "EleuterAI/pythia-1b", # model not available, is password protected
             "pythia-1b4": "EleutherAI/pythia-1.4b",
             "pythia-2b8": "EleutherAI/pythia-2.8b",
             "pythia-6b9": "EleutherAI/pythia-6.9b",
