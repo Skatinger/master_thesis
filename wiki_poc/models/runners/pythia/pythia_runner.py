@@ -14,7 +14,7 @@ class PythiaRunner(AbstractRunner):
 
     @staticmethod
     def end_prompt():
-        return "The name of the person referred to as mask is NOT <mask>. If the name is not <mask>, what is the name?"
+        return "The name of the person referred to as mask is NOT <mask>. If the name is not <mask>, what is the name? Only give the exact name of the person, or a good guess, nothing else."
 
     @staticmethod
     def names():
