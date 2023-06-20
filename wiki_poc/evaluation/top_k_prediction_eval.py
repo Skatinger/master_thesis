@@ -19,20 +19,23 @@ class TopKPredictionEvaluator:
         any_correct = False
         # iterate predictions, add all matching predictions to a prediction_string
         min_distance = sys.maxsize
+        top_prediction = ""
         for i in range(k_runs):
             prediction = page["prediction_" + str(i)]
             if re.match(regex, prediction):
                 any_correct = True
                 # use the minimum distance of all predictions which were classified as correct
-                min_distance = distances[f"prediction_{i}"] if distances[f"prediction_{i}"] < min_distance else min_distance
+                if distances[f"prediction_{i}"] < min_distance:
+                    min_distance = distances[f"prediction_{i}"]
+                    top_prediction = prediction
             predicted_string += f" {prediction}"
 
 
         # if we got any correct predictions for the page
         if any_correct > 0:
-            return { "correct": 1, "prediction": predicted_string, "title": page["title"], "distance": min_distance }
+            return { "correct": 1, "prediction": predicted_string, "top_prediction": top_prediction, "title": page["title"], "distance": min_distance }
         else:
-            return { "correct": 0, "prediction": predicted_string, "title": page["title"], "distance": min_distance }
+            return { "correct": 0, "prediction": predicted_string, "top_prediction": top_prediction, "title": page["title"], "distance": min_distance }
     
     @staticmethod
     def compute_metrics(gt, data, configs=['original', 'paraphrased']):
@@ -108,11 +111,12 @@ def main():
     results = TopKPredictionEvaluator.compute_metrics(gt, results, configs)
 
     # print results
+    csv_lines = ['model,size,config,accuracy,precision,best_prediction']
     json_results = {'key': key}
     for model_class, models in results.items():
         for m_name, model in models.items():
             name = f"{model_class}-{m_name}"
-            json_results[name] = {}
+            json_results[name] = { "size": model['size'] }
             for config in configs:
                 print(f"Model: {name:<15} Config: {config}")
                 print(f"Accuracy: {model[config]['result']['accuracy']}")
@@ -120,14 +124,23 @@ def main():
                 json_results[name][config] = {}
                 json_results[name][config]['accuracy'] = model[config]['result']['accuracy']
                 json_results[name][config]['precision'] = model[config]['result']['precision']
+                print(model[config]['result']['correct_predictions']['distance'][:20])
+                print(model[config]['result']['incorrect_predictions']['prediction'][:20])
+                # json_results[name][config]['min_distance'] = min(model[config]['result']['correct_predictions']['distance'])
+                csv_lines.append(f"{name},{model['size']},{config},{model[config]['result']['accuracy']},{model[config]['result']['precision']},{model[config]['result']['correct_predictions']['top_prediction']}")
 
     # write results to json file
     file_name = f"{key}-results" if model_name is None else f"{key}-{model_name}-results"
-    save_path = f"evaluation/results/{file_name}.json"
+    save_path = f"evaluation/results/{file_name}"
     print(f"Writing results to {save_path}")
 
-    with open(save_path, 'w') as f:
+    with open(f"{save_path}.json", 'w') as f:
         json.dump(json_results, f, indent=4)
+    
+    # write results to csv file
+    with open(f"{save_path}.csv", 'w') as f:
+        f.write('\n'.join(csv_lines))
+
 
 
 if __name__ == "__main__":
