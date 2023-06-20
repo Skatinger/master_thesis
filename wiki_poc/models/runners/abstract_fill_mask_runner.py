@@ -11,11 +11,11 @@ from transformers.pipelines.pt_utils import KeyDataset
 
 class AbstractFillMaskRunner(AbstractRunner):
 
-    def _model_loader(self):
-        return AutoModelForCausalLM
-
     def get_model(self):
-        """retrieves model from huggingface model hub and load it to specified device"""
+        """retrieves model from huggingface model hub and load it to specified device
+           overwrites AbstractRunner.get_model() as fillmask models are easier to run
+           with the pipeline API instead of the model API, but the pipeline does not
+           support 8bit mode. Therefore load the model in FP32."""
         logging.info(f"Loading model for {self.model_name}")
         model_path = self.names()[self.model_name]
         # if GPU is available pipeline will run on GPU
