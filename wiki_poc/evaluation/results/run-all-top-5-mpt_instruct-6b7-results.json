@@ -1,0 +1,13 @@
+{
+    "key": "run-all-top-5",
+    "mpt_instruct-6b7": {
+        "paraphrased": {
+            "accuracy": 0.19915789473684212,
+            "precision": 1.8686315789473684
+        },
+        "original": {
+            "accuracy": 0.16423467847438866,
+            "precision": 1.4591929153668108
+        }
+    }
+}

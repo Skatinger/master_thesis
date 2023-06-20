@@ -1,6 +1,7 @@
 {
     "key": "large_only",
     "gpt3.5turbo-175b": {
+        "size": 175.0,
         "paraphrased": {
             "accuracy": 0.5198,
             "precision": 3.834936514043863
@@ -11,6 +12,7 @@
         }
     },
     "bloomz-176b": {
+        "size": 176.0,
         "paraphrased": {
             "accuracy": 0.2824,
             "precision": 10.01912181303116
