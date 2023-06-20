@@ -91,9 +91,15 @@ class AbstractRunner():
     def get_tokenizer(self):
         logging.info(f"Loading tokenizer for {self.model_name}")
         model_path = self.names()[self.model_name]
-        tokenizer = AutoTokenizer.from_pretrained(model_path, padding_side="left")
+        tokenizer = self._tokenizer_loader().from_pretrained(model_path, padding_side="left")
         tokenizer.pad_token = tokenizer.eos_token # define pad token as eos token
         return tokenizer
+    
+    def _model_loader(self):
+        return AutoModelForCausalLM
+    
+    def _tokenizer_loader(self):
+        return AutoTokenizer
 
     def get_model(self):
         """retrieves model from huggingface model hub and load it to specified device"""
@@ -101,10 +107,10 @@ class AbstractRunner():
         model_path = self.names()[self.model_name]
         # if GPU is available, load in 8bit mode
         if torch.cuda.is_available():
-            return AutoModelForCausalLM.from_pretrained(model_path, load_in_8bit=True, device_map="auto")
+            return self._model_loader().from_pretrained(model_path, load_in_8bit=True, device_map="auto")
         else:
             logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
-            return AutoModelForCausalLM.from_pretrained(model_path)
+            return self._model_loader().from_pretrained(model_path)
 
     @staticmethod
     @abstractproperty
