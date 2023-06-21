@@ -1,6 +1,6 @@
 
 
-from .abstract_fill_mask_runner import AbstractFillMaskRunner
+from ..abstract_fill_mask_runner import AbstractFillMaskRunner
 from transformers import DistilBertModel, DistilBertTokenizer
 
 
