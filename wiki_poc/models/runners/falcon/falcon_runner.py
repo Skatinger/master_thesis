@@ -1,6 +1,7 @@
 
 from ..abstract_runner import AbstractRunner
-
+import logging
+import torch
 
 class FalconRunner(AbstractRunner):
 
@@ -45,3 +46,15 @@ class FalconRunner(AbstractRunner):
             "falcon-7b": 8,
             "falcon-40b": 2,
         }
+
+    def get_model(self):
+        """retrieves model from huggingface model hub and load it to specified device"""
+        logging.info(f"Loading model for {self.model_name}")
+        model_path = self.names()[self.model_name]
+        # if GPU is available, load in 8bit mode
+        if torch.cuda.is_available():
+            return self._model_loader().from_pretrained(
+                model_path, load_in_8bit=True, device_map="auto", trust_remote=True)
+        else:
+            logging.warning("GPU not available, cannot load this model.")
+            exit(1)
