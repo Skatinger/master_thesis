@@ -54,7 +54,7 @@ class FalconRunner(AbstractRunner):
         # if GPU is available, load in 8bit mode
         if torch.cuda.is_available():
             return self._model_loader().from_pretrained(
-                model_path, load_in_8bit=True, device_map="auto", trust_remote=True)
+                model_path, load_in_8bit=True, device_map="auto", trust_remote_code=True)
         else:
             logging.warning("GPU not available, cannot load this model.")
             exit(1)
