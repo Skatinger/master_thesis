@@ -2,7 +2,7 @@
 
 from ..abstract_fill_mask_runner import AbstractFillMaskRunner
 
-class DebertaRunner(AbstractFillMaskRunner):
+class DebertaQARunner(AbstractFillMaskRunner):
 
     @staticmethod
     def names():
