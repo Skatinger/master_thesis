@@ -183,7 +183,7 @@ class AbstractRunner():
     def make_predictions(self, examples, config, k_runs=1, cached_cols=[]):
         # tokenize inputs and move to GPU
         texts = examples[f"masked_text_{config}"]
-        inputs = self.tokenizer(texts, return_tensors="pt", padding=True).to(self.device)
+        inputs = self.tokenizer(texts, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.device)
         # compute lengths of the inputs to store with the result
         input_lengths = [len(i) for i in examples[f"masked_text_{config}"]]
         # generate predictions
