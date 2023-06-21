@@ -48,9 +48,10 @@ class FalconInstructRunner(AbstractRunner):
         }
 
     def get_tokenizer(self):
-        """add additional config to tokenizer"""
-        tokenizer = super().get_tokenizer()
-        tokenizer.return_token_type_ids=False
+        logging.info(f"Loading tokenizer for {self.model_name}")
+        model_path = self.names()[self.model_name]
+        tokenizer = self._tokenizer_loader().from_pretrained(model_path, padding_side="left", return_token_type_ids=False)
+        tokenizer.pad_token = tokenizer.eos_token # define pad token as eos token
         return tokenizer
 
     def get_model(self):
