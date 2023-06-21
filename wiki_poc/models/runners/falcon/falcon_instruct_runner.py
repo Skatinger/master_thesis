@@ -65,3 +65,34 @@ class FalconInstructRunner(AbstractRunner):
         else:
             logging.warning("GPU not available, cannot load this model.")
             exit(1)
+    
+    def make_predictions(self, examples, config, k_runs=1, _cached_cols=[]):
+        # tokenize inputs and move to GPU
+        texts = examples[f"masked_text_{config}"]
+        inputs = self.tokenizer(texts, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.device)
+        # compute lengths of the inputs to store with the result
+        input_lengths = [len(i) for i in examples[f"masked_text_{config}"]]
+        # generate predictions
+        pad_token = self.tokenizer.eos_token_id
+
+        predictions = {}
+        # model generates k sequences for each input, all concated to one list
+        generated_ids = self.model.generate(
+            **inputs, num_beams=k_runs, early_stopping=True, num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        # decode predictions
+        outputs = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+        # split outputs into len(inputs) lists to store them as independent predictions
+        result = [outputs[i * k_runs: (i + 1) * k_runs] for i in range(len(texts))]
+        # initialize predictions dict
+        for i in range(k_runs):
+            predictions[f"prediction_{i}"] = []
+        # get prediction and remove the input from the output, append prediction to the result
+        for k, generated_sequences in enumerate(result):
+            # for every generated sequence for this example
+            for i, out in enumerate(generated_sequences):
+                predictions[f"prediction_{i}"].append(out.replace(examples[f"masked_text_{config}"][k], ""))
+        
+        # append additional info with page_id and input_length for each example
+        predictions['page_id'] = examples['id']
+        predictions['input_length'] = input_lengths
+        return predictions
