@@ -66,7 +66,7 @@ class FalconInstructRunner(AbstractRunner):
             logging.warning("GPU not available, cannot load this model.")
             exit(1)
     
-    def make_predictions(self, examples, config, k_runs=1, _cached_cols=[]):
+    def make_predictions(self, examples, config, k_runs=1, cached_cols=[]):
         # tokenize inputs and move to GPU
         texts = examples[f"masked_text_{config}"]
         inputs = self.tokenizer(texts, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.device)
