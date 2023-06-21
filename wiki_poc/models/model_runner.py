@@ -22,8 +22,8 @@ from .runners.falcon.falcon_runner import FalconRunner
 from .runners.gpt.gpt_j_runner import GPTJRunner
 from .runners.gpt.gpt_neo_x_runner import GPTNeoXRunner
 from .runners.llama.huggy_llama_runner import HuggyLlamaRunner
-from .runners.distillbert.distillbert_runner import DistillBertRunner
-from .runners.distillbert.distillbert_qa_runner import DistillBertQARunner
+from .runners.distillbert.distillbert_runner import DistilbertRunner
+from .runners.distillbert.distillbert_qa_runner import DistilbertQARunner
 from .runners.deberta.deberta_runner import DebertaRunner
 from .runners.deberta.deberta_qa_runner import DebertaQARunner
 from .runners.roberta.roberta_qa_runner import RobertaQARunner
@@ -43,10 +43,10 @@ def runners():
         "gptj": GPTJRunner,
         "gpt_neox": GPTNeoXRunner,
         "llama": HuggyLlamaRunner,
-        "distillbert": DistillBertRunner,
+        "distillbert": DistilbertRunner,
         "deberta": DebertaRunner,
         "falcon": FalconRunner,
-        "distillbert_qa": DistillBertQARunner,
+        "distillbert_qa": DistilbertQARunner,
         "deberta_qa": DebertaQARunner,
         "roberta_qa": RobertaQARunner,
     }

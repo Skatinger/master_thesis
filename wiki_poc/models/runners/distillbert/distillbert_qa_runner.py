@@ -1,6 +1,6 @@
 from ..abstract_qa_runner import AbstractQARunner
 
-class DistillbertQARunner(AbstractQARunner):
+class DistilbertQARunner(AbstractQARunner):
 
 
     @staticmethod
