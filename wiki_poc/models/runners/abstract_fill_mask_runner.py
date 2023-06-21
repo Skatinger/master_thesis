@@ -1,10 +1,8 @@
 from .abstract_runner import AbstractRunner
 import logging
 import torch
-import os
 from typing import Dict, List, Tuple, Union
 from datasets import Dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, RobertaTokenizer
 from tqdm.auto import tqdm
 from transformers.pipelines.pt_utils import KeyDataset
 
@@ -28,7 +26,7 @@ class AbstractFillMaskRunner(AbstractRunner):
     def get_tokenizer(self):
         logging.info(f"Loading tokenizer for {self.model_name}")
         model_path = self.names()[self.model_name]
-        tokenizer = RobertaTokenizer.from_pretrained(model_path, truncation=True, padding="longest", padding_side="left")
+        tokenizer = self._tokenizer_loader().from_pretrained(model_path, truncation=True, padding="longest", padding_side="left")
         return tokenizer
     
     def prepare_examples(self):

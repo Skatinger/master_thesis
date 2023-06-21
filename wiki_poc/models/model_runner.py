@@ -17,6 +17,17 @@ from .runners.pythia.pythia_runner import PythiaRunner
 from .runners.mpt_instruct.mpt_instruct_runner import MPTInstructRunner
 from .runners.incite_instruct.incite_instruct_runner import InciteInstructRunner
 from .runners.flan_t5.flan_t5_runner import FlanT5Runner
+from .runners.falcon.falcon_instruct_runner import FalconInstructRunner
+from .runners.falcon.falcon_runner import FalconRunner
+from .runners.gpt.gpt_j_runner import GPTJRunner
+from .runners.gpt.gpt_neo_x_runner import GPTNeoXRunner
+from .runners.llama.huggy_llama_runner import HuggyLlamaRunner
+from .runners.distillbert.distillbert_runner import DistillBertRunner
+from .runners.distillbert.distillbert_qa_runner import DistillBertQARunner
+from .runners.deberta.deberta_runner import DebertaRunner
+from .runners.deberta.deberta_qa_runner import DebertaQARunner
+from .runners.roberta.roberta_qa_runner import RobertaQARunner
+
 
 def runners():
     return {
@@ -28,6 +39,16 @@ def runners():
         "mpt_instruct": MPTInstructRunner,
         "incite_instruct": InciteInstructRunner,
         "flan_t5": FlanT5Runner,
+        "falcon_instruct": FalconInstructRunner,
+        "gptj": GPTJRunner,
+        "gpt_neox": GPTNeoXRunner,
+        "llama": HuggyLlamaRunner,
+        "distillbert": DistillBertRunner,
+        "deberta": DebertaRunner,
+        "falcon": FalconRunner,
+        "distillbert_qa": DistillBertQARunner,
+        "deberta_qa": DebertaQARunner,
+        "roberta_qa": RobertaQARunner,
     }
 
 def run_model(model_name, test_set, options):

@@ -1,7 +1,7 @@
 
 
 from .abstract_fill_mask_runner import AbstractFillMaskRunner
-from transformers import RobertaForMaskedLM
+from transformers import RobertaForMaskedLM, RobertaTokenizer
 
 class RobertaRunner(AbstractFillMaskRunner):
 
@@ -15,8 +15,8 @@ class RobertaRunner(AbstractFillMaskRunner):
     @staticmethod
     def sizes():
         return {
-            "XXS": "roberta-0b125", # 125M
-            "XS": "roberta-0b355", # 355M
+            "XXS": "roberta-0b125",
+            "XS": "roberta-0b355",
         }
 
     @staticmethod
@@ -28,3 +28,6 @@ class RobertaRunner(AbstractFillMaskRunner):
 
     def _model_loader(self):
         return RobertaForMaskedLM
+
+    def _tokenizer_loader(self):
+        return RobertaTokenizer
