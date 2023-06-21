@@ -47,6 +47,11 @@ class FalconInstructRunner(AbstractRunner):
             "falcon_instruct-40b": 2,
         }
 
+    def get_tokenizer(self):
+        """add additional config to tokenizer"""
+        tokenizer = super().get_tokenizer()
+        tokenizer.return_token_type_ids=False
+        return tokenizer
 
     def get_model(self):
         """retrieves model from huggingface model hub and load it to specified device"""
@@ -55,7 +60,7 @@ class FalconInstructRunner(AbstractRunner):
         # if GPU is available, load in 8bit mode
         if torch.cuda.is_available():
             return self._model_loader().from_pretrained(
-                model_path, load_in_8bit=True, device_map="auto", trust_remote_code=True)
+                model_path, load_in_8bit=True, device_map="auto", torch_dtype=torch.bfloat16, trust_remote_code=True)
         else:
             logging.warning("GPU not available, cannot load this model.")
             exit(1)
