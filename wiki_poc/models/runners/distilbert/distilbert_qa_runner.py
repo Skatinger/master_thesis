@@ -27,6 +27,6 @@ class DistilbertQARunner(AbstractQARunner):
         if torch.cuda.is_available():
             logging.info(f"Loading model for {self.model_name}")
             model_path = self.names()[self.model_name]
-            return self._model_loader().from_pretrained(model_path, torch_dtype=torch.float16, device=self.device)
+            return self._model_loader().from_pretrained(model_path, torch_dtype=torch.float16).to(self.device)
         else:
             self.super().get_model()
