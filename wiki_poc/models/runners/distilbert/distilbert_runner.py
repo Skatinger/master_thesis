@@ -9,13 +9,13 @@ class DistilbertRunner(AbstractFillMaskRunner):
     @staticmethod
     def names():
         return {
-            "distillbert_base_uncased-0b066": "distilbert-base-uncased",
+            "distilbert_base_uncased-0b066": "distilbert-base-uncased",
         }
     
     @staticmethod
     def sizes():
         return {
-            "XXS": "distillbert_base_uncased-0b066",
+            "XXS": "distilbert_base_uncased-0b066",
         }
 
     @staticmethod
