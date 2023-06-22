@@ -47,8 +47,9 @@ def runners():
         "deberta": DebertaRunner,
         "falcon": FalconRunner,
         "distilbert_qa": DistilbertQARunner,
-        "deberta_qa": DebertaQARunner,
-        "roberta_qa": RobertaQARunner,
+        "mdeberta_v3": DebertaQARunner,
+        "deberta_v3": DebertaQARunner,
+        "roberta_squad": RobertaQARunner,
     }
 
 def run_model(model_name, test_set, options):
