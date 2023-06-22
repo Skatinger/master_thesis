@@ -30,3 +30,8 @@ class DistilbertQARunner(AbstractQARunner):
             return self._model_loader().from_pretrained(model_path, torch_dtype=torch.float16).to(self.device)
         else:
             self.super().get_model()
+
+    def get_tokenizer(self):
+        tokenizer = super().get_tokenizer()
+        tokenizer.pad_token_id = tokenizer.eos_token_id
+        return tokenizer

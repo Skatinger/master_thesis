@@ -18,7 +18,6 @@ class RobertaRunner(AbstractFillMaskRunner):
             "XXS": "roberta-0b125",
             "XS": "roberta-0b355",
         }
-
     @staticmethod
     def batch_sizes():
         return {
