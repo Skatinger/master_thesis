@@ -33,12 +33,10 @@ class AbstractQARunner(AbstractRunner):
 
     def load_pipe(self):
         logging.info(f"Loading pipeline for {self.model_name}")
-        # specify gpu if available
-        if torch.cuda.is_available():
-            return pipeline('question-answering', model=self.model, tokenizer=self.tokenizer, top_k=self.k_runs, device=self.device)
-        else:
+        if not torch.cuda.is_available():
             logging.warning("GPU not available, loading pipeline in FP32 mode on CPU. This will be very slow.")
-            return pipeline('question-answering', model=self.model, tokenizer=self.tokenizer, top_k=self.k_runs, device=-1)
+        # pipeline is automatically loaded on GPU if available when loading the model in 8bit mode
+        return pipeline('question-answering', model=self.model, tokenizer=self.tokenizer, top_k=self.k_runs)
 
     def run_model(self):
         # check if results already exist
