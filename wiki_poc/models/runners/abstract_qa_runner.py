@@ -27,8 +27,8 @@ class AbstractQARunner(AbstractRunner):
             df = self.dataset.map(lambda x: {f"masked_text_{config}": x[f"masked_text_{config}"][:self.input_length]}, num_proc=8)
             # remove all examples which do no longer contain a mask
             df = df.filter(lambda x: '<mask>' in x[f"masked_text_{config}"], num_proc=8)
-            # format examples for QA
-            df = df.map(lambda x: {f"qa_{config}": self.start_prompt(), "context": x[f"masked_text_{config}"]})
+            # format examples for QA as dict with question and context
+            df = df.map(lambda x: {f"qa_{config}": {"question": self.start_prompt(), "context": x[f"masked_text_{config}"]}})
             self.examples[config] = df
 
     def load_pipe(self):
@@ -73,6 +73,9 @@ class AbstractQARunner(AbstractRunner):
     def convert_to_result(self, prediction_list):
         """converts a list of lists to a single string with duplicate entries removed"""
         predictions = {}
+        # if # predictions was 1, only a hash is returned, convert it to a list
+        if isinstance(prediction_list, dict):
+            prediction_list = [prediction_list]
         for k in range(self.k_runs):
             predictions[f"prediction_{k}"] = prediction_list[k]['answer']
         return predictions
