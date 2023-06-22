@@ -103,7 +103,12 @@ def parse_options():
     if not args.top_k:
         args.top_k = 1
 
-    return args.model, args.size, args.model_class, args.key, args.exclude, args.device, args.save_memory, \
+    if args.model:
+        models_list = args.model.split(",")
+    else:
+        models_list = []
+
+    return models_list, args.size, args.model_class, args.key, args.exclude, args.device, args.save_memory, \
            args.top_k, args.fast, args.dry_run, options
 
 def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_set_ids.csv"):
@@ -155,9 +160,10 @@ def check_model_exists(model_name):
                          "Please choose one of the following models: ", get_all_model_names())
 
 def main():
-    model_to_run, model_size_to_run, model_class_to_run, key, excluded, device, save_memory, top_k, fast, dry_run, options = parse_options()
-    if model_to_run:
-        check_model_exists(model_to_run)
+    models_to_run, model_size_to_run, model_class_to_run, key, excluded, device, save_memory, top_k, fast, dry_run, options = parse_options()
+    if len(models_to_run) > 0:
+        for model in models_to_run:
+            check_model_exists(model)
     
     if len(excluded) > 0:
         # check that all excluded models exist
@@ -198,12 +204,14 @@ def main():
     elif dry_run:
         test_set = test_set.select(range(10))
 
-    # run a single model instance
-    if model_to_run:
-        # check that the model exists
-        check_model_exists(model_to_run)
-        logging.info(f"Running model {model_to_run}")
-        run_model(model_to_run, test_set, options)
+    # run specific models
+    if len(models_to_run) > 0:
+        logging.info(f"Following models will be run:")
+        for model in models_to_run:
+            logging.info("  - %s", model)
+
+        for model_name in models_to_run:
+            run_model(model_name, test_set, options)
     
     # run all models of a specific class
     elif model_class_to_run:
