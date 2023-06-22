@@ -4,6 +4,7 @@ import torch
 from typing import Dict, List, Tuple, Union
 from datasets import Dataset
 from tqdm.auto import tqdm
+from transformers import AutoModelForMaskedLM
 from transformers.pipelines.pt_utils import KeyDataset
 
 
@@ -23,6 +24,9 @@ class AbstractFillMaskRunner(AbstractRunner):
             logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
             return self._model_loader().from_pretrained(model_path)
     
+    def _model_loader(self):
+        return AutoModelForMaskedLM
+
     def get_tokenizer(self):
         logging.info(f"Loading tokenizer for {self.model_name}")
         model_path = self.names()[self.model_name]
@@ -42,7 +46,8 @@ class AbstractFillMaskRunner(AbstractRunner):
             # remove all examples which do no longer contain a mask
             df = df.filter(lambda x: '<mask>' in x[f"masked_text_{config}"], num_proc=8)
             # convert mask tokens to mask token format used by the model
-            df = df.map(lambda x: {'text': x['text'].replace('<mask>', self.tokenizer.mask_token)})
+            if self.tokenizer.mask_token != '<mask>':
+                df = df.map(lambda x: {f"masked_text_{config}": x[f"masked_text_{config}"].replace('<mask>', self.tokenizer.mask_token)}, num_proc=8)
             self.examples[config] = df
 
     def load_pipe(self):

@@ -1,9 +1,7 @@
 
 
 from ..abstract_fill_mask_runner import AbstractFillMaskRunner
-from transformers import DistilBertModel, DistilBertTokenizer
-
-
+from transformers import DistilBertTokenizer
 class DistilbertRunner(AbstractFillMaskRunner):
 
     @staticmethod
@@ -23,9 +21,6 @@ class DistilbertRunner(AbstractFillMaskRunner):
         return {
             "distilbert-0b066": 64,
         }
-    
-    def _model_loader(self):
-        return DistilBertModel
 
     def _tokenizer_loader(self):
         return DistilBertTokenizer
