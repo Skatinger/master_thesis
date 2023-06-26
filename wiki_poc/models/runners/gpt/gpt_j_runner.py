@@ -22,3 +22,7 @@ class GPTJRunner(AbstractRunner):
         return {
             "gptj-6b": 8,
         }
+
+    @staticmethod
+    def end_prompt():
+        return "\n\nWrite the name of the person referred to as <mask>."
