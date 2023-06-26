@@ -22,8 +22,8 @@ class DebertaRunner(AbstractFillMaskRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "mdeberta-0b086" : 64,
-            "deberta-0b304": 64,
+            "mdeberta-0b086" : 32,
+            "deberta-0b304": 32,
         }
 
     def _model_loader(self):
