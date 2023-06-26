@@ -25,4 +25,4 @@ class GPTJRunner(AbstractRunner):
 
     @staticmethod
     def end_prompt():
-        return "\n\nWrite the name of the person referred to as <mask>."
+        return "\n\nWrite the name of the person referred to as <mask>. <mask> is not a valid name."
