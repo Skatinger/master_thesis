@@ -119,8 +119,8 @@ def main():
             json_results[name] = { "size": model['size'] }
             for config in configs:
                 print(f"Model: {name:<15} Config: {config}")
-                print(f"Accuracy: {model[config]['result']['accuracy']}")
-                print(f"Precision: {model[config]['result']['precision']}")
+                print(f"Accuracy: {round(model[config]['result']['accuracy'], 2)}")
+                print(f"Precision: {round(model[config]['result']['precision'], 2)}")
                 json_results[name][config] = {}
                 json_results[name][config]['accuracy'] = model[config]['result']['accuracy']
                 json_results[name][config]['precision'] = model[config]['result']['precision']
