@@ -38,7 +38,7 @@ class T5Runner(AbstractTextToTextRunner):
             "t5-0b220": 256,
             "t5-0b770": 128,
             "t5-3b": 32,
-            "t5-11b": 8,
+            "t5-11b": 4,
         }
 
     def get_model(self):
