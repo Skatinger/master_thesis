@@ -1,7 +1,7 @@
 
 
 from ..abstract_fill_mask_runner import AbstractFillMaskRunner
-from transformers import RobertaForMaskedLM
+from transformers import DebertaForMaskedLM
 
 class DebertaRunner(AbstractFillMaskRunner):
 
@@ -27,4 +27,4 @@ class DebertaRunner(AbstractFillMaskRunner):
         }
 
     def _model_loader(self):
-        return RobertaForMaskedLM
+        return DebertaForMaskedLM
