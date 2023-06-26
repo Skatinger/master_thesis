@@ -3,7 +3,6 @@ from ..abstract_qa_runner import AbstractQARunner
 
 class RobertaQARunner(AbstractQARunner):
 
-
     @staticmethod
     def names():
         return {
