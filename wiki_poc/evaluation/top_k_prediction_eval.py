@@ -30,6 +30,12 @@ class TopKPredictionEvaluator:
                     top_prediction = prediction
             predicted_string += f" {prediction}"
 
+        # normalize min_distance by the length of the title
+        longer = max(min_distance, len(page["title"]))
+        min_distance = min_distance / longer
+
+        if any_correct > 0 and min_distance < 0.3:
+            print(f"Correct prediction: {top_prediction} for {page['title']}")
 
         # if we got any correct predictions for the page
         if any_correct > 0:
