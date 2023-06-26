@@ -6,6 +6,7 @@ import re
 import logging
 from models.model_runner import get_all_model_names, load_test_set
 from datasets import load_dataset
+import json
 
 
 class ResultLoader():
@@ -78,6 +79,23 @@ class ResultLoader():
         size, config, inputsize = rest.split("_")  # Split the remaining part by hyphen to get size, config, and inputsize
         inputsize = inputsize.rstrip(".json")  # Remove the ".json" extension from inputsize
         return model_name, size, config, inputsize
+
+    def load_computed(self, key, model_name):
+        """loads and returns all computed results as dict. can be filtered by model_name and config"""
+        if model_name:
+            filepath = f"evaluation/results/{key}-{model_name}-results.json"
+        else:
+            filepath = f"evaluation/results/{key}-results.json"
+        print(filepath)
+        if not os.path.exists(filepath):
+            logging.warning(f"File {filepath} does not exist")
+            return {}
+        # load json file
+        json_file = open(filepath)
+        data = json.load(json_file)
+        json_file.close()
+        return data
+
 
 
 def main():
