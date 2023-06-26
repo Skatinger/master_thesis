@@ -1,6 +1,8 @@
 from ..abstract_qa_runner import AbstractQARunner
 import torch
 import logging
+from transformers import pipeline
+
 class DistilbertQARunner(AbstractQARunner):
 
 
@@ -29,7 +31,7 @@ class DistilbertQARunner(AbstractQARunner):
             model_path = self.names()[self.model_name]
             return self._model_loader().from_pretrained(model_path, torch_dtype=torch.float16).to(self.device)
         else:
-            self.super().get_model()
+            super().get_model()
 
     def get_tokenizer(self):
         tokenizer = super().get_tokenizer()
@@ -37,7 +39,8 @@ class DistilbertQARunner(AbstractQARunner):
         return tokenizer
     
     def load_pipe(self):
-        # override as pad_token seems not to be set correctly for this model
-        pipe = super().load_pipe()
-        pipe.tokenizer.pad_token_id = pipe.model.config.eos_token_id
-        return pipe
+        logging.info(f"Loading pipeline for {self.model_name}")
+        if not torch.cuda.is_available():
+            logging.warning("GPU not available, loading pipeline in FP32 mode on CPU. This will be very slow.")
+        # pipeline is automatically loaded on GPU if available when loading the model in 8bit mode
+        return pipeline('question-answering', model=self.model, top_k=self.k_runs)
