@@ -4,308 +4,308 @@
         "size": 0.22,
         "paraphrased": {
             "accuracy": 0.043789473684210524,
-            "precision": 11.552884615384615
+            "precision": 0.5938037953645542
         },
         "original": {
             "accuracy": 0.053637918889000706,
-            "precision": 10.639774859287055
+            "precision": 0.5786137506025584
         }
     },
     "t5-3b": {
         "size": 3.0,
         "paraphrased": {
             "accuracy": 0.266,
-            "precision": 9.426988523941432
+            "precision": 0.5645618898104612
         },
         "original": {
             "accuracy": 0.2595350709469659,
-            "precision": 9.221403644823575
+            "precision": 0.5638990429952118
         }
     },
     "t5-0b060": {
         "size": 0.06,
         "paraphrased": {
             "accuracy": 0.1296842105263158,
-            "precision": 11.403409090909092
+            "precision": 0.6560384988136582
         },
         "original": {
             "accuracy": 0.1203582570192211,
-            "precision": 11.285953177257525
+            "precision": 0.6571776163843512
         }
     },
     "t5-0b770": {
         "size": 0.77,
         "paraphrased": {
             "accuracy": 0.23842105263157895,
-            "precision": 9.19381898454746
+            "precision": 0.5307840308990129
         },
         "original": {
             "accuracy": 0.25480527322129415,
-            "precision": 8.796208530805687
+            "precision": 0.5228020106327484
         }
     },
     "pythia-2b8": {
         "size": 2.8,
         "paraphrased": {
-            "accuracy": 0.022526315789473682,
-            "precision": 13.018691588785046
+            "accuracy": 0.03031578947368421,
+            "precision": 0.7112156504016516
         },
         "original": {
-            "accuracy": 0.03844218577035322,
-            "precision": 14.306282722513089
+            "accuracy": 0.09701117037335212,
+            "precision": 0.6795910327236051
         }
     },
     "pythia-0b070": {
         "size": 0.07,
         "paraphrased": {
-            "accuracy": 0.020736842105263158,
-            "precision": 14.137055837563452
+            "accuracy": 0.026210526315789472,
+            "precision": 0.6766406265497092
         },
         "original": {
-            "accuracy": 0.03703330985206803,
-            "precision": 14.845108695652174
+            "accuracy": 0.06772667807185268,
+            "precision": 0.7211425213804027
         }
     },
     "pythia-1b4": {
         "size": 1.4,
         "paraphrased": {
-            "accuracy": 0.027789473684210527,
-            "precision": 13.742424242424242
+            "accuracy": 0.029473684210526315,
+            "precision": 0.6885333628929123
         },
         "original": {
-            "accuracy": 0.035523799939619606,
-            "precision": 14.19830028328612
+            "accuracy": 0.0727583777800141,
+            "precision": 0.7141822875376015
         }
     },
     "pythia-0b160": {
         "size": 0.16,
         "paraphrased": {
-            "accuracy": 0.019473684210526317,
-            "precision": 13.27027027027027
+            "accuracy": 0.023789473684210527,
+            "precision": 0.6528123120166466
         },
         "original": {
-            "accuracy": 0.03602696991043575,
-            "precision": 14.363128491620111
+            "accuracy": 0.06229244238703834,
+            "precision": 0.7134662193110233
         }
     },
     "pythia-0b410": {
         "size": 0.41,
         "paraphrased": {
-            "accuracy": 0.032842105263157895,
-            "precision": 14.102564102564102
+            "accuracy": 0.03452631578947368,
+            "precision": 0.683443993029947
         },
         "original": {
-            "accuracy": 0.04810304921002315,
-            "precision": 13.95397489539749
+            "accuracy": 0.09791687632082118,
+            "precision": 0.6659334562280941
         }
     },
     "pythia-6b9": {
         "size": 6.9,
         "paraphrased": {
-            "accuracy": 0.012105263157894737,
-            "precision": 14.547826086956523
+            "accuracy": 0.019894736842105264,
+            "precision": 0.7769315248293529
         },
         "original": {
-            "accuracy": 0.02123377276844118,
-            "precision": 15.175355450236967
+            "accuracy": 0.07678373754654322,
+            "precision": 0.7083613302099916
         }
     },
     "pythia-12b": {
         "size": 12.0,
         "paraphrased": {
-            "accuracy": 0.038,
-            "precision": 13.880886426592797
+            "accuracy": 0.04115789473684211,
+            "precision": 0.677930812075497
         },
         "original": {
-            "accuracy": 0.03824091778202677,
-            "precision": 14.257894736842106
+            "accuracy": 0.07708563952903291,
+            "precision": 0.7196611415165985
         }
     },
     "cerebras-6b7": {
         "size": 6.7,
         "paraphrased": {
-            "accuracy": 0.03189473684210526,
-            "precision": 12.663366336633663
+            "accuracy": 0.03568421052631579,
+            "precision": 0.6733836042520153
         },
         "original": {
-            "accuracy": 0.041360571601086846,
-            "precision": 13.905109489051094
+            "accuracy": 0.07134950186172889,
+            "precision": 0.7101103445819108
         }
     },
     "cerebras-0b111": {
         "size": 0.111,
         "paraphrased": {
-            "accuracy": 0.016736842105263158,
-            "precision": 14.150943396226415
+            "accuracy": 0.016842105263157894,
+            "precision": 0.7211608683169938
         },
         "original": {
-            "accuracy": 0.029284492301499446,
-            "precision": 14.776632302405499
+            "accuracy": 0.04951192512830834,
+            "precision": 0.75742758771081
         }
     },
     "cerebras-2b7": {
         "size": 2.7,
         "paraphrased": {
-            "accuracy": 0.01757894736842105,
-            "precision": 12.976047904191617
+            "accuracy": 0.026842105263157896,
+            "precision": 0.7078590765177304
         },
         "original": {
-            "accuracy": 0.034114924021334404,
-            "precision": 14.32448377581121
+            "accuracy": 0.0926839086243333,
+            "precision": 0.6906813754658908
         }
     },
     "cerebras-1b3": {
         "size": 1.3,
         "paraphrased": {
-            "accuracy": 0.02736842105263158,
-            "precision": 12.1
+            "accuracy": 0.030947368421052633,
+            "precision": 0.6505712682210486
         },
         "original": {
-            "accuracy": 0.044379591425983696,
-            "precision": 13.233560090702948
+            "accuracy": 0.10516252390057361,
+            "precision": 0.6527175542342617
         }
     },
     "flan_t5-0b780": {
         "size": 0.78,
         "paraphrased": {
             "accuracy": 0.3357894736842105,
-            "precision": 8.34576802507837
+            "precision": 0.4898197497447808
         },
         "original": {
             "accuracy": 0.3554392673845225,
-            "precision": 8.14580973952435
+            "precision": 0.48174571581204706
         }
     },
     "flan_t5-3b": {
         "size": 3.0,
         "paraphrased": {
             "accuracy": 0.36305263157894735,
-            "precision": 7.944041751232241
+            "precision": 0.47196540723383956
         },
         "original": {
             "accuracy": 0.39851061688638423,
-            "precision": 7.551010101010101
+            "precision": 0.45069447656562855
         }
     },
     "flan_t5-0b250": {
         "size": 0.25,
         "paraphrased": {
             "accuracy": 0.3036842105263158,
-            "precision": 8.354939341421144
+            "precision": 0.49956107101273173
         },
         "original": {
             "accuracy": 0.32444399718224814,
-            "precision": 8.192617866004962
+            "precision": 0.4940301306338199
         }
     },
     "flan_t5-11b": {
         "size": 11.0,
         "paraphrased": {
             "accuracy": 0.3754736842105263,
-            "precision": 7.635828427249789
+            "precision": 0.4363001414080832
         },
         "original": {
             "accuracy": 0.40203280668209723,
-            "precision": 7.512390488110138
+            "precision": 0.42601940167565644
         }
     },
     "flan_t5-0b080": {
         "size": 0.08,
         "paraphrased": {
             "accuracy": 0.2816842105263158,
-            "precision": 8.155455904334827
+            "precision": 0.49551243851037435
         },
         "original": {
             "accuracy": 0.30421656435543926,
-            "precision": 8.040357260999007
+            "precision": 0.49059681178038694
         }
     },
     "bloomz-3b": {
         "size": 3.0,
         "paraphrased": {
             "accuracy": 0.3028421052631579,
-            "precision": 8.014598540145986
+            "precision": 0.47030688894569733
         },
         "original": {
             "accuracy": 0.30904699607527425,
-            "precision": 7.644415499837186
+            "precision": 0.4543196105030989
         }
     },
     "bloomz-7b1": {
         "size": 7.1,
         "paraphrased": {
             "accuracy": 0.3509473684210526,
-            "precision": 7.530893821235753
+            "precision": 0.44655031592130245
         },
         "original": {
             "accuracy": 0.37204387642145514,
-            "precision": 7.204760616716256
+            "precision": 0.4315557677993069
         }
     },
     "bloomz-1b7": {
         "size": 1.7,
         "paraphrased": {
             "accuracy": 0.3201052631578947,
-            "precision": 7.950016441959882
+            "precision": 0.46495978242549374
         },
         "original": {
             "accuracy": 0.3007950085538895,
-            "precision": 7.7199732351957175
+            "precision": 0.46032888956991064
         }
     },
     "bloomz-1b1": {
         "size": 1.1,
         "paraphrased": {
             "accuracy": 0.3211578947368421,
-            "precision": 7.8780727630285154
+            "precision": 0.4688336709403053
         },
         "original": {
             "accuracy": 0.33179027875616385,
-            "precision": 7.630573248407643
+            "precision": 0.4594351702002419
         }
     },
     "mpt_instruct-6b7": {
         "size": 6.7,
         "paraphrased": {
-            "accuracy": 0.19915789473684212,
-            "precision": 9.382663847780126
+            "accuracy": 0.19989473684210526,
+            "precision": 0.5327538087464203
         },
         "original": {
-            "accuracy": 0.16423467847438866,
-            "precision": 8.884803921568627
+            "accuracy": 0.1899969809801751,
+            "precision": 0.5568873890223206
         }
     },
     "roberta-0b125": {
         "size": 0.125,
         "paraphrased": {
             "accuracy": 0.19073684210526315,
-            "precision": 13.610927152317881
+            "precision": 0.7709345348416958
         },
         "original": {
             "accuracy": 0.23568481433028077,
-            "precision": 13.883859948761742
+            "precision": 0.7881025617660762
         }
     },
     "roberta-0b355": {
         "size": 0.355,
         "paraphrased": {
             "accuracy": 0.20642105263157895,
-            "precision": 13.419683834778175
+            "precision": 0.7725707103170538
         },
         "original": {
             "accuracy": 0.23276642849954715,
-            "precision": 13.619109381755296
+            "precision": 0.7795324136570859
         }
     },
     "incite_instruct-3b": {
         "size": 3.0,
         "paraphrased": {
-            "accuracy": 0,
-            "precision": 0
+            "accuracy": 0.3737894736842105,
+            "precision": 0.5107898796490057
         },
         "original": {
-            "accuracy": 0.00060380396497937,
-            "precision": 13.833333333333334
+            "accuracy": 0.38261044580859416,
+            "precision": 0.5443986848214531
         }
     }
 }

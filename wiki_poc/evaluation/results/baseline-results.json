@@ -1,0 +1,25 @@
+{
+    "key": "baseline",
+    "majority_full_name-1b": {
+        "size": 1.0,
+        "paraphrased": {
+            "accuracy": 0.13494736842105262,
+            "precision": 0.6314663767485897
+        },
+        "original": {
+            "accuracy": 0.13132736238301299,
+            "precision": 0.6310280170437285
+        }
+    },
+    "random_full_name-1b": {
+        "size": 1.0,
+        "paraphrased": {
+            "accuracy": 0.06326315789473684,
+            "precision": 0.7272471458355381
+        },
+        "original": {
+            "accuracy": 0.05997786052128409,
+            "precision": 0.7275189955662497
+        }
+    }
+}
