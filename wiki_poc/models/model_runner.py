@@ -44,10 +44,10 @@ def runners():
         "gpt_neox": GPTNeoXRunner,
         "llama": HuggyLlamaRunner,
         "distilbert": DistilbertRunner,
-        "deberta": DebertaRunner,
+        # "deberta": DebertaRunner,
         "falcon": FalconRunner,
         "distilbert_squad": DistilbertQARunner,
-        "mdeberta": DebertaRunner,
+        # "mdeberta": DebertaRunner,
         "deberta_squad": DebertaQARunner,
         "roberta_squad": RobertaQARunner,
     }
