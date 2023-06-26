@@ -29,6 +29,7 @@ from .runners.deberta.deberta_qa_runner import DebertaQARunner
 from .runners.roberta.roberta_qa_runner import RobertaQARunner
 
 from .runners.baselines.majority_name_runner import MajorityNameRunner
+from .runners.baselines.random_name_runner import RandomNameRunner
 
 
 def runners():
@@ -53,6 +54,7 @@ def runners():
         "deberta_squad": DebertaQARunner,
         "roberta_squad": RobertaQARunner,
         "majority_full_name": MajorityNameRunner,
+        "random_full_name": RandomNameRunner,
     }
 
 def run_model(model_name, test_set, options):
