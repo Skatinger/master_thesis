@@ -47,8 +47,8 @@ def runners():
         "deberta": DebertaRunner,
         "falcon": FalconRunner,
         "distilbert_squad": DistilbertQARunner,
-        "mdeberta_v3": DebertaQARunner,
-        "deberta_v3": DebertaQARunner,
+        "mdeberta": DebertaRunner,
+        "deberta_squad": DebertaQARunner,
         "roberta_squad": RobertaQARunner,
     }
 
