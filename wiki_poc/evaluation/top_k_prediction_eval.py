@@ -22,7 +22,7 @@ class TopKPredictionEvaluator:
         top_prediction = ""
         for i in range(k_runs):
             prediction = page["prediction_" + str(i)]
-            if re.match(regex, prediction):
+            if re.search(regex, prediction):
                 any_correct = True
                 # use the minimum distance of all predictions which were classified as correct
                 if distances[f"prediction_{i}"] < min_distance:
@@ -34,8 +34,9 @@ class TopKPredictionEvaluator:
         longer = max(min_distance, len(page["title"]))
         min_distance = min_distance / longer
 
-        if any_correct > 0 and min_distance < 0.3:
-            print(f"Correct prediction: {top_prediction} for {page['title']}")
+        # usefull for debugging insights
+        # if any_correct > 0 and min_distance < 0.3:
+            # print(f"Correct prediction: {top_prediction} for {page['title']}")
 
         # if we got any correct predictions for the page
         if any_correct > 0:
