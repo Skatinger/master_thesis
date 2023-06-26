@@ -35,3 +35,9 @@ class DistilbertQARunner(AbstractQARunner):
         tokenizer = super().get_tokenizer()
         tokenizer.pad_token_id = tokenizer.eos_token_id
         return tokenizer
+    
+    def load_pipe(self):
+        # override as pad_token seems not to be set correctly for this model
+        pipe = super().load_pipe()
+        pipe.tokenizer.pad_token_id = pipe.model.config.eos_token_id
+        return pipe
