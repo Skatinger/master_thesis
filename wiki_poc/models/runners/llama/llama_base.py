@@ -23,6 +23,6 @@ class LlamaRunner(AbstractRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "llama-7b": 64,
-            "llama-13b": 64,
+            "llama-7b": 8,
+            "llama-13b": 4,
         }
