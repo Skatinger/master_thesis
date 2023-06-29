@@ -66,15 +66,15 @@ class FalconInstructRunner(AbstractRunner):
     
     def load_mapped_model(self, model_path):
         """loads model with custom device map and meta device to save memory on loading"""
-        logging.info("Preparing custom device map.")
-        with init_empty_weights():
-            meta_model = self._model_loader().from_pretrained(model_path, load_in_8bit=True, torch_dtype=torch.bfloat16)
-        device_map = infer_auto_device_map(meta_model, load_in_8_bit=True,
-                                           dtype=torch.bfloat16, max_memory = {0: "65GiB", 1: "75GiB", "cpu": "100GiB"})
-        logging.info(f"Loading model with custom device map: {device_map}")
+        # logging.info("Preparing custom device map.")
+        # with init_empty_weights():
+            # meta_model = self._model_loader().from_pretrained(model_path, load_in_8bit=True, torch_dtype=torch.bfloat16)
+        # device_map = infer_auto_device_map(meta_model, load_in_8_bit=True,
+                                        #    dtype=torch.bfloat16, max_memory = {0: "65GiB", 1: "75GiB", "cpu": "100GiB"})
+        # logging.info(f"Loading model with custom device map: {device_map}")
         model = self._model_loader().from_pretrained(
-            model_path, device_map=device_map, offload_folder="offload", load_in_8_bit=True, trust_remote_code=True,
-            offload_state_dict = True, torch_dtype=torch.float16
+            model_path, device_map='', offload_folder="offload", load_in_8_bit=True, trust_remote_code=True,
+            offload_state_dict = True, torch_dtype=torch.bfloat16
         )
         return model
 
