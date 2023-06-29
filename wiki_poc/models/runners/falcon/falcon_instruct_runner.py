@@ -2,6 +2,7 @@
 from ..abstract_runner import AbstractRunner
 import torch
 import logging
+from accelerate import infer_auto_device_map, init_empty_weights
 
 class FalconInstructRunner(AbstractRunner):
 
@@ -53,12 +54,30 @@ class FalconInstructRunner(AbstractRunner):
         model_path = self.names()[self.model_name]
         # if GPU is available, load in 8bit mode
         if torch.cuda.is_available():
-            return self._model_loader().from_pretrained(
-                model_path, load_in_8bit=True, device_map="auto", torch_dtype=torch.bfloat16, trust_remote_code=True)
+            if int(self.model_name.split("-")[-1].split("b")[0]) > 12:
+                logging.info("Model is very large, loading with custom device map. Use --memory-saving if batches do not fit.")
+                return self.load_mapped_model(model_path)
+            else:
+                return self._model_loader().from_pretrained(
+                    model_path, load_in_8bit=True, device_map="auto", torch_dtype=torch.bfloat16, trust_remote_code=True)
         else:
             logging.warning("GPU not available, cannot load this model.")
             exit(1)
     
+    def load_mapped_model(self, model_path):
+        """loads model with custom device map and meta device to save memory on loading"""
+        logging.info("Preparing custom device map.")
+        with init_empty_weights():
+            meta_model = self._model_loader().from_pretrained(model_path, load_in_8bit=True, torch_dtype=torch.bfloat16)
+        device_map = infer_auto_device_map(meta_model, load_in_8_bit=True, trust_remote_code=True,
+                                           dtype=torch.bfloat16, max_memory = {0: "65GiB", 1: "75GiB", "cpu": "100GiB"})
+        logging.info(f"Loading model with custom device map: {device_map}")
+        model = self._model_loader().from_pretrained(
+            model_path, device_map=device_map, offload_folder="offload", load_in_8_bit=True, trust_remote_code=True,
+            offload_state_dict = True, torch_dtype=torch.float16
+        )
+        return model
+
     def make_predictions(self, examples, config, k_runs=1, cached_cols=[]):
         # tokenize inputs and move to GPU
         texts = examples[f"masked_text_{config}"]

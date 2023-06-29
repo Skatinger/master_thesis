@@ -110,7 +110,8 @@ class AbstractRunner():
         if torch.cuda.is_available():
             # if model is very large (>12 billion parameters), load with  custom device map and memory saving
             if int(self.model_name.split("-")[-1].split("b")[0]) > 12:
-                return self.load_mapped_model(model_path, self.device_number, self.save_memory)
+                logging.info("Model is very large, loading with custom device map. Use --memory-saving if batches do not fit.")
+                return self.load_mapped_model(model_path)
             else:
                 return self._model_loader().from_pretrained(model_path, load_in_8bit=True, torch_dtype=torch.float16, device_map="auto")
         else:
@@ -122,7 +123,7 @@ class AbstractRunner():
     def sizes(self):
         pass
 
-    def load_mapped_model(self, model_path, device_number, save_memory):
+    def load_mapped_model(self, model_path):
         """loads model with custom device map and meta device to save memory on loading"""
         with init_empty_weights():
             meta_model = self._model_loader().from_pretrained(model_path, load_in_8bit=True, torch_dtype=torch.bfloat16)
