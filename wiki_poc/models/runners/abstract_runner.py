@@ -3,6 +3,7 @@ import os
 import logging
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from datasets import load_dataset, Dataset
+from accelerate import infer_auto_device_map, init_empty_weights
 
 from abc import ABC, abstractmethod, abstractproperty
 
@@ -107,7 +108,11 @@ class AbstractRunner():
         model_path = self.names()[self.model_name]
         # if GPU is available, load in 8bit mode
         if torch.cuda.is_available():
-            return self._model_loader().from_pretrained(model_path, load_in_8bit=True, torch_dtype=torch.float16, device_map="auto")
+            # if model is very large (>12 billion parameters), load with  custom device map and memory saving
+            if int(self.model_name.split("-")[-1].split("b")[0]) > 12:
+                return self.load_mapped_model(model_path, self.device_number, self.save_memory)
+            else:
+                return self._model_loader().from_pretrained(model_path, load_in_8bit=True, torch_dtype=torch.float16, device_map="auto")
         else:
             logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
             return self._model_loader().from_pretrained(model_path)
@@ -116,6 +121,17 @@ class AbstractRunner():
     @abstractproperty
     def sizes(self):
         pass
+
+    def load_mapped_model(self, model_path, device_number, save_memory):
+        """loads model with custom device map and meta device to save memory on loading"""
+        with init_empty_weights():
+            meta_model = self._model_loader().from_pretrained(model_path, load_in_8bit=True, torch_dtype=torch.bfloat16)
+        device_map = infer_auto_device_map(meta_model, dtype=torch.bfloat16, max_memory = {0: "65GiB", 1: "75GiB", "cpu": "100GiB"})
+
+        model = self._model_loader().from_pretrained(
+            model_path, device_map=device_map, offload_folder="offload", offload_state_dict = True, torch_dtype=torch.float16
+        )
+        return model
 
     def prepare_examples(self):
         """shortens input text to max length given and pre- and append prompt to examples"""
