@@ -55,7 +55,7 @@ class FalconInstructRunner(AbstractRunner):
         # if GPU is available, load in 8bit mode
         if torch.cuda.is_available():
             if int(self.model_name.split("-")[-1].split("b")[0]) > 12:
-                logging.info("Model is very large, loading with custom device map. Use --memory-saving if batches do not fit.")
+                logging.info("Model is very large, loading with custom device map. Use --save-memory if batches do not fit.")
                 return self.load_mapped_model(model_path)
             else:
                 return self._model_loader().from_pretrained(
