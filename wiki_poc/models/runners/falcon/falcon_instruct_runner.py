@@ -73,7 +73,7 @@ class FalconInstructRunner(AbstractRunner):
                                         #    dtype=torch.bfloat16, max_memory = {0: "65GiB", 1: "75GiB", "cpu": "100GiB"})
         # logging.info(f"Loading model with custom device map: {device_map}")
         model = self._model_loader().from_pretrained(
-            model_path, device_map='', offload_folder="offload", load_in_8_bit=True, trust_remote_code=True,
+            model_path, device_map='balanced_low_0', offload_folder="offload", load_in_8bit=True, trust_remote_code=True,
             offload_state_dict = True, torch_dtype=torch.bfloat16
         )
         return model
