@@ -51,7 +51,7 @@ class AbstractRunner():
 
     def set_options(self, options):
         if "input_length" in options:
-            self.input_length = options["input_length"]
+            self.input_length = int(options["input_length"])
         if "k_runs" in options:
             self.k_runs = options["k_runs"]
         if "save_memory" in options:
