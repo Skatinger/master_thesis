@@ -44,6 +44,17 @@
             "precision": 0.5228020106327484
         }
     },
+    "majority_full_name-1b": {
+        "size": 1.0,
+        "paraphrased": {
+            "accuracy": 0.13494736842105262,
+            "precision": 0.6314663767485897
+        },
+        "original": {
+            "accuracy": 0.13132736238301299,
+            "precision": 0.6310280170437285
+        }
+    },
     "pythia-2b8": {
         "size": 2.8,
         "paraphrased": {
@@ -154,6 +165,17 @@
             "precision": 0.6906813754658908
         }
     },
+    "cerebras-13b": {
+        "size": 13.0,
+        "paraphrased": {
+            "accuracy": 0.05578947368421053,
+            "precision": 0.7079259398377221
+        },
+        "original": {
+            "accuracy": 0.12750327060481031,
+            "precision": 0.6323396525177705
+        }
+    },
     "cerebras-1b3": {
         "size": 1.3,
         "paraphrased": {
@@ -220,6 +242,17 @@
             "precision": 0.49059681178038694
         }
     },
+    "llama-7b": {
+        "size": 7.0,
+        "paraphrased": {
+            "accuracy": 0.2615789473684211,
+            "precision": 0.5207092613215962
+        },
+        "original": {
+            "accuracy": 0.2655731105967596,
+            "precision": 0.5130955545453623
+        }
+    },
     "bloomz-3b": {
         "size": 3.0,
         "paraphrased": {
@@ -264,6 +297,17 @@
             "precision": 0.4594351702002419
         }
     },
+    "gpt_neox-20b": {
+        "size": 20.0,
+        "paraphrased": {
+            "accuracy": 0.030210526315789472,
+            "precision": 0.6514639108813808
+        },
+        "original": {
+            "accuracy": 0.07899768541813425,
+            "precision": 0.6953468099272551
+        }
+    },
     "mpt_instruct-6b7": {
         "size": 6.7,
         "paraphrased": {
@@ -273,6 +317,50 @@
         "original": {
             "accuracy": 0.1899969809801751,
             "precision": 0.5568873890223206
+        }
+    },
+    "roberta_squad-0b355": {
+        "size": 0.355,
+        "paraphrased": {
+            "accuracy": 0.02494736842105263,
+            "precision": 0.7451106994426419
+        },
+        "original": {
+            "accuracy": 0.033813022038844724,
+            "precision": 0.7282989835698179
+        }
+    },
+    "roberta_squad-0b125": {
+        "size": 0.125,
+        "paraphrased": {
+            "accuracy": 0.07842105263157895,
+            "precision": 0.751079233983779
+        },
+        "original": {
+            "accuracy": 0.1210626949783637,
+            "precision": 0.6926099675728918
+        }
+    },
+    "falcon-7b": {
+        "size": 7.0,
+        "paraphrased": {
+            "accuracy": 0.03,
+            "precision": 0.6471113226310097
+        },
+        "original": {
+            "accuracy": 0.07950085538895038,
+            "precision": 0.6840410915039827
+        }
+    },
+    "gptj-6b": {
+        "size": 6.0,
+        "paraphrased": {
+            "accuracy": 0.034105263157894736,
+            "precision": 0.6918885240967075
+        },
+        "original": {
+            "accuracy": 0.060984200462916374,
+            "precision": 0.7542160952646475
         }
     },
     "roberta-0b125": {
@@ -306,6 +394,50 @@
         "original": {
             "accuracy": 0.38261044580859416,
             "precision": 0.5443986848214531
+        }
+    },
+    "random_full_name-1b": {
+        "size": 1.0,
+        "paraphrased": {
+            "accuracy": 0.06368421052631579,
+            "precision": 0.7287231853438698
+        },
+        "original": {
+            "accuracy": 0.06068229848042669,
+            "precision": 0.7176430694369775
+        }
+    },
+    "distilbert-0b066": {
+        "size": 0.066,
+        "paraphrased": {
+            "accuracy": 0.014,
+            "precision": 0.7065290864565162
+        },
+        "original": {
+            "accuracy": 0.015195733118647478,
+            "precision": 0.6820521553203899
+        }
+    },
+    "distilbert_squad-0b062": {
+        "size": 0.062,
+        "paraphrased": {
+            "accuracy": 0.1688421052631579,
+            "precision": 0.5719367053898159
+        },
+        "original": {
+            "accuracy": 0.11915064908926236,
+            "precision": 0.5575259585556475
+        }
+    },
+    "falcon_instruct-7b": {
+        "size": 7.0,
+        "paraphrased": {
+            "accuracy": 0.04705263157894737,
+            "precision": 0.646728530153222
+        },
+        "original": {
+            "accuracy": 0.08141290127805173,
+            "precision": 0.6963564419231816
         }
     }
 }
