@@ -21,6 +21,7 @@ class PrecomputedPlotting():
     def plot(self):
         # convert results to dataframe format for easier plotting
         prepared_df = self.convert_to_df(self.results)
+        self.plot_accuracy_progression(self.results, prepared_df)
         self.plot_best_performers(self.results, prepared_df)
         self.plot_with_huge(self.results, prepared_df)
         # self.plot_accuracy_overview(self.results)
@@ -71,6 +72,50 @@ class PrecomputedPlotting():
         # plt.title("accuracy compared to model size for paraphrased texts", fontsize="xx-large")
         plt.grid(True)
         plt.savefig(f"evaluation/plotting/plots/plot_best_performers_with_huge_{results['key']}.png") # , bbox_inches='tight')
+        # ensure pyplot does not run out of memory when too many plots are created
+        plt.close()    
+    
+    @staticmethod
+    def plot_accuracy_progression(results, df2):
+        my_font_size = 24
+        plt.figure(figsize=(20, 14))
+        # only keep the interesting models
+        interesting_models = ["bloomz", "flan_t5", "roberta", "roberta_squad", "t5"]
+
+        # remove all models that are not in the interesting models list
+        df2 = df2[df2['model_class'].isin(interesting_models)]
+
+        # group it
+        grouped_data = df2.groupby('model_class').apply(lambda x: x.sort_values('size')).reset_index(drop=True)
+
+        # Get unique model groups and their corresponding colors
+        unique_groups = grouped_data['model_class'].unique()
+        color_palette = sns.color_palette('tab10', n_colors=len(unique_groups))
+
+        # scatter points
+        sns.scatterplot(data=grouped_data, x='size', y='accuracy', hue='model_class', s=250, markers=True, legend=False)
+
+        # Plot separate lines for each group with corresponding colors
+        for group, color in zip(unique_groups, color_palette):
+            group_data = grouped_data[grouped_data['model_class'] == group]
+            plt.plot(group_data['size'], group_data['accuracy'], color=color, label=group, linewidth=3)
+
+        # Set labels and title
+        plt.xlabel("Size [Billion Parameters]", fontsize=my_font_size)
+        plt.ylabel("Accuracy", fontsize=my_font_size)
+
+        # Increase font size of tick labels
+        plt.xticks(fontsize=my_font_size)
+        plt.yticks(fontsize=my_font_size)
+
+        # Add legend
+        legend = plt.legend(fontsize=my_font_size, framealpha=1)
+        # increase linewidth of legend lines
+        for line in legend.get_lines():
+            line.set_linewidth(6)
+
+        plt.grid(True)
+        plt.savefig(f"evaluation/plotting/plots/plot_accuracy_progression_{results['key']}.png") # , bbox_inches='tight')
         # ensure pyplot does not run out of memory when too many plots are created
         plt.close()
 
