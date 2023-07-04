@@ -10,13 +10,13 @@ class MPTRunner(AbstractRunner):
     @staticmethod
     def names():
         return {
-            "mpt_7b": "mosaicml/mpt-7b"
+            "mpt-7b": "mosaicml/mpt-7b"
         }
     
     @staticmethod
     def sizes():
         return {
-            "L": "mpt_7b",
+            "L": "mpt-7b",
         }
 
     @staticmethod
