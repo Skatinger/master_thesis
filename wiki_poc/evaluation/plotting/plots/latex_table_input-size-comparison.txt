@@ -1,0 +1,12 @@
+\begin{tabular}{llrr}
+\toprule
+model & model_class & size & accuracy \\
+\midrule
+flan_t5_2000-11b & flan_t5_2000 & 11.000000 & 0.482698 \\
+bloomz_2000-7b1 & bloomz_2000 & 7.100000 & 0.456002 \\
+incite_instruct_2000-3b & incite_instruct_2000 & 3.000000 & 0.435876 \\
+flan_t5_1000-11b & flan_t5_1000 & 11.000000 & 0.375474 \\
+incite_instruct_1000-3b & incite_instruct_1000 & 3.000000 & 0.373789 \\
+bloomz_1000-7b1 & bloomz_1000 & 7.100000 & 0.350947 \\
+\bottomrule
+\end{tabular}
