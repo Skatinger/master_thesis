@@ -59,3 +59,7 @@ Checks if the top prediction for a full chunk of a page is correct. This is done
 ### Other comparisions / measures
 - How much better would the models perform if all occurences of the entity were not masked, just the mask which is
 being predicted? e.g. it could read the name coming from different places in the text.
+
+### Runnables
+python -m evaluation.top_k_evaluation <key-of-run>
+python -m evaluation.plotting.precomputed_plotting <key-of-run>
