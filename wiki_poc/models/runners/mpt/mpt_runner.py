@@ -7,47 +7,27 @@ from ..abstract_runner import AbstractRunner
 
 class MPTInstructRunner(AbstractRunner):
 
-
-    @staticmethod
-    def start_prompt():
-        return """
-                Below is an instruction that describes a task. Write a response that appropriately completes the request.
-                ### Instruction:
-                The following text is an extract from a wikipedia page. The text is about a person but the person is referred to as <mask>.
-                Please give the name of the person referred to as <mask> and only the name. If you don't know the name,
-                give your best guess.
-
-                The text:
-
-                """
-
-    @staticmethod
-    def end_prompt():
-        return """
-
-                ### Response:
-                """
-
     @staticmethod
     def names():
         return {
-            "mpt_instruct-6b7": "mosaicml/mpt-7b-instruct"
+            "mpt_7b": "mosaicml/mpt-7b"
         }
     
     @staticmethod
     def sizes():
         return {
-            "L": "mpt_instruct-6b7",
+            "L": "mpt_7b",
         }
 
     @staticmethod
     def batch_sizes():
         return {
-            "mpt_instruct-6b7": 16,
+            "mpt-7b": 16,
         }
 
     def get_tokenizer(self):
         logging.info(f"Loading tokenizer for {self.model_name}")
+        # model was trained with gpt-neox-20b, so we use that tokenizer
         tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neox-20b", padding_side="left")
         # have to add a padding token, as processing is done in batches and required inputs to be padded,
         # but this tokenizer does not have a pad token by default.

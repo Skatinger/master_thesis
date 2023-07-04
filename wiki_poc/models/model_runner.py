@@ -14,7 +14,8 @@ from .runners.cerebras.cerebras_runner import CerebrasRunner
 from .runners.roberta_runner import RobertaRunner
 from .runners.t5.t5_runner import T5Runner
 from .runners.pythia.pythia_runner import PythiaRunner
-from .runners.mpt_instruct.mpt_instruct_runner import MPTInstructRunner
+from .runners.mpt.mpt_runner import MPTRunner
+from .runners.mpt.mpt_instruct_runner import MPTInstructRunner
 from .runners.incite_instruct.incite_instruct_runner import InciteInstructRunner
 from .runners.flan_t5.flan_t5_runner import FlanT5Runner
 from .runners.falcon.falcon_instruct_runner import FalconInstructRunner
@@ -39,6 +40,7 @@ def runners():
         "roberta": RobertaRunner,
         "t5": T5Runner,
         "pythia": PythiaRunner,
+        "mpt": MPTRunner,
         "mpt_instruct": MPTInstructRunner,
         "incite_instruct": InciteInstructRunner,
         "flan_t5": FlanT5Runner,
