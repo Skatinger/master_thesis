@@ -22,14 +22,14 @@ class PrecomputedPlotting():
         # convert results to dataframe format for easier plotting
         prepared_df = self.convert_to_df(self.results)
         self.plot_normal_to_instructional(self.results, prepared_df)
-        # self.plot_accuracy_progression(self.results, prepared_df)
-        # self.plot_best_performers(self.results, prepared_df)
-        # self.plot_with_huge(self.results, prepared_df)
-        # self.plot_accuracy_overview(self.results)
-        # self.plot_accuracy_overview_with_legend(self.results, prepared_df)
-        # self.plot_accuracy_input_size_comparison(self.results, prepared_df)
-        # self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
-        # self.tabulate_results_to_latex(self.results)
+        self.plot_accuracy_progression(self.results, prepared_df)
+        self.plot_best_performers(self.results, prepared_df)
+        self.plot_with_huge(self.results, prepared_df)
+        self.plot_accuracy_overview(self.results)
+        self.plot_accuracy_overview_with_legend(self.results, prepared_df)
+        self.plot_accuracy_input_size_comparison(self.results, prepared_df)
+        self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
+        self.tabulate_results_to_latex(self.results)
 
     @staticmethod
     def plot_with_huge(results, df2):
