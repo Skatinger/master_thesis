@@ -5,7 +5,7 @@ from transformers import AutoTokenizer
 
 from ..abstract_runner import AbstractRunner
 
-class MPTInstructRunner(AbstractRunner):
+class MPTRunner(AbstractRunner):
 
     @staticmethod
     def names():
