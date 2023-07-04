@@ -21,14 +21,15 @@ class PrecomputedPlotting():
     def plot(self):
         # convert results to dataframe format for easier plotting
         prepared_df = self.convert_to_df(self.results)
-        self.plot_accuracy_progression(self.results, prepared_df)
-        self.plot_best_performers(self.results, prepared_df)
-        self.plot_with_huge(self.results, prepared_df)
-        self.plot_accuracy_overview(self.results)
-        self.plot_accuracy_overview_with_legend(self.results, prepared_df)
-        self.plot_accuracy_input_size_comparison(self.results, prepared_df)
-        self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
-        self.tabulate_results_to_latex(self.results)
+        self.plot_normal_to_instructional(self.results, prepared_df)
+        # self.plot_accuracy_progression(self.results, prepared_df)
+        # self.plot_best_performers(self.results, prepared_df)
+        # self.plot_with_huge(self.results, prepared_df)
+        # self.plot_accuracy_overview(self.results)
+        # self.plot_accuracy_overview_with_legend(self.results, prepared_df)
+        # self.plot_accuracy_input_size_comparison(self.results, prepared_df)
+        # self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
+        # self.tabulate_results_to_latex(self.results)
 
     @staticmethod
     def plot_with_huge(results, df2):
@@ -136,7 +137,6 @@ class PrecomputedPlotting():
         sns.scatterplot(data=df2, x="size", y="accuracy", hue="model", s=300, markers=True, legend=False)
 
         # Add labels to each point with adjusted positions
-        print(df2['size'].max())
         for i, row in df2.iterrows():
             label_length = len(row['model'])
             # if the point is to the right of the plot, move the label to the left
@@ -232,11 +232,6 @@ class PrecomputedPlotting():
         plt.axhline(y=0.06, color='blue', linewidth=2.5, label="random names")
         plt.axhline(y=0.13, color='orange', linewidth=2.5, label="majority names")
 
-        # Annotate the baselines
-        # plt.annotate("random names", (df2['size'].min(), 0.06), xytext=(550, 5), textcoords='offset points', color='blue', fontsize='x-large')
-        # plt.annotate("majority names", (df2['size'].min(), 0.13), xytext=(550, 5), textcoords='offset points', color='orange', fontsize='x-large')
-
-        # plt.legend(bbox_to_anchor=(1.02, 1), borderaxespad=0., ncol=1,fontsize="large") # loc='upper left'
         plt.legend(fontsize="xx-large")
 
 
@@ -285,6 +280,76 @@ class PrecomputedPlotting():
 
 
     @staticmethod
+    def plot_normal_to_instructional(results, df2):
+        """expect df2 to contain each model twice, once for every compared input size"""
+        plt.figure(figsize=(20, 14))
+
+        # expect the following models
+        models = ["falcon", "roberta", "t5", "distilbert"]
+
+        df2["is_instructional"] = df2["model_class"].apply(
+            lambda x: "instruction tuned" if ("squad" in x or "flan" in x or "instruct" in x) else "normal")
+
+        my_font_size = 24
+        sns.scatterplot(data=df2, x="size", y="accuracy", hue="is_instructional", s=350, markers=True)
+
+        for i, row in df2.iterrows():
+            label_length = len(row['model'])
+            # if the point is to the right of the plot, move the label to the left
+            if row['size'] == df2['size'].max():
+                mv_left = - (label_length * 10.5)
+            # small hack for gptj, to make it fit as well
+            else:
+                mv_left = 12
+            plt.annotate(row['model_class'], (row['size'], row['accuracy']), xytext=(mv_left, -7), textcoords='offset points',
+                         fontsize=my_font_size)
+    
+        grouped_data = df2.groupby(df2["model"].str.extract(f"({'|'.join(models)})")[0])
+
+        for group, group_data in grouped_data:
+
+            # Sort the group data by 'size' in ascending order
+            sorted_data = group_data.sort_values('is_instructional')
+            
+            # Extract the x and y values for the two points
+            x1, y1 = sorted_data.iloc[0]['size'], sorted_data.iloc[0]['accuracy']
+            x2, y2 = sorted_data.iloc[1]['size'], sorted_data.iloc[1]['accuracy']
+            
+            # padding to not overlap labels
+            padding = 0.004
+            # Calculate the difference in y values
+            y_diff = abs(y2 - y1) - padding - 0.004 # remove dot radius
+
+            start = min(y1, y2) + padding
+            
+            # Draw the arrow from normal to instructional
+            plt.arrow(x1, start, 0, y_diff, head_width=0.1, head_length=0.003, width=0.015, color='black', length_includes_head=True)
+            
+            # Add the percentage score alongside the arrow, move text by "percentage_length" to the right
+            percentage_length = 0.75
+            plt.text(x1 + percentage_length, start + y_diff / 2, f'+{abs(y_diff):.2%}', ha='right', va='center', fontsize=my_font_size - 2)
+
+        
+        # Set labels and title
+        plt.xlabel("Size [Billion Parameters]", fontsize=my_font_size)
+        plt.ylabel("Accuracy", fontsize=my_font_size)
+
+        # Increase font size of tick labels
+        plt.xticks(fontsize=my_font_size)
+        plt.yticks(fontsize=my_font_size)
+
+        max_x = df2['size'].max()
+        plt.xlim(None, max_x + percentage_length)
+
+
+        legend = plt.legend(ncol=1, fontsize=my_font_size -2,
+                   markerscale=3.5, framealpha=1)
+        # plt.grid(True)
+
+        plt.savefig(f"evaluation/plotting/plots/plot_normal_to_instructional_{results['key']}.png")
+
+
+    @staticmethod
     def plot_accuracy_input_size_comparison(results, df2):
         """expect df2 to contain each model twice, once for every compared input size"""
         plt.figure(figsize=(20, 14))
@@ -323,7 +388,6 @@ class PrecomputedPlotting():
             start = min(y1, y2) + padding
             
             # Draw the arrow
-            # import pdb; pdb.set_trace()
             plt.arrow(x1, start, 0, y_diff, head_width=0.1, head_length=0.003, width=0.015, color='black', length_includes_head=True)
             
             # Add the percentage score alongside the arrow, move text by "percentage_length" to the right
