@@ -33,9 +33,9 @@ def main():
         factor = len(recent_rulings) / 10000
         shard = recent_rulings.shard(factor, 0)
 
-        with open("models/test_set_ids_rulings.csv", "w") as f:
+        with open("test_set_ids_rulings.csv", "w") as f:
             for i in shard:
-                f.write(i["id"] + "\n")
+                f.write(i["decision_id"] + "\n")
     
     else:
         print("Dataset not found. Please specify either wiki or rulings as argument.")
