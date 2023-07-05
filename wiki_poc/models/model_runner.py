@@ -97,6 +97,7 @@ def parse_options():
     parser.add_argument("-f", "--fast", help="Run only a subset of examples for each model.", action="store_true")
     parser.add_argument("-s", "--size", help="Run all models with a the same size. Options: T, XS, S, M, L, XL Format: model_size (e.g., 5b)", type=str)
     parser.add_argument("-o", "--options", help="Specify options for the model. Format: option1=value1,option2=value2", type=str)
+    parser.add_argument("-dt", "--dataset", help="Specify dataset to run on. Options: wiki,rulings", type=str, default="wiki")
 
     args = parser.parse_args()
     options = {}
@@ -117,14 +118,21 @@ def parse_options():
         models_list = []
 
     return models_list, args.size, args.model_class, args.key, args.exclude, args.device, args.save_memory, \
-           args.top_k, args.fast, args.dry_run, options
+           args.top_k, args.fast, args.dry_run, args.dataset, options
 
-def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_set_ids.csv"):
+def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_set_ids.csv", dataset_type = "wiki"):
     """load test dataset from cache or generates it from the full dataset and caches it
     Args:
         path (str, optional): path to cache. Defaults to "models/cache/reduced_test_set".
         ids_file_path (str, optional): path to file with page ids of test set. Defaults to "test_set_ids.csv".
+        dataset_type (str, optional): dataset type. Defaults to "wiki". specifies which dataset to use.
     """
+    if dataset_type == "rulings":
+        path = path + "_rulings"
+        ids_file_path = ids_file_path + "_rulings"
+        dataset_name = "rcds/swiss_rulings"
+    else:
+        dataset_name = "Skatinger/wikipedia-persons-masked"
     # load cached dataset if it exists
     if os.path.exists(path):
         dataset = Dataset.load_from_disk(path)
@@ -132,7 +140,7 @@ def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_
         assert os.path.exists(ids_file_path), f"{ids_file_path} file not found. Please run generate_test_set_ids.py first."
         logging.info("No cached test dataset found, generating it from full dataset.")
         # load full dataset
-        dataset = load_dataset('Skatinger/wikipedia-persons-masked', split='train')
+        dataset = load_dataset(dataset_name, split='train')
         # get set of page ids which are in the test_set_ids.csv file
         test_set_ids = set([i.strip() for i in open(ids_file_path).readlines()])
         # filter out pages from dataset which are not in the test set
@@ -168,7 +176,7 @@ def check_model_exists(model_name):
                          "Please choose one of the following models: ", get_all_model_names())
 
 def main():
-    models_to_run, model_size_to_run, model_class_to_run, key, excluded, device, save_memory, top_k, fast, dry_run, options = parse_options()
+    models_to_run, model_size_to_run, model_class_to_run, key, excluded, device, save_memory, top_k, fast, dry_run, dataset_type, options = parse_options()
     if len(models_to_run) > 0:
         for model in models_to_run:
             check_model_exists(model)
@@ -201,11 +209,11 @@ def main():
     # create folder for run
     os.makedirs(f"results/{key}", exist_ok=True)
 
-    # load the test set of pages
+    # load the test set of pages        
     if "ids_file_path" in options.keys():
-        test_set = load_test_set(ids_file_path=options["ids_file_path"])
+        test_set = load_test_set(ids_file_path=options["ids_file_path"], dataset_type=dataset_type)
     else:
-        test_set = load_test_set()
+        test_set = load_test_set(dataset_type=dataset_type)
     # only select a range if specified
     if fast:
         test_set = test_set.select(range(100))
