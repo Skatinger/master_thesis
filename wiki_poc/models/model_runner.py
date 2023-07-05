@@ -5,9 +5,7 @@ from datetime import datetime
 from datasets import load_dataset, Dataset
 logging.basicConfig(level=logging.INFO)
 
-# TODOS:
-# - add checkpointing for longer processing of single models
-
+from dataset.rulings.rulings import RulingsPreparer
 
 from .runners.bloomz.bloomz_runner import BloomzRunner
 from .runners.cerebras.cerebras_runner import CerebrasRunner
@@ -58,6 +56,9 @@ def runners():
         "majority_full_name": MajorityNameRunner,
         "random_full_name": RandomNameRunner,
     }
+
+def prepare_rulings_dataset(dataset):
+    return RulingsPreparer(dataset).prepare_rulings(dataset)
 
 def run_model(model_name, test_set, options):
     model_class = model_name.split("-")[0]
@@ -129,7 +130,7 @@ def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_
     """
     if dataset_type == "rulings":
         path = path + "_rulings"
-        ids_file_path = ids_file_path + "_rulings"
+        ids_file_path = ids_file_path.split(".")[0] + "_rulings.csv"
         dataset_name = "rcds/swiss_rulings"
     else:
         dataset_name = "Skatinger/wikipedia-persons-masked"
@@ -141,10 +142,14 @@ def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_
         logging.info("No cached test dataset found, generating it from full dataset.")
         # load full dataset
         dataset = load_dataset(dataset_name, split='train')
-        # get set of page ids which are in the test_set_ids.csv file
+        # get set of page ids which are in the test_set_ids(_rulings).csv file
         test_set_ids = set([i.strip() for i in open(ids_file_path).readlines()])
         # filter out pages from dataset which are not in the test set
-        dataset = dataset.filter(lambda x: x["id"] in test_set_ids, num_proc=8)
+        if dataset_type == "rulings":
+            dataset = dataset.filter(lambda x: x["decision_id"] in test_set_ids, num_proc=8)
+            dataset = prepare_rulings_dataset(dataset)
+        else:
+            dataset = dataset.filter(lambda x: x["id"] in test_set_ids, num_proc=8)
         # save dataset to cache
         dataset.save_to_disk(path)
     return dataset
@@ -209,7 +214,11 @@ def main():
     # create folder for run
     os.makedirs(f"results/{key}", exist_ok=True)
 
-    # load the test set of pages        
+    if dataset_type == "rulings":
+         # only run original config for rulings
+         options["configs"] = "original"
+
+    # load the test set of pages
     if "ids_file_path" in options.keys():
         test_set = load_test_set(ids_file_path=options["ids_file_path"], dataset_type=dataset_type)
     else:
@@ -241,9 +250,6 @@ def main():
             logging.info("  - %s", model)
 
         for model_name in model_names:
-            # TODO: get prepared examples dataset and pass it to run_model,
-            # so that it doesn't have to be loaded for each model, as prompts are the same for all models
-            # of the same model class
             run_model(model_name, test_set, options)
     # run all models of a specific size
     elif model_size_to_run:
