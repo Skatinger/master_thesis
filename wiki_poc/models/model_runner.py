@@ -26,6 +26,7 @@ from .runners.distilbert.distilbert_qa_runner import DistilbertQARunner
 from .runners.deberta.deberta_runner import DebertaRunner
 from .runners.deberta.deberta_qa_runner import DebertaQARunner
 from .runners.roberta.roberta_qa_runner import RobertaQARunner
+from .runners.xlm_roberta.xlm_roberta_runner import XLMRobertaRunner
 
 from .runners.baselines.majority_name_runner import MajorityNameRunner
 from .runners.baselines.random_name_runner import RandomNameRunner
@@ -55,7 +56,20 @@ def runners():
         "roberta_squad": RobertaQARunner,
         "majority_full_name": MajorityNameRunner,
         "random_full_name": RandomNameRunner,
+        # special models for rulings
+        "legal_swiss_longformer": XLMRobertaRunner,
+        "legal_xlm_longformer": XLMRobertaRunner,
+        "legal_swiss_roberta": XLMRobertaRunner,
+        "legal_xlm_roberta": XLMRobertaRunner,
     }
+
+def models_for_rulings():
+    return [
+        "legal_swiss_longformer",
+        "legal_xlm_longformer",
+        "legal_swiss_roberta",
+        "legal_xlm_roberta",
+    ]
 
 def prepare_rulings_dataset(dataset):
     return RulingsPreparer(dataset).prepare_rulings(dataset)
@@ -163,17 +177,25 @@ def get_models_by_size(model_size):
             model_names.append(model[model_size])
     return model_names
 
-def get_all_model_names(model_class=None, model_size=None):
-    """returns a list of all names of available models, optionally filtered by model class"""
+def get_all_model_names(model_class=None, model_size=None, dataset_type="wiki"):
+    """returns a list of all names of available models, optionally filtered by model class
+       if no class/size is specified, all models are returned. For the rulings dataset, if no class or size is specified,
+       only the models which are available for the rulings dataset are returned.
+    """
     if model_class and model_size:
-        return [runners()[model_class].sizes()[model_size]]
+        return list(set([runners()[model_class].sizes()[model_size]]))
     elif model_class:
-        return list(runners()[model_class].names().keys())
+        return list(set(list(runners()[model_class].names().keys())))
     elif model_size:
         return get_models_by_size(model_size)
     else:
         nested = [runner.names().keys() for runner in runners().values()]
-        return [item for sublist in nested for item in sublist]
+        models = list(set([item for sublist in nested for item in sublist]))
+        # if dataset_type == "rulings" only keep models which are available for the rulings dataset
+        if dataset_type == "rulings":
+            # keep the model if its model_class is in the list of models which are available for the rulings dataset
+            models = [model for model in models if model.split("-")[0] in "".join(models_for_rulings())]
+        return models
 
 def check_model_exists(model_name):
     if model_name not in get_all_model_names():
@@ -214,9 +236,13 @@ def main():
     # create folder for run
     os.makedirs(f"results/{key}", exist_ok=True)
 
+    # if configs are specified, split them into a list
+    if "configs" in options.keys() and not isinstance(options["configs"], list):
+        options["configs"] = options.split(",")
+
     if dataset_type == "rulings":
          # only run original config for rulings
-         options["configs"] = "original"
+         options["configs"] = ["original"]
 
     # load the test set of pages
     if "ids_file_path" in options.keys():
@@ -266,7 +292,7 @@ def main():
             run_model(model_name, test_set, options)
     else:
         # retrieve all models of all runners
-        model_names = get_all_model_names()
+        model_names = get_all_model_names(dataset_type=dataset_type)
         if len(excluded) > 0:
             # remove excluded models
             model_names = [model for model in model_names if model not in excluded]

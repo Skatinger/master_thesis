@@ -59,6 +59,8 @@ class AbstractRunner():
         if "device" in options:
             self.device_number = options["device"]
         if "configs" in options:
+            if not isinstance(options["configs"], list):
+                raise ValueError("Option configs must be a list")
             self.configs = options["configs"]
         self.options = options
     
