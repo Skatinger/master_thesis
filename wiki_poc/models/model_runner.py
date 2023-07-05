@@ -27,6 +27,7 @@ from .runners.deberta.deberta_runner import DebertaRunner
 from .runners.deberta.deberta_qa_runner import DebertaQARunner
 from .runners.roberta.roberta_qa_runner import RobertaQARunner
 from .runners.xlm_roberta.xlm_roberta_runner import XLMRobertaRunner
+from .runners.mt5.mt5_runner import MT5Runner
 
 from .runners.baselines.majority_name_runner import MajorityNameRunner
 from .runners.baselines.random_name_runner import RandomNameRunner
@@ -38,6 +39,7 @@ def runners():
         "cerebras": CerebrasRunner,
         "roberta": RobertaRunner,
         "t5": T5Runner,
+        "mt5": MT5Runner,
         "pythia": PythiaRunner,
         "mpt": MPTRunner,
         "mpt_instruct": MPTInstructRunner,
@@ -69,6 +71,8 @@ def models_for_rulings():
         "legal_xlm_longformer",
         "legal_swiss_roberta",
         "legal_xlm_roberta",
+        "mt5",
+        "bloomz",
     ]
 
 def prepare_rulings_dataset(dataset):
