@@ -361,6 +361,5 @@ class Evaluator:
 
         accuracy = num_correct / len(examples)
 
-        import pdb; pdb.set_trace()
         return accuracy
 

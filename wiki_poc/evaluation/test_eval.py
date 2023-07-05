@@ -10,5 +10,4 @@ ev.compute_accuracy_matrix()
 
 ev.join_examples_by_page()
 
-# import pdb; pdb.set_trace()
 ev.most_frequent_prediction_accuracy(ev.by_page)
