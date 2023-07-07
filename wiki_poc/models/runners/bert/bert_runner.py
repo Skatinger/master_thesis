@@ -1,7 +1,7 @@
 
 from ..abstract_fill_mask_runner import AbstractFillMaskRunner
 from datasets import Dataset
-from pipelines.pt_utils import KeyDataset
+from transformers.pipelines.pt_utils import KeyDataset
 from tqdm import tqdm
 
 class BertRunner(AbstractFillMaskRunner):
