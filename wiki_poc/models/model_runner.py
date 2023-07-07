@@ -69,6 +69,7 @@ def runners():
     }
 
 def models_for_rulings():
+    """careful: this will also match models which have a substring of the name, e.g. "t5" will match "mt5" """
     return [
         "legal_swiss_longformer",
         "legal_xlm_longformer",
@@ -76,6 +77,8 @@ def models_for_rulings():
         "legal_xlm_roberta",
         "mt5",
         "bloomz",
+        "bert",
+        "swiss_bert",
     ]
 
 def prepare_rulings_dataset(dataset):
