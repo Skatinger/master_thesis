@@ -39,9 +39,9 @@ class BertRunner(AbstractFillMaskRunner):
         preds['language'] = []
         result_dataset = Dataset.from_dict(preds)
         languages = {
-            "de": "de_DE",
-            "fr": "fr_XX",
-            "it": "it_IT",
+            "de": "de_CH",
+            "fr": "fr_CH",
+            "it": "it_CH",
         }
         language_filtered_dataset = {}
 
