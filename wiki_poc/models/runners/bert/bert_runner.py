@@ -3,6 +3,7 @@ from ..abstract_fill_mask_runner import AbstractFillMaskRunner
 from datasets import Dataset
 from transformers.pipelines.pt_utils import KeyDataset
 from tqdm import tqdm
+import logging
 
 class BertRunner(AbstractFillMaskRunner):
 
@@ -28,7 +29,8 @@ class BertRunner(AbstractFillMaskRunner):
     def run_pipe(self, dataset, pipe, config, batch_size=2):
         """overwrite run_pipe to allow setting the correct language header"""
         if not "language" in dataset.column_names:
-            pipe.model.set_default_language("en_US")
+            logging.warning("No language column found in dataset, using default language de_CH.")
+            pipe.model.set_default_language("de_CH")
             return super().run_pipe(dataset, pipe, config, batch_size)
 
         preds = {}
