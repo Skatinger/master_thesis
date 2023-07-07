@@ -28,7 +28,7 @@ class BertRunner(AbstractFillMaskRunner):
     def run_pipe(self, dataset, pipe, config, batch_size=2):
         """overwrite run_pipe to allow setting the correct language header"""
         if not "language" in dataset.column_names:
-            pipe.model.set_default_language("en_XX")
+            pipe.model.set_default_language("en_US")
             return super().run_pipe(dataset, pipe, config, batch_size)
 
         preds = {}
