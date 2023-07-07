@@ -3,6 +3,10 @@
 from datasets import Dataset
 import re
 
+
+# TODO: add language for xlm models to set default language
+# TODO: some type of paraphrasing to make text shorter
+
 class RulingsPreparer():
 
     def __init__(self, dataset: Dataset) -> Dataset:
@@ -22,7 +26,7 @@ class RulingsPreparer():
         return example
     
     def remove_unnecessary_columns(self, dataset):
-        required_columns = ["id", "masked_text_original"]
+        required_columns = ["id", "masked_text_original", "language"]
         remove = [column for column in dataset.column_names if column not in required_columns]
         dataset = dataset.remove_columns(remove)
         return dataset
