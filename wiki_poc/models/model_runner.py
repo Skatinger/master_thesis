@@ -28,6 +28,7 @@ from .runners.deberta.deberta_qa_runner import DebertaQARunner
 from .runners.roberta.roberta_qa_runner import RobertaQARunner
 from .runners.xlm_roberta.xlm_roberta_runner import XLMRobertaRunner
 from .runners.mt5.mt5_runner import MT5Runner
+from .runners.bert.bert_runner import BertRunner
 
 from .runners.baselines.majority_name_runner import MajorityNameRunner
 from .runners.baselines.random_name_runner import RandomNameRunner
@@ -63,6 +64,8 @@ def runners():
         "legal_xlm_longformer": XLMRobertaRunner,
         "legal_swiss_roberta": XLMRobertaRunner,
         "legal_xlm_roberta": XLMRobertaRunner,
+        "swiss_bert": BertRunner,
+        "bert": BertRunner,
     }
 
 def models_for_rulings():
