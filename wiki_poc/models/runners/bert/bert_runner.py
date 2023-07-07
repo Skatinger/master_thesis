@@ -23,8 +23,3 @@ class BertRunner(AbstractFillMaskRunner):
             "xlm_swiss_bert-0b110": 64,
         }
 
-    def _model_loader(self):
-        return RobertaForMaskedLM
-
-    def _tokenizer_loader(self):
-        return RobertaTokenizer
