@@ -8,6 +8,7 @@ logging.basicConfig(level=logging.INFO)
 from dataset.rulings.rulings import RulingsPreparer
 
 from .runners.bloomz.bloomz_runner import BloomzRunner
+from .runners.bloom.bloom_runner import BloomRunner
 from .runners.cerebras.cerebras_runner import CerebrasRunner
 from .runners.roberta_runner import RobertaRunner
 from .runners.t5.t5_runner import T5Runner
@@ -66,6 +67,7 @@ def runners():
         "legal_xlm_roberta": XLMRobertaRunner,
         "swiss_bert": BertRunner,
         "bert": BertRunner,
+        "bloom": BloomRunner,
     }
 
 def models_for_rulings():
