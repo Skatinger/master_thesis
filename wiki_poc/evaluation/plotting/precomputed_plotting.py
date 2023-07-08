@@ -362,11 +362,12 @@ class PrecomputedPlotting():
         my_font_size = 24
         sns.scatterplot(data=df2, x="size", y="accuracy", hue="input_size", s=350, markers=True)
 
-        for i, row in df2.iterrows():
-            label_length = len(row['model'])
-            mv_left = label_length * 2 + -5
-            plt.annotate(row['model_class'], (row['size'], row['accuracy']), xytext=(-mv_left, 12), textcoords='offset points',
-                         fontsize=my_font_size)
+        # for i, row in df2.iterrows():
+        #     label_length = len(row['model'])
+        #     # only label the top-most
+        #     mv_left = label_length * 2 + -5
+        #     plt.annotate(row['model_class'], (row['size'], row['accuracy']), xytext=(-mv_left, 12), textcoords='offset points',
+        #                  fontsize=my_font_size)
         
 
         grouped_data = df2.groupby('model_class')
@@ -383,29 +384,28 @@ class PrecomputedPlotting():
             # padding to not overlap labels
             padding = 0.008
             # Calculate the difference in y values
-            y_diff = abs(y2 - y1) - padding - 0.002 # remove dot radius
+            y_diff = abs(y2 - y1) - 0.006 # remove dot radius
 
-            start = min(y1, y2) + padding
+            start = min(y1, y2) + 0.003
+            if len(sorted_data) == 2:
+                start += padding
+                y_diff -= padding
             
             # Draw the arrow
             plt.arrow(x1, start, 0, y_diff, head_width=0.1, head_length=0.003, width=0.015, color='black', length_includes_head=True)
             
             # Add the percentage score alongside the arrow, move text by "percentage_length" to the right
-            percentage_length = 0.8
+            percentage_length = 0.86
             plt.text(x1 + percentage_length, start + y_diff / 2, f'+{abs(y_diff):.2%}', ha='right', va='center', fontsize=my_font_size - 2)
 
             # got a third point, compare it as well
             if len(sorted_data) == 3:
                 x3, y3 = sorted_data.iloc[2]['size'], sorted_data.iloc[2]['accuracy']
-                print("model", group)
-                print("x2", x1, "y2", y1)
-                print("x3", x3, "y3", y3)
 
                 # Calculate the difference in y values
-                y_diff = abs(y3 - y1) - padding - 0.004 # remove dot radius
+                y_diff = abs(y3 - y1) - 0.006 # remove dot radius
 
-                start = min(y1, y3) + 0.01
-                print("start", start)
+                start = min(y1, y3) + 0.003
 
                 # Draw the arrow
                 plt.arrow(x2, start, 0, y_diff, head_width=0.1, head_length=0.003, width=0.015, color='black', length_includes_head=True)
@@ -413,6 +413,23 @@ class PrecomputedPlotting():
                 # Add the percentage score alongside the arrow, move text by "percentage_length" to the right
                 percentage_length = 0.8
                 plt.text(x2 + percentage_length, start + y_diff / 2, f'+{abs(y_diff):.2%}', ha='right', va='center', fontsize=my_font_size - 2)
+
+                # add the model label
+                entry = sorted_data.iloc[2]
+                label_length = len(entry['model'])
+                # only label the top-most
+                mv_left = label_length * 2 + -5
+                plt.annotate(entry['model_class'], (entry['size'], entry['accuracy']), xytext=(-mv_left, 12), textcoords='offset points',
+                            fontsize=my_font_size)
+            else:
+                # add the model label
+                entry = sorted_data.iloc[1]
+                label_length = len(entry['model'])
+                # only label the top-most
+                mv_left = label_length * 2 + -5
+                plt.annotate(entry['model_class'], (entry['size'], entry['accuracy']), xytext=(-mv_left, 12), textcoords='offset points',
+                            fontsize=my_font_size)
+
 
 
         # Set labels and title
