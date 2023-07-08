@@ -1,0 +1,24 @@
+{
+    "key": "largest-input",
+    "flan_t5-11b": {
+        "size": 11.0,
+        "paraphrased": {
+            "accuracy": 0.5409386428281187,
+            "precision": 0.4144256277594555
+        }
+    },
+    "incite_instruct-3b": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.4781592848435595,
+            "precision": 0.5139632965771191
+        }
+    },
+    "bloomz-7b1": {
+        "size": 7.1,
+        "paraphrased": {
+            "accuracy": 0.5169646485168631,
+            "precision": 0.41195657662890683
+        }
+    }
+}
