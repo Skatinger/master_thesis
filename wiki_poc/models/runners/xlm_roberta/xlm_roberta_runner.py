@@ -25,12 +25,12 @@ class XLMRobertaRunner(AbstractFillMaskRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "legal_swiss_longformer-0b279": 32,
-            "legal_xlm_longformer-0b279": 32,
-            "legal_swiss_roberta-0b279": 32,
-            "legal_swiss_roberta-0b561": 32,
-            "legal_xlm_roberta-0b279": 32,
-            "legal_xlm_roberta-0b561": 32,
+            "legal_swiss_longformer-0b279": 16,
+            "legal_xlm_longformer-0b279": 16,
+            "legal_swiss_roberta-0b279": 16,
+            "legal_swiss_roberta-0b561": 16,
+            "legal_xlm_roberta-0b279": 16,
+            "legal_xlm_roberta-0b561": 16,
         }
 
     def _model_loader(self):
