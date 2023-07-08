@@ -49,7 +49,7 @@ class BertRunner(AbstractFillMaskRunner):
 
         # convert dataset to dataset shard for each language
         for language, language_name in languages.items():
-            language_filtered_dataset[language] = dataset.filter(lambda x: x['language'] == language_name)
+            language_filtered_dataset[language] = dataset.filter(lambda x: x['language'] == language)
 
         for language, filtered_dataset in language_filtered_dataset.items():
             pipe.model.set_default_language(languages[language])
