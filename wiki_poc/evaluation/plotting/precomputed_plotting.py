@@ -394,6 +394,27 @@ class PrecomputedPlotting():
             percentage_length = 0.8
             plt.text(x1 + percentage_length, start + y_diff / 2, f'+{abs(y_diff):.2%}', ha='right', va='center', fontsize=my_font_size - 2)
 
+            # got a third point, compare it as well
+            if len(sorted_data) == 3:
+                x3, y3 = sorted_data.iloc[2]['size'], sorted_data.iloc[2]['accuracy']
+                print("model", group)
+                print("x2", x1, "y2", y1)
+                print("x3", x3, "y3", y3)
+
+                # Calculate the difference in y values
+                y_diff = abs(y3 - y1) - padding - 0.004 # remove dot radius
+
+                start = min(y1, y3) + 0.01
+                print("start", start)
+
+                # Draw the arrow
+                plt.arrow(x2, start, 0, y_diff, head_width=0.1, head_length=0.003, width=0.015, color='black', length_includes_head=True)
+
+                # Add the percentage score alongside the arrow, move text by "percentage_length" to the right
+                percentage_length = 0.8
+                plt.text(x2 + percentage_length, start + y_diff / 2, f'+{abs(y_diff):.2%}', ha='right', va='center', fontsize=my_font_size - 2)
+
+
         # Set labels and title
         plt.xlabel("Size [Billion Parameters]", fontsize=my_font_size)
         plt.ylabel("Accuracy", fontsize=my_font_size)
