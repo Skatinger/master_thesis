@@ -25,7 +25,7 @@ class BloomRunner(AbstractRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "bloom-1b1": 32,
+            "bloom-1b1": 16,
             "bloom-1b7": 16,
             "bloom-3b": 8,
             "bloom-7b1": 8,
