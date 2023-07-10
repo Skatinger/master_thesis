@@ -9,7 +9,7 @@ from dataset.rulings.rulings import RulingsPreparer
 
 from .runners.bloomz.bloomz_runner import BloomzRunner
 from .runners.bloom.bloom_runner import BloomRunner
-from runners.mt0.mt0_runner import MT0Runner
+from .runners.mt0.mt0_runner import MT0Runner
 from .runners.cerebras.cerebras_runner import CerebrasRunner
 from .runners.roberta_runner import RobertaRunner
 from .runners.t5.t5_runner import T5Runner
