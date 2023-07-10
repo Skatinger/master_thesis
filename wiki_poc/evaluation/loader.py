@@ -16,6 +16,9 @@ class ResultLoader():
 
     def load_gt(self):
         return load_test_set()
+    
+    def load_rulings_gt(self, dataset_type = "rulings"):
+        return load_test_set(dataset_type=dataset_type)
 
     def load(self, key, model_name = None, model_class = None):
         """loads and returns all results as dict. can be filtered by model_class or model_name
