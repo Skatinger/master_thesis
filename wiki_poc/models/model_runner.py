@@ -47,6 +47,7 @@ def runners():
         "mpt": MPTRunner,
         "mpt_instruct": MPTInstructRunner,
         "incite_instruct": InciteInstructRunner,
+        "incite": InciteInstructRunner,
         "flan_t5": FlanT5Runner,
         "falcon_instruct": FalconInstructRunner,
         "gptj": GPTJRunner,
