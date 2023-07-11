@@ -115,6 +115,7 @@ class AbstractRunner():
                 logging.info("Model is very large, loading with custom device map. Use --memory-saving if batches do not fit.")
                 return self.load_mapped_model(model_path)
             else:
+                logging.info("Loading model in 8bit.")
                 return self._model_loader().from_pretrained(model_path, load_in_8bit=True, torch_dtype=torch.float16, device_map="auto")
         else:
             logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
