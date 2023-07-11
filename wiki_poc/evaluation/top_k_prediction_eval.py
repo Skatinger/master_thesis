@@ -31,8 +31,8 @@ class TopKPredictionEvaluator:
             predicted_string += f" {prediction}"
 
         # normalize min_distance by the length of the title
-        longer = max(min_distance, len(page["title"]))
-        min_distance = min_distance / longer
+        if not min_distance == 0:
+            min_distance = min_distance / len(page["title"])
 
         # usefull for debugging insights
         # if any_correct > 0 and min_distance < 0.3:
