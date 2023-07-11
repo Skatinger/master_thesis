@@ -82,7 +82,7 @@ if __name__ == "__main__":
         except Exception as e:
             logging.error(e)
             # sleep a few seconds, then try again
-            time.sleep(5)
+            time.sleep(60)
             response = openai.ChatCompletion.create(
                 model=MODEL_NAME,
                 messages=[
@@ -91,9 +91,9 @@ if __name__ == "__main__":
                 temperature=0.5,
                 max_tokens=10,
                 top_p=1,
-                n=1,
+                n=5,
                 frequency_penalty=0,
-                presence_penalty=0,
+                presence_penalty=1,
                 stop=["\n"]
             )
 
@@ -101,11 +101,11 @@ if __name__ == "__main__":
         my_dict = {}
         my_dict["page_id"] = page["id"]
         my_dict["input_length"] = len(input)
-        for i, result in enumerate(response["choices"].values()):
+        for i, result in enumerate(response["choices"]):
             my_dict[f"prediction_{i}"] = result["message"]["content"]
         
         result_dataset.add_item(my_dict)
-        result_dataset = result_dataset.add_item()
+        result_dataset = result_dataset.add_item(my_dict)
     
         # periodically save file
         if index % 100 == 0:
@@ -113,7 +113,7 @@ if __name__ == "__main__":
             result_dataset.to_json(PATH)
         
         # sleep for 5 seconds to avoid rate limit
-        time.sleep(5)
+        time.sleep(8)
 
     # save dataset
     logging.info('Saving dataset to path %s', PATH)
