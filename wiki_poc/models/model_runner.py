@@ -231,7 +231,7 @@ def main():
                                 "Please choose one of the following models: ", get_all_model_names())
 
     if "input_length" in options.keys() and int(options["input_length"]) > 1000:
-        logging.warn("Inputs longer than 1000 characters might not fit all models and will be truncated automatically.")
+        logging.warning("Inputs longer than 1000 characters might not fit all models and will be truncated automatically.")
 
     if key is None:
         # generate key from time and date
