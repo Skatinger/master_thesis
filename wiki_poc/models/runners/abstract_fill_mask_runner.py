@@ -45,10 +45,22 @@ class AbstractFillMaskRunner(AbstractRunner):
             df = self.dataset.map(lambda x: {f"masked_text_{config}": x[f"masked_text_{config}"][:self.input_length]}, num_proc=8)
             # remove all examples which do no longer contain a mask
             df = df.filter(lambda x: '<mask>' in x[f"masked_text_{config}"], num_proc=8)
+            # for the fill mask models, the FillmaskPipelineWithTruncation is used, which truncates the input text,
+            # which can lead to the mask token being truncated. Tokenize the input text here to ensure the mask is
+            # not truncated.
+            logging.info(f"Checking if mask token is truncated for {config}, this may take a while...")
+            df = df.filter(lambda x: self.has_mask_after_truncation(x[f"masked_text_{config}"]), num_proc=8)
             # convert mask tokens to mask token format used by the model
             if self.tokenizer.mask_token != '<mask>':
                 df = df.map(lambda x: {f"masked_text_{config}": x[f"masked_text_{config}"].replace('<mask>', self.tokenizer.mask_token)}, num_proc=8)
             self.examples[config] = df
+
+    def has_mask_after_truncation(self, text):
+        """returns true or false if mask token is in input_ids after truncation"""
+        tokenized = self.tokenizer(text, return_tensors="pt", truncation=True, padding='max_length')
+        # check if mask token is in input_ids
+        mask_token_id = self.tokenizer.mask_token_id
+        return mask_token_id in tokenized['input_ids']
 
     def load_pipe(self):
         logging.info(f"Loading pipeline for {self.model_name}")
@@ -201,5 +213,6 @@ class FillMaskPipelineWithTruncation(FillMaskPipeline):
         if return_tensors is None:
             return_tensors = self.framework
         model_inputs = self.tokenizer(inputs, return_tensors=return_tensors, truncation=True, padding='max_length')
+        # ensure there is still a mask after truncation
         self.ensure_exactly_one_mask_token(model_inputs)
         return model_inputs
