@@ -68,6 +68,7 @@ def runners():
         "legal_swiss_roberta": XLMRobertaRunner,
         "legal_xlm_roberta": XLMRobertaRunner,
         "swiss_bert": BertRunner,
+        "xlm_swiss_bert": BertRunner,
         "bert": BertRunner,
         "bloom": BloomRunner,
     }
