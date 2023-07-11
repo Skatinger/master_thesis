@@ -26,6 +26,13 @@ class BertRunner(AbstractFillMaskRunner):
             "xlm_swiss_bert-0b110": 64,
         }
     
+    def get_tokenizer(self):
+        tokenizer = super().get_tokenizer()
+        if self.model_name == "xlm_swiss_bert-0b110":
+            # this model does not have a maximum input length as default, so we set it manually...
+            tokenizer.model_max_length = 512
+        return tokenizer
+    
     def run_pipe(self, dataset, pipe, config, batch_size=2):
         """overwrite run_pipe to allow setting the correct language header"""
         if not "language" in dataset.column_names:
