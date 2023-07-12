@@ -65,5 +65,49 @@
             "accuracy": 0.07950085538895038,
             "precision": 0.6840410915039827
         }
+    },
+    "mpt-7b": {
+        "size": 7.0,
+        "paraphrased": {
+            "accuracy": 0.2014736842105263,
+            "precision": 0.5004159387485629
+        },
+        "original": {
+            "accuracy": 0.24725772365905202,
+            "precision": 0.5534898337739852
+        }
+    },
+    "mpt_instruct-6b7": {
+        "size": 6.7,
+        "paraphrased": {
+            "accuracy": 0.19989473684210526,
+            "precision": 0.5599276646722522
+        },
+        "original": {
+            "accuracy": 0.1899969809801751,
+            "precision": 0.6014279620321741
+        }
+    },
+    "incite_instruct-3b": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.3737894736842105,
+            "precision": 0.5137663166792305
+        },
+        "original": {
+            "accuracy": 0.38261044580859416,
+            "precision": 0.5587809169443483
+        }
+    },
+    "incite-3b": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.16515789473684211,
+            "precision": 0.5436236541223217
+        },
+        "original": {
+            "accuracy": 0.13484955217872596,
+            "precision": 0.6399902881825141
+        }
     }
 }
