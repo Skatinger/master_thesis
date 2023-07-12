@@ -1,8 +1,7 @@
 
-from ..abstract_runner import AbstractRunner
+from ..abstract_text_to_text_runner import AbstractTextToTextRunner
 
-
-class MT0Runner(AbstractRunner):
+class MT0Runner(AbstractTextToTextRunner):
 
     @staticmethod
     def names():
