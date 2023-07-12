@@ -2,7 +2,7 @@ from .abstract_runner import AbstractRunner
 import logging
 import torch
 import os
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 # TODO: caching for columns is no longer working correctly, model will always predict top_k results,
 #       regardless of wether they are cached or not (e.g. 2 predictions cached, but 5 requested)
@@ -25,6 +25,10 @@ class AbstractTextToTextRunner(AbstractRunner):
         model_path = self.names()[self.model_name]
         tokenizer = AutoTokenizer.from_pretrained(model_path, truncation=True, padding="longest")
         return tokenizer
+    
+    @staticmethod
+    def _model_loader():
+        return AutoModelForSeq2SeqLM
 
     def run_model(self):
         # check if results already exist
