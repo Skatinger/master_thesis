@@ -43,6 +43,7 @@ def runners():
         "roberta": RobertaRunner,
         "t5": T5Runner,
         "mt5": MT5Runner,
+        "mt0": MT0Runner,
         "pythia": PythiaRunner,
         "mpt": MPTRunner,
         "mpt_instruct": MPTInstructRunner,
