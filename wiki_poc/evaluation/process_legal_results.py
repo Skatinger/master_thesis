@@ -74,7 +74,7 @@ def main():
     del final_df['total_length']
 
     # Save the final dataframe to a CSV file
-    final_df.to_csv("final_output.csv", index=False)
+    final_df.to_csv(f"{key}-for-BG.csv", index=False)
 
 
 if __name__ == "__main__":
