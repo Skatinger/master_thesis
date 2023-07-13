@@ -4,22 +4,21 @@
         "size": 175.0,
         "paraphrased": {
             "accuracy": 0.5198,
-            "precision": 3.834936514043863
-        },
-        "original": {
-            "accuracy": 0.5972,
-            "precision": 3.9035498995311455
+            "precision": 0.21928311941178238
         }
     },
     "bloomz-176b": {
         "size": 176.0,
         "paraphrased": {
             "accuracy": 0.2824,
-            "precision": 10.01912181303116
-        },
-        "original": {
-            "accuracy": 0.3143,
-            "precision": 9.706649697741012
+            "precision": 0.665241563140063
+        }
+    },
+    "wiki_predictions_gpt_4-175b": {
+        "size": 175.0,
+        "paraphrased": {
+            "accuracy": 0.7081,
+            "precision": 0.16257780051799556
         }
     }
 }
