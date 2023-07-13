@@ -7,13 +7,16 @@ from evaluation.loader import ResultLoader
 class TopKPredictionEvaluator:
     
     @staticmethod
-    def compute_precision_for_page(page, k_runs):
-        # compute precision with levensthein distance
+    def compute_metrics_for_page(page, k_runs):
+        """  computes the two metrics 'Partial Name Match Score' and 'String Edit Distance' for a given page
+             referred to as "accuracy" and "precision" in the dataset.
+        """
+        # compute string edit distance with levensthein distance
         distances = {}
         for i in range(k_runs):
             distances[f"prediction_{i}"] = Levenshtein.distance(page["prediction_" + str(i)], page["title"], score_cutoff=15)
         
-        ## compute accuracy with regex
+        ## use a regex to check if any of the predictions contains a substring of the title
         regex = "|".join(['.*(' + nameFragment + ').*' for nameFragment in page["title"].split()])
         predicted_string = ""
         any_correct = False
@@ -21,7 +24,7 @@ class TopKPredictionEvaluator:
         min_distance = sys.maxsize
         top_prediction = ""
         for i in range(k_runs):
-            prediction = page["prediction_" + str(i)]
+            prediction = page[f"prediction_{i}"]
             if re.search(regex, prediction):
                 any_correct = True
                 # use the minimum distance of all predictions which were classified as correct
@@ -74,7 +77,7 @@ class TopKPredictionEvaluator:
                         # add a key 'prediction_0' to each example with the same value as 'prediction'
                         mappable = mappable.map(lambda x: {**x, "prediction_0": x["prediction"]})
                         k_runs = 1
-                    computed = mappable.map(TopKPredictionEvaluator.compute_precision_for_page, num_proc=8, remove_columns=mappable.column_names, fn_kwargs={'k_runs': k_runs})
+                    computed = mappable.map(TopKPredictionEvaluator.compute_metrics_for_page, num_proc=8, remove_columns=mappable.column_names, fn_kwargs={'k_runs': k_runs})
                     # compute metrics over computed results
                     correct_predictions = computed.filter(lambda x: x['correct'] == 1)
                     incorrect_predictions = computed.filter(lambda x: x['correct'] == 0)
