@@ -76,7 +76,7 @@ if __name__ == "__main__":
                 top_p=1,
                 n=1,
                 frequency_penalty=0,
-                presence_penalty=0,
+                presence_penalty=1,
                 stop=["\n"]
             )
         except Exception as e:
@@ -93,7 +93,7 @@ if __name__ == "__main__":
                 top_p=1,
                 n=1,
                 frequency_penalty=0,
-                presence_penalty=0,
+                presence_penalty=1,
                 stop=["\n"]
             )
 
