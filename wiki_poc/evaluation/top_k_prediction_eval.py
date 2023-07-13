@@ -3,11 +3,13 @@ import sys
 import json
 import Levenshtein
 from evaluation.loader import ResultLoader
+from datasets import Dataset
+from typing import Dict
 
 class TopKPredictionEvaluator:
     
     @staticmethod
-    def compute_metrics_for_page(page, k_runs):
+    def compute_metrics_for_page(page: Dict, k_runs: int) -> Dict:
         """  computes the two metrics 'Partial Name Match Score' and 'String Edit Distance' for a given page
              referred to as "accuracy" and "precision" in the dataset.
         """
@@ -48,9 +50,9 @@ class TopKPredictionEvaluator:
             return { "correct": 0, "prediction": predicted_string, "top_prediction": top_prediction, "title": page["title"], "distance": min_distance }
     
     @staticmethod
-    def compute_metrics(gt, data, configs=['original', 'paraphrased']):
-        # TODO: dynamic, field input_length in the result dataset is a representation of the input length
-        # given to the model, not the length of the input text
+    def compute_metrics(gt: Dataset, data: Dict, configs=['original', 'paraphrased']) -> dict:
+        """computes the two metrics 'Partial Name Match Score' and 'String Edit Distance' for all examples,
+           returns a new dataset with the computed metrics."""
         gt_with_mask = {}
         # only keep ground truth entries with a mask, as only those were predicted
         gt_with_mask['original'] = gt
@@ -136,7 +138,6 @@ def main():
                 json_results[name][config]['precision'] = model[config]['result']['precision']
                 print(model[config]['result']['correct_predictions']['distance'][:20])
                 print(model[config]['result']['incorrect_predictions']['prediction'][:20])
-                # json_results[name][config]['min_distance'] = min(model[config]['result']['correct_predictions']['distance'])
                 csv_lines.append(f"{name},{model['size']},{config},{model[config]['result']['accuracy']},{model[config]['result']['precision']},{model[config]['result']['correct_predictions']['top_prediction']}")
 
     # write results to json file
@@ -150,8 +151,6 @@ def main():
     # write results to csv file
     with open(f"{save_path}.csv", 'w') as f:
         f.write('\n'.join(csv_lines))
-
-
 
 if __name__ == "__main__":
     main()
