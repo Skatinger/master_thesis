@@ -24,10 +24,10 @@ if __name__ == "__main__":
 
     if dataset == "rulings":
         CONFIG = "original"
-        ids_file_path = "../../../test_set_ids_rulings.csv"
+        ids_file_path = "test_set_ids_rulings.csv"
     elif dataset == "wikipedia":
         CONFIG = "paraphrased"
-        ids_file_path = "../../../test_set_ids.csv"
+        ids_file_path = "test_set_ids.csv"
 
     else:
         raise ValueError("Please provide either 'rulings' or 'wikipedia' as first argument.")
