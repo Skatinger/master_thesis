@@ -257,7 +257,7 @@ def main():
 
     # if configs are specified, split them into a list
     if "configs" in options.keys() and not isinstance(options["configs"], list):
-        options["configs"] = options.split(",")
+        options["configs"] = options["configs"].split(",")
 
     if dataset_type == "rulings":
          # only run original config for rulings
