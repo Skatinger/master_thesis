@@ -63,7 +63,7 @@ if __name__ == "__main__":
     for index, page in enumerate(tqdm(dataset)):
         
         # extract text from page
-        text = page[f"masked_text_{CONFIG}"]
+        text = page[f"masked_text_{CONFIG}"][:10000]
         # prompt openai api for prediction
         try:
             response = openai.ChatCompletion.create(
@@ -100,7 +100,7 @@ if __name__ == "__main__":
         # add prediction to result dataset
         result_dataset = result_dataset.add_item(
             {'prediction': response['choices'][0]['message']['content'],
-             'page_id': page['id'], 'input_length': len(text)})
+             'page_id': page['id'], 'input_length': len(text + " " + user_prompt)})
     
         # periodically save file
         if index % 100 == 0:
