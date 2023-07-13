@@ -224,6 +224,9 @@ class AbstractRunner():
         elif self.strategy == "beam_search_sampling":
             generated_ids = self.model.generate(**inputs, do_sample=True, num_beams=k_runs, early_stopping=True,
                                                 num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        elif self.strategy == "sampling":
+            generated_ids = self.model.generate(**inputs, do_sample=True, num_beams=1, early_stopping=True,
+                                                num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
         else:
             raise ValueError(f"Strategy {self.strategy} not supported. Choose from 'beam_search', 'greedy', 'beam_search_sampling'")
         # decode predictions
