@@ -194,6 +194,7 @@ class AbstractRunner():
             # names to the processing so they won't get processed again
             cached_cols = self.cached_predictions[config].column_names if config in self.cached_predictions else {}
             # split cached predictions into batches
+            logging.info(f"Using {self.strategy} strategy with batch size {batch_size} to generate ouputs.")
             result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names,
                                fn_kwargs={'k_runs': self.k_runs, 'cached_cols': cached_cols, 'config': self.config})
             # add already processed columns to result
