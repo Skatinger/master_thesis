@@ -39,6 +39,7 @@ class AbstractRunner():
         self.k_runs = 1
         self.save_memory = False
         self.device_number = "0"
+        self.strategy = "beam_search"
         self.configs = ['paraphrased', 'original']
 
         # overwrite default values if options are passed
@@ -58,6 +59,8 @@ class AbstractRunner():
             self.save_memory = options["save_memory"]
         if "device" in options:
             self.device_number = options["device"]
+        if "strategy" in options:
+            self.strategy = options["strategy"]
         if "configs" in options:
             if not isinstance(options["configs"], list):
                 raise ValueError("Option configs must be a list")
@@ -211,7 +214,17 @@ class AbstractRunner():
 
         predictions = {}
         # model generates k sequences for each input, all concated to one list
-        generated_ids = self.model.generate(**inputs, num_beams=k_runs, early_stopping=True, num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        if self.strategy == "beam_search":
+            generated_ids = self.model.generate(**inputs, num_beams=k_runs, early_stopping=True,
+                                                num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        elif self.strategy == "greedy":
+            generated_ids = self.model.generate(**inputs, do_sample=False, num_beams=1, early_stopping=True,
+                                                num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        elif self.strategy == "beam_search_sampling":
+            generated_ids = self.model.generate(**inputs, do_sample=True, num_beams=k_runs, early_stopping=True,
+                                                num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        else:
+            raise ValueError(f"Strategy {self.strategy} not supported. Choose from 'beam_search', 'greedy', 'beam_search_sampling'")
         # decode predictions
         outputs = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
         # split outputs into len(inputs) lists to store them as independent predictions
