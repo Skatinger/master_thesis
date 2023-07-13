@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
     user_prompt = """Who is the person refered to as <mask>? Only give the exact name without punctuation.
                      You are not allowed to respond with anything but the name, no more than 3 words. If you don't know,
-                     give your best guess."""
+                     give your best guess. Hint: The name is NOT <mask>."""
 
     # dataset with initial pages
     dataset = load_test_set(dataset_type=dataset)
