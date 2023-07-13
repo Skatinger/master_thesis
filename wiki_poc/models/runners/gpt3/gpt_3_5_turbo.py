@@ -11,6 +11,9 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 from models.model_runner import load_test_set
 
 """
+
+Attention: run this from the root directory of wiki_poc!
+
 This script is used to test the GPT-3.5-turbo model on the datasets.
 Mask-Filling is not possible, so we use the ChatCompletion API to prompt for the name referred to as <mask>.
 """
