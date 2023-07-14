@@ -1,0 +1,26 @@
+# Evaluierung Re-Identifikation Gerichtsurteile
+
+Im CSV File legal-top-5-for-BG.csv befinden sich alle nötigen Angaben für eine Auswertung.
+
+
+Folgende Spalten sind enthalten:
+
+page_id: Datenbank-ID zur Identifikation im Datenset
+file_id: Identifkation der Datei
+file_name: Name der Datei
+file_number: Nummerierung der Datei nach BG
+<weitere Spalten>
+
+Die weiteren Spalten sind Versuche von Machine Learning Models zu erraten um welche Person es sich handelt.
+Die allermeisten werden offensichtlich falsch sein, eine automatisierte Prüfung erlaubt aber herauszufinden
+ob möglicherweise einige Reidentifizierungen stattfinden konnten.
+
+Zur Prüfung: Als Metrik reicht es zu prüfen ob ein Teil des Namens korrekt identifiziert wurde.
+Dazu kann ein Regex verwendet werden:
+
+regex = "|".join(['.*(' + nameFragment + ').*' for nameFragment in <person im Urteil>.split()])
+
+Das sollte dann für jedes Urteil erstellt und angewendet werden.
+
+Optimalerweise kann jetzt das CSV eingelesen werden, und dann mit einem Datenset mit identifizierten Urteilen
+abgeglichen werden. Ein grobes Beispiel wie das einfach gehen könnte ist im File evaluation.py vorhanden.
