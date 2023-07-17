@@ -3,6 +3,7 @@
 import sys
 from evaluation.loader import ResultLoader
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib
@@ -22,6 +23,7 @@ class PrecomputedPlotting():
         # convert results to dataframe format for easier plotting
         prepared_df = self.convert_to_df(self.results)
         self.plot_normal_to_instructional(self.results, prepared_df)
+        self.plot_normal_to_instructional_barplot(self.results, prepared_df)
         self.plot_accuracy_progression(self.results, prepared_df)
         self.plot_best_performers(self.results, prepared_df)
         self.plot_with_huge(self.results, prepared_df)
@@ -348,6 +350,107 @@ class PrecomputedPlotting():
 
         plt.savefig(f"evaluation/plotting/plots/plot_normal_to_instructional_{results['key']}.png")
 
+    @staticmethod
+    def plot_normal_to_instructional_barplot(results, df):
+        """expect df to contain each model twice, once for every compared input size"""
+        plt.figure(figsize=(20, 14))
+        my_font_size = 24
+
+        # expect the following models
+        models = ["falcon", "roberta", "distilbert", "mpt", "incite", "t5", "bloom"]
+
+        # Group by model names
+        df['model_name'] = df["model"].str.extract(f"({'|'.join(models)})")[0]
+        grouped = df.groupby(['model_name', 'is_instructional'])
+        # df['size'] = df['size'].round(0)
+        size_grouped = df.groupby('model_name')['size'].mean()
+
+        # Prepare data for plot
+        plot_data = []
+        for name, group in grouped:
+            plot_data.append((name[0], name[1], group['accuracy'].mean()))
+
+        # Sort data by model name
+        plot_data.sort()
+
+        # Split data into separate lists
+        names, types, accuracies = zip(*plot_data)
+        unique_names = sorted(set(names))
+        model_sizes = df.groupby('model_name')['size'].unique()
+
+        # unique_names_with_size = []
+        # for name in unique_names:
+        #     sizes = []
+        #     for size in model_sizes[name]:
+        #         if size < 1:
+        #             # Format as millions with non-zero decimals
+        #             sizes.append(f'{size*1000:.0f}M' if size*1000 % 1 == 0 else f'{size*1000:.1f}M')
+        #         else:
+        #             # Format as billions with non-zero decimals
+        #             sizes.append(f'{size:.0f}B' if size % 1 == 0 else f'{size:.1f}B')
+        #     unique_names_with_size.append(f'{name}\n{"/".join(sizes)}')
+
+        # # Sort unique_names_with_size by the first size of each model
+        # unique_names_with_size.sort(key=lambda x: float(x.split('\n')[1].split('/')[0][:-1]))
+
+        # Create x-axis tick labels with size information
+        unique_names_with_size = []
+        sizes_in_billion = []
+        for name in unique_names:
+            sizes = []
+            for size in model_sizes[name]:
+                if size < 1:
+                    # Format as millions with non-zero decimals
+                    sizes.append(f'{size*1000:.0f}M' if size*1000 % 1 == 0 else f'{size*1000:.1f}M')
+                else:
+                    # Format as billions with non-zero decimals
+                    sizes.append(f'{size:.0f}B' if size % 1 == 0 else f'{size:.1f}B')
+            unique_names_with_size.append(f'{name}\n{"/".join(sizes)}')
+            sizes_in_billion.append(float(sizes[0][:-1]) if sizes[0][-1] == 'B' else float(sizes[0][:-1]) / 1000)
+
+        # Combine the names and sizes, and sort them by size
+        names_and_sizes = sorted(zip(unique_names_with_size, sizes_in_billion), key=lambda x: x[1])
+
+        # Get the sorted names
+        unique_names_with_size = [name for name, size in names_and_sizes]
+
+
+        # unique_names_with_size = [f'{name}\n({size_grouped[name]:.1f}B)' for name in unique_names]
+        normal_accuracies = [accuracy for name, type_, accuracy in plot_data if type_ == 'normal']
+        instruction_accuracies = [accuracy for name, type_, accuracy in plot_data if type_ == 'instruction tuned']
+
+        # Calculate the width of a bar
+        bar_width = 0.3
+
+        # Positions of the left bar boundaries
+        bar_l = np.arange(len(unique_names))
+
+        # Positions of the x-axis ticks (center of the bars as bar labels)
+        tick_pos = [i + bar_width / 2 for i in bar_l]
+
+        # Create the bar plot
+        plt.bar(bar_l, normal_accuracies, width=bar_width, label='Normal', color='orange')
+        plt.bar(bar_l + bar_width, instruction_accuracies, width=bar_width, label='Instruction Tuned', color='blue')
+
+        # Set the labels and title
+        # plt.xlabel('Models', fontsize=my_font_size)
+        plt.ylabel('Partial Name Match Score', fontsize=my_font_size)
+
+        # Set the positions and labels of the x-axis ticks
+        plt.xticks(tick_pos, unique_names_with_size)
+        
+        # increase height of plot so legend fits
+        y_max = max(max(normal_accuracies), max(instruction_accuracies))
+        plt.ylim(0, y_max + 0.07)
+
+        # Adding the legend and showing the plot
+        plt.legend(fontsize=my_font_size)
+        
+        # Increase font size of tick labels
+        plt.xticks(fontsize=my_font_size)
+        plt.yticks(fontsize=my_font_size)
+
+        plt.savefig(f"evaluation/plotting/plots/plot_normal_to_instructional_barplot_{results['key']}.png")
 
     @staticmethod
     def plot_accuracy_input_size_comparison(results, df2):
@@ -486,7 +589,10 @@ class PrecomputedPlotting():
     def tabulate_results_to_latex(results):
         df2 = PrecomputedPlotting.convert_to_df(results)
         df2 = df2.sort_values(by=['accuracy'], ascending=False)
-        latext_text = df2.to_latex(index=False)
+        # round and reduce accuracy to 2 digits
+        df2['accuracy'] = df2['accuracy'].apply(lambda x: round(x, 2))
+        df2['size'] = df2['size'].apply(lambda x: round(x, 2))
+        latext_text = df2.to_latex(index=False, float_format="{:0.2f}".format)
         with open(f"evaluation/plotting/plots/latex_table_{results['key']}.txt", "w") as f:
             f.write(latext_text)
 
