@@ -4,22 +4,22 @@
         "size": 1.0,
         "paraphrased": {
             "accuracy": 0.13494736842105262,
-            "precision": 0.6314663767485897
+            "precision": 0.6356482193469691
         },
         "original": {
             "accuracy": 0.13132736238301299,
-            "precision": 0.6310280170437285
+            "precision": 0.6351361566691096
         }
     },
     "random_full_name-1b": {
         "size": 1.0,
         "paraphrased": {
             "accuracy": 0.06326315789473684,
-            "precision": 0.7272471458355381
+            "precision": 0.7409283989510672
         },
         "original": {
             "accuracy": 0.05997786052128409,
-            "precision": 0.7275189955662497
+            "precision": 0.7378820478756105
         }
     }
 }
