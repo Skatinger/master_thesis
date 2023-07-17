@@ -1,44 +1,48 @@
-\begin{tabular}{lrr}
+\begin{tabular}{llrr}
 \toprule
-model & size & accuracy \\
+model & model_class & size & accuracy \\
 \midrule
-flan_t5-11b & 11.000000 & 0.375474 \\
-incite_instruct-3b & 3.000000 & 0.373789 \\
-flan_t5-3b & 3.000000 & 0.363053 \\
-bloomz-7b1 & 7.100000 & 0.350947 \\
-flan_t5-0b780 & 0.780000 & 0.335789 \\
-bloomz-1b1 & 1.100000 & 0.321158 \\
-bloomz-1b7 & 1.700000 & 0.320105 \\
-flan_t5-0b250 & 0.250000 & 0.303684 \\
-bloomz-3b & 3.000000 & 0.302842 \\
-flan_t5-0b080 & 0.080000 & 0.281684 \\
-t5-3b & 3.000000 & 0.266000 \\
-llama-7b & 7.000000 & 0.261579 \\
-t5-0b770 & 0.770000 & 0.238421 \\
-roberta-0b355 & 0.355000 & 0.206421 \\
-mpt_instruct-6b7 & 6.700000 & 0.199895 \\
-roberta-0b125 & 0.125000 & 0.190737 \\
-distilbert_squad-0b062 & 0.062000 & 0.168842 \\
-t5-0b060 & 0.060000 & 0.129684 \\
-roberta_squad-0b125 & 0.125000 & 0.078421 \\
-cerebras-13b & 13.000000 & 0.055789 \\
-falcon_instruct-7b & 7.000000 & 0.047053 \\
-t5-0b220 & 0.220000 & 0.043789 \\
-pythia-12b & 12.000000 & 0.041158 \\
-cerebras-6b7 & 6.700000 & 0.035684 \\
-pythia-0b410 & 0.410000 & 0.034526 \\
-gptj-6b & 6.000000 & 0.034105 \\
-cerebras-1b3 & 1.300000 & 0.030947 \\
-pythia-2b8 & 2.800000 & 0.030316 \\
-gpt_neox-20b & 20.000000 & 0.030211 \\
-falcon-7b & 7.000000 & 0.030000 \\
-pythia-1b4 & 1.400000 & 0.029474 \\
-cerebras-2b7 & 2.700000 & 0.026842 \\
-pythia-0b070 & 0.070000 & 0.026211 \\
-roberta_squad-0b355 & 0.355000 & 0.024947 \\
-pythia-0b160 & 0.160000 & 0.023789 \\
-pythia-6b9 & 6.900000 & 0.019895 \\
-cerebras-0b111 & 0.111000 & 0.016842 \\
-distilbert-0b066 & 0.066000 & 0.014000 \\
+wiki_predictions_gpt_4-175b & wiki_predictions_gpt_4 & 175.00 & 0.71 \\
+gpt_3_5-175b & gpt_3_5 & 175.00 & 0.53 \\
+flan_t5-11b & flan_t5 & 11.00 & 0.38 \\
+incite_instruct-3b & incite_instruct & 3.00 & 0.37 \\
+flan_t5-3b & flan_t5 & 3.00 & 0.36 \\
+bloomz-7b1 & bloomz & 7.10 & 0.35 \\
+flan_t5-0b780 & flan_t5 & 0.78 & 0.34 \\
+bloomz-1b1 & bloomz & 1.10 & 0.32 \\
+bloomz-1b7 & bloomz & 1.70 & 0.32 \\
+flan_t5-0b250 & flan_t5 & 0.25 & 0.30 \\
+bloomz-3b & bloomz & 3.00 & 0.30 \\
+flan_t5-0b080 & flan_t5 & 0.08 & 0.28 \\
+t5-3b & t5 & 3.00 & 0.27 \\
+llama-7b & llama & 7.00 & 0.26 \\
+t5-0b770 & t5 & 0.77 & 0.24 \\
+roberta-0b355 & roberta & 0.35 & 0.21 \\
+mpt-7b & mpt & 7.00 & 0.20 \\
+mpt_instruct-6b7 & mpt_instruct & 6.70 & 0.20 \\
+roberta-0b125 & roberta & 0.12 & 0.19 \\
+distilbert_squad-0b062 & distilbert_squad & 0.06 & 0.17 \\
+incite-3b & incite & 3.00 & 0.17 \\
+t5-0b060 & t5 & 0.06 & 0.13 \\
+roberta_squad-0b125 & roberta_squad & 0.12 & 0.08 \\
+cerebras-13b & cerebras & 13.00 & 0.06 \\
+falcon_instruct-7b & falcon_instruct & 7.00 & 0.05 \\
+t5-0b220 & t5 & 0.22 & 0.04 \\
+pythia-12b & pythia & 12.00 & 0.04 \\
+cerebras-6b7 & cerebras & 6.70 & 0.04 \\
+pythia-0b410 & pythia & 0.41 & 0.03 \\
+gptj-6b & gptj & 6.00 & 0.03 \\
+cerebras-1b3 & cerebras & 1.30 & 0.03 \\
+pythia-2b8 & pythia & 2.80 & 0.03 \\
+gpt_neox-20b & gpt_neox & 20.00 & 0.03 \\
+falcon-7b & falcon & 7.00 & 0.03 \\
+pythia-1b4 & pythia & 1.40 & 0.03 \\
+cerebras-2b7 & cerebras & 2.70 & 0.03 \\
+pythia-0b070 & pythia & 0.07 & 0.03 \\
+roberta_squad-0b355 & roberta_squad & 0.35 & 0.02 \\
+pythia-0b160 & pythia & 0.16 & 0.02 \\
+pythia-6b9 & pythia & 6.90 & 0.02 \\
+cerebras-0b111 & cerebras & 0.11 & 0.02 \\
+distilbert-0b066 & distilbert & 0.07 & 0.01 \\
 \bottomrule
 \end{tabular}
