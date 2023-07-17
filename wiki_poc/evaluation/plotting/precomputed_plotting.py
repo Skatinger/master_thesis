@@ -22,16 +22,16 @@ class PrecomputedPlotting():
     def plot(self):
         # convert results to dataframe format for easier plotting
         prepared_df = self.convert_to_df(self.results)
-        self.plot_normal_to_instructional(self.results, prepared_df)
-        self.plot_normal_to_instructional_barplot(self.results, prepared_df)
-        self.plot_accuracy_progression(self.results, prepared_df)
-        self.plot_best_performers(self.results, prepared_df)
-        self.plot_with_huge(self.results, prepared_df)
-        self.plot_accuracy_overview(self.results)
-        self.plot_accuracy_overview_with_legend(self.results, prepared_df)
+        # self.plot_normal_to_instructional(self.results, prepared_df)
+        # self.plot_normal_to_instructional_barplot(self.results, prepared_df)
+        # self.plot_accuracy_progression(self.results, prepared_df)
+        # self.plot_best_performers(self.results, prepared_df)
+        # self.plot_with_huge(self.results, prepared_df)
+        # self.plot_accuracy_overview(self.results)
+        # self.plot_accuracy_overview_with_legend(self.results, prepared_df)
         self.plot_accuracy_input_size_comparison(self.results, prepared_df)
-        self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
-        self.tabulate_results_to_latex(self.results)
+        # self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
+        # self.tabulate_results_to_latex(self.results)
 
     @staticmethod
     def plot_with_huge(results, df2):
@@ -59,18 +59,20 @@ class PrecomputedPlotting():
         plt.axhline(y=0.06, color='blue', linewidth=2.5, label="random names")
         plt.axhline(y=0.13, color='orange', linewidth=2.5, label="majority names")
 
-        # Set labels and title
-        plt.xlabel("Size [Billion Parameters]", fontsize=my_font_size)
-        plt.ylabel("Accuracy", fontsize=my_font_size)
-
         # Annotate the baselines
         plt.annotate("random names", (df2['size'].min(), 0.06), xytext=(-10, 5), textcoords='offset points', color='blue', fontsize=my_font_size)
         plt.annotate("majority names", (df2['size'].min(), 0.13), xytext=(-10, 5), textcoords='offset points', color='orange', fontsize=my_font_size)
+
+        # Set labels and title
+        plt.xlabel("size [billion parameters]", fontsize=my_font_size)
+        plt.ylabel("partial name match score", fontsize=my_font_size)
 
         # Increase font size of tick labels
         plt.xticks(fontsize=my_font_size)
         plt.yticks(fontsize=my_font_size)
 
+        # Set x-axis to logarithmic scale
+        plt.xscale('log')
         # plt.legend(bbox_to_anchor=(1.04, 1), loc='upper left', borderaxespad=0., fontsize='xx-large')
 
         # plt.title("accuracy compared to model size for paraphrased texts", fontsize="xx-large")
@@ -158,8 +160,11 @@ class PrecomputedPlotting():
         plt.axhline(y=0.13, color='orange', linewidth=2.5, label="majority names")
 
         # Set labels and title
-        plt.xlabel("Size [Billion Parameters]", fontsize=my_font_size)
-        plt.ylabel("Accuracy", fontsize=my_font_size)
+        plt.xlabel("size [billion parameters]", fontsize=my_font_size)
+        plt.ylabel("partial name match score", fontsize=my_font_size)
+
+        # scale x as log
+        plt.xscale('log')
 
         # Annotate the baselines
         # plt.annotate("random names", (df2['size'].min(), 0.06), xytext=(-10, 5), textcoords='offset points', color='blue', fontsize=my_font_size)
@@ -188,6 +193,7 @@ class PrecomputedPlotting():
         sizes = []
         configs = []
         accuracies = []
+        precisions = []
         model_classes = []
 
         # Iterate over the dictionary and extract the data
@@ -203,10 +209,11 @@ class PrecomputedPlotting():
             sizes.append(model_data['size'])
             models.append(model)
             configs.append('paraphrased')
+            precisions.append(model_data['paraphrased']["precision"])
             model_classes.append(model.split("-")[0])
 
         # # Create a DataFrame from the extracted data
-        return pd.DataFrame({"model": models, "model_class": model_classes, "size": sizes, "accuracy": accuracies})
+        return pd.DataFrame({"model": models, "model_class": model_classes, "size": sizes, "precision": precisions, "accuracy": accuracies})
 
     @staticmethod
     def plot_accuracy_overview(results):
@@ -287,10 +294,10 @@ class PrecomputedPlotting():
         plt.figure(figsize=(20, 14))
 
         # expect the following models
-        models = ["falcon", "roberta", "t5", "distilbert"]
+        models = ["falcon", "roberta", "distilbert", "mpt", "incite", "t5"]
 
         df2["is_instructional"] = df2["model_class"].apply(
-            lambda x: "instruction tuned" if ("squad" in x or "flan" in x or "instruct" in x) else "normal")
+            lambda x: "instruction tuned" if ("squad" in x or "flan" in x or "instruct" in x) else "base")
 
         my_font_size = 24
         sns.scatterplot(data=df2, x="size", y="accuracy", hue="is_instructional", s=350, markers=True)
@@ -305,7 +312,7 @@ class PrecomputedPlotting():
                 mv_left = 12
             plt.annotate(row['model_class'], (row['size'], row['accuracy']), xytext=(mv_left, -7), textcoords='offset points',
                          fontsize=my_font_size)
-    
+
         grouped_data = df2.groupby(df2["model"].str.extract(f"({'|'.join(models)})")[0])
 
         for group, group_data in grouped_data:
@@ -361,8 +368,11 @@ class PrecomputedPlotting():
 
         # Group by model names
         df['model_name'] = df["model"].str.extract(f"({'|'.join(models)})")[0]
+
+        df["is_instructional"] = df["model_class"].apply(
+            lambda x: "instruction tuned" if ("squad" in x or "flan" in x or "instruct" in x) else "base")
+
         grouped = df.groupby(['model_name', 'is_instructional'])
-        # df['size'] = df['size'].round(0)
         size_grouped = df.groupby('model_name')['size'].mean()
 
         # Prepare data for plot
@@ -377,21 +387,6 @@ class PrecomputedPlotting():
         names, types, accuracies = zip(*plot_data)
         unique_names = sorted(set(names))
         model_sizes = df.groupby('model_name')['size'].unique()
-
-        # unique_names_with_size = []
-        # for name in unique_names:
-        #     sizes = []
-        #     for size in model_sizes[name]:
-        #         if size < 1:
-        #             # Format as millions with non-zero decimals
-        #             sizes.append(f'{size*1000:.0f}M' if size*1000 % 1 == 0 else f'{size*1000:.1f}M')
-        #         else:
-        #             # Format as billions with non-zero decimals
-        #             sizes.append(f'{size:.0f}B' if size % 1 == 0 else f'{size:.1f}B')
-        #     unique_names_with_size.append(f'{name}\n{"/".join(sizes)}')
-
-        # # Sort unique_names_with_size by the first size of each model
-        # unique_names_with_size.sort(key=lambda x: float(x.split('\n')[1].split('/')[0][:-1]))
 
         # Create x-axis tick labels with size information
         unique_names_with_size = []
@@ -414,9 +409,7 @@ class PrecomputedPlotting():
         # Get the sorted names
         unique_names_with_size = [name for name, size in names_and_sizes]
 
-
-        # unique_names_with_size = [f'{name}\n({size_grouped[name]:.1f}B)' for name in unique_names]
-        normal_accuracies = [accuracy for name, type_, accuracy in plot_data if type_ == 'normal']
+        normal_accuracies = [accuracy for name, type_, accuracy in plot_data if type_ == 'base']
         instruction_accuracies = [accuracy for name, type_, accuracy in plot_data if type_ == 'instruction tuned']
 
         # Calculate the width of a bar
@@ -429,11 +422,10 @@ class PrecomputedPlotting():
         tick_pos = [i + bar_width / 2 for i in bar_l]
 
         # Create the bar plot
-        plt.bar(bar_l, normal_accuracies, width=bar_width, label='Normal', color='orange')
-        plt.bar(bar_l + bar_width, instruction_accuracies, width=bar_width, label='Instruction Tuned', color='blue')
+        plt.bar(bar_l, normal_accuracies, width=bar_width, label='base', color='orange')
+        plt.bar(bar_l + bar_width, instruction_accuracies, width=bar_width, label='instruction tuned', color='blue')
 
         # Set the labels and title
-        # plt.xlabel('Models', fontsize=my_font_size)
         plt.ylabel('Partial Name Match Score', fontsize=my_font_size)
 
         # Set the positions and labels of the x-axis ticks
@@ -463,15 +455,8 @@ class PrecomputedPlotting():
         df2['model_class'] = df2['model_class'].apply(lambda x: "_".join(x.split("_")[:-1]))
 
         my_font_size = 24
-        sns.scatterplot(data=df2, x="size", y="accuracy", hue="input_size", s=350, markers=True)
-
-        # for i, row in df2.iterrows():
-        #     label_length = len(row['model'])
-        #     # only label the top-most
-        #     mv_left = label_length * 2 + -5
-        #     plt.annotate(row['model_class'], (row['size'], row['accuracy']), xytext=(-mv_left, 12), textcoords='offset points',
-        #                  fontsize=my_font_size)
-        
+        df3 = df2.sort_values('input_size', ascending=False)
+        sns.scatterplot(data=df3, x="size", y="accuracy", hue="input_size", s=350, markers=True)
 
         grouped_data = df2.groupby('model_class')
 
@@ -533,11 +518,9 @@ class PrecomputedPlotting():
                 plt.annotate(entry['model_class'], (entry['size'], entry['accuracy']), xytext=(-mv_left, 12), textcoords='offset points',
                             fontsize=my_font_size)
 
-
-
         # Set labels and title
-        plt.xlabel("Size [Billion Parameters]", fontsize=my_font_size)
-        plt.ylabel("Accuracy", fontsize=my_font_size)
+        plt.xlabel("size [billion parameters]", fontsize=my_font_size)
+        plt.ylabel("partial name match score", fontsize=my_font_size)
 
         # Increase font size of tick labels
         plt.xticks(fontsize=my_font_size)
@@ -546,19 +529,14 @@ class PrecomputedPlotting():
         max_x = df2['size'].max()
         plt.xlim(None, max_x + 1)
 
-
-        # plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0., ncol=1, fontsize=my_font_size,
-                #    markerscale=3.5)
         legend = plt.legend(ncol=1, fontsize=my_font_size -2,
                    markerscale=3.5, framealpha=1)
-        legend.set_title("Input Size [Chars]", prop={'size': my_font_size})
-        # plt.grid(True)
+        legend.set_title("input size [chars]", prop={'size': my_font_size})
 
-        plt.savefig(f"evaluation/plotting/plots/plot_input_size_comparison_{results['key']}.png")
+        plt.savefig(f"evaluation/plotting/plots/plot_input_length_comparison_{results['key']}.png")
     
     @staticmethod
     def plot_accuracy_overview_with_legend(results, df2):
-        df2 = PrecomputedPlotting.convert_to_df(results)
         plt.figure(figsize=(20, 14))
 
         my_font_size = 24
@@ -570,12 +548,15 @@ class PrecomputedPlotting():
         plt.axhline(y=0.13, color='orange', linewidth=2.5, label="majority names")
 
         # Set labels and title
-        plt.xlabel("Size [Billion Parameters]", fontsize=my_font_size)
-        plt.ylabel("Accuracy", fontsize=my_font_size)
+        plt.xlabel("size [billion parameters]", fontsize=my_font_size)
+        plt.ylabel("partial name match score", fontsize=my_font_size)
 
         # Increase font size of tick labels
         plt.xticks(fontsize=my_font_size)
         plt.yticks(fontsize=my_font_size)
+
+        # Set x-axis to logarithmic scale
+        plt.xscale('log')
 
         # plt.title("accuracy compared to model size for paraphrased texts", fontsize=my_font_size + 10)
 
@@ -587,14 +568,28 @@ class PrecomputedPlotting():
 
     @staticmethod
     def tabulate_results_to_latex(results):
-        df2 = PrecomputedPlotting.convert_to_df(results)
+        df2 = PrecomputedPlotting.convert_to_df(results)        
+        # Keep only the specified columns
+        df2 = df2[['model_class', 'size', 'accuracy', 'precision']]
+        
         df2 = df2.sort_values(by=['accuracy'], ascending=False)
         # round and reduce accuracy to 2 digits
         df2['accuracy'] = df2['accuracy'].apply(lambda x: round(x, 2))
         df2['size'] = df2['size'].apply(lambda x: round(x, 2))
+
+        # Rename the columns
+        df2 = df2.rename(columns={'size': 'size [billions]', 'precision': 'partial name matching score'})
+    
+        # Ensure the index is of string type
+        df2.index = df2.index.astype(str)
+        
+        # Now you can replace underscores
+        df2.index = df2.index.str.replace('_', '\\_')
+        
         latext_text = df2.to_latex(index=False, float_format="{:0.2f}".format)
         with open(f"evaluation/plotting/plots/latex_table_{results['key']}.txt", "w") as f:
             f.write(latext_text)
+
 
 def main():
     if len(sys.argv[1]) > 0:
