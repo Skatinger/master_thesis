@@ -109,5 +109,19 @@
             "accuracy": 0.13484955217872596,
             "precision": 0.6399902881825141
         }
+    },
+    "bloom_instruct-7b1": {
+        "size": 7.1,
+        "paraphrased": {
+            "accuracy": 0.3509473684210526,
+            "precision": 0.448024275208699
+        }
+    },
+    "bloom-7b1": {
+        "size": 7.1,
+        "paraphrased": {
+            "accuracy": 0.21473684210526317,
+            "precision": 0.5606230596903278
+        }
     }
 }

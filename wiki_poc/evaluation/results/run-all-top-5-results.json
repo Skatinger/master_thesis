@@ -1,14 +1,38 @@
 {
     "key": "run-all-top-5",
+    "bloom-7b1": {
+        "size": 7.1,
+        "paraphrased": {
+            "accuracy": 0.21473684210526317,
+            "precision": 0.5606230596903278
+        }
+    },
+    "bloom-1b1": {
+        "size": 1.1,
+        "paraphrased": {
+            "accuracy": 0.09052631578947369,
+            "precision": 0.5879331960506741
+        }
+    },
+    "bloom-3b": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.19094736842105264,
+            "precision": 0.5637971457793706
+        }
+    },
+    "bloom-1b7": {
+        "size": 1.7,
+        "paraphrased": {
+            "accuracy": 0.15347368421052632,
+            "precision": 0.5225419213515048
+        }
+    },
     "t5-0b220": {
         "size": 0.22,
         "paraphrased": {
             "accuracy": 0.043789473684210524,
             "precision": 0.5998535949239691
-        },
-        "original": {
-            "accuracy": 0.053637918889000706,
-            "precision": 0.5835291916343222
         }
     },
     "t5-3b": {
@@ -16,10 +40,6 @@
         "paraphrased": {
             "accuracy": 0.266,
             "precision": 0.5729811999116078
-        },
-        "original": {
-            "accuracy": 0.2595350709469659,
-            "precision": 0.5704982298580666
         }
     },
     "t5-0b060": {
@@ -27,10 +47,6 @@
         "paraphrased": {
             "accuracy": 0.1296842105263158,
             "precision": 0.674340529575105
-        },
-        "original": {
-            "accuracy": 0.1203582570192211,
-            "precision": 0.6767581891003762
         }
     },
     "t5-0b770": {
@@ -38,10 +54,6 @@
         "paraphrased": {
             "accuracy": 0.23842105263157895,
             "precision": 0.536185663850315
-        },
-        "original": {
-            "accuracy": 0.25480527322129415,
-            "precision": 0.5264212159403422
         }
     },
     "majority_full_name-1b": {
@@ -49,10 +61,6 @@
         "paraphrased": {
             "accuracy": 0.13494736842105262,
             "precision": 0.6356482193469691
-        },
-        "original": {
-            "accuracy": 0.13132736238301299,
-            "precision": 0.6351361566691096
         }
     },
     "pythia-2b8": {
@@ -60,10 +68,6 @@
         "paraphrased": {
             "accuracy": 0.03031578947368421,
             "precision": 0.7360835583424762
-        },
-        "original": {
-            "accuracy": 0.09701117037335212,
-            "precision": 0.7314751674915585
         }
     },
     "pythia-0b070": {
@@ -71,10 +75,6 @@
         "paraphrased": {
             "accuracy": 0.026210526315789472,
             "precision": 0.7031733976607933
-        },
-        "original": {
-            "accuracy": 0.06772667807185268,
-            "precision": 0.7968074870899449
         }
     },
     "pythia-1b4": {
@@ -82,10 +82,6 @@
         "paraphrased": {
             "accuracy": 0.029473684210526315,
             "precision": 0.7095483399793178
-        },
-        "original": {
-            "accuracy": 0.0727583777800141,
-            "precision": 0.779609829106222
         }
     },
     "pythia-0b160": {
@@ -93,10 +89,6 @@
         "paraphrased": {
             "accuracy": 0.023789473684210527,
             "precision": 0.6664811898448164
-        },
-        "original": {
-            "accuracy": 0.06229244238703834,
-            "precision": 0.7926970674433255
         }
     },
     "pythia-0b410": {
@@ -104,10 +96,6 @@
         "paraphrased": {
             "accuracy": 0.03452631578947368,
             "precision": 0.7097528383174506
-        },
-        "original": {
-            "accuracy": 0.09791687632082118,
-            "precision": 0.7170208580349214
         }
     },
     "pythia-6b9": {
@@ -115,10 +103,6 @@
         "paraphrased": {
             "accuracy": 0.019894736842105264,
             "precision": 0.8187810920757452
-        },
-        "original": {
-            "accuracy": 0.07678373754654322,
-            "precision": 0.7716329064566667
         }
     },
     "pythia-12b": {
@@ -126,10 +110,6 @@
         "paraphrased": {
             "accuracy": 0.04115789473684211,
             "precision": 0.7032911011186503
-        },
-        "original": {
-            "accuracy": 0.07708563952903291,
-            "precision": 0.7842212514096081
         }
     },
     "cerebras-6b7": {
@@ -137,10 +117,6 @@
         "paraphrased": {
             "accuracy": 0.03568421052631579,
             "precision": 0.6964037420951618
-        },
-        "original": {
-            "accuracy": 0.07134950186172889,
-            "precision": 0.780407239349892
         }
     },
     "cerebras-0b111": {
@@ -148,10 +124,6 @@
         "paraphrased": {
             "accuracy": 0.016842105263157894,
             "precision": 0.7501247863434118
-        },
-        "original": {
-            "accuracy": 0.04951192512830834,
-            "precision": 0.8508644805379474
         }
     },
     "cerebras-2b7": {
@@ -159,10 +131,6 @@
         "paraphrased": {
             "accuracy": 0.026842105263157896,
             "precision": 0.7306599684362696
-        },
-        "original": {
-            "accuracy": 0.0926839086243333,
-            "precision": 0.7438586060046867
         }
     },
     "cerebras-13b": {
@@ -170,10 +138,6 @@
         "paraphrased": {
             "accuracy": 0.05578947368421053,
             "precision": 0.7729450664134523
-        },
-        "original": {
-            "accuracy": 0.12750327060481031,
-            "precision": 0.6829514584965864
         }
     },
     "cerebras-1b3": {
@@ -181,10 +145,27 @@
         "paraphrased": {
             "accuracy": 0.030947368421052633,
             "precision": 0.6729691651087414
-        },
-        "original": {
-            "accuracy": 0.10516252390057361,
-            "precision": 0.6988221726355319
+        }
+    },
+    "mt0-1b2": {
+        "size": 1.2,
+        "paraphrased": {
+            "accuracy": 0.32052631578947366,
+            "precision": 0.4559444879992161
+        }
+    },
+    "mt0-0b580": {
+        "size": 0.58,
+        "paraphrased": {
+            "accuracy": 0.2561052631578947,
+            "precision": 0.4792981975096245
+        }
+    },
+    "mt0-13b": {
+        "size": 13.0,
+        "paraphrased": {
+            "accuracy": 0.38305263157894737,
+            "precision": 0.4165919851436305
         }
     },
     "flan_t5-0b780": {
@@ -192,10 +173,6 @@
         "paraphrased": {
             "accuracy": 0.3357894736842105,
             "precision": 0.4917489508119129
-        },
-        "original": {
-            "accuracy": 0.3554392673845225,
-            "precision": 0.48242003205827716
         }
     },
     "flan_t5-3b": {
@@ -203,10 +180,6 @@
         "paraphrased": {
             "accuracy": 0.36305263157894735,
             "precision": 0.4735598518987394
-        },
-        "original": {
-            "accuracy": 0.39851061688638423,
-            "precision": 0.45254006153621346
         }
     },
     "flan_t5-0b250": {
@@ -214,10 +187,6 @@
         "paraphrased": {
             "accuracy": 0.3036842105263158,
             "precision": 0.5016111776555594
-        },
-        "original": {
-            "accuracy": 0.32444399718224814,
-            "precision": 0.4960983494979445
         }
     },
     "flan_t5-11b": {
@@ -225,10 +194,6 @@
         "paraphrased": {
             "accuracy": 0.3754736842105263,
             "precision": 0.43780494131490166
-        },
-        "original": {
-            "accuracy": 0.40203280668209723,
-            "precision": 0.4272221219146719
         }
     },
     "flan_t5-0b080": {
@@ -236,10 +201,6 @@
         "paraphrased": {
             "accuracy": 0.2816842105263158,
             "precision": 0.4969286149265508
-        },
-        "original": {
-            "accuracy": 0.30421656435543926,
-            "precision": 0.4918219419998937
         }
     },
     "llama-7b": {
@@ -247,10 +208,6 @@
         "paraphrased": {
             "accuracy": 0.2615789473684211,
             "precision": 0.5220225512063146
-        },
-        "original": {
-            "accuracy": 0.2655731105967596,
-            "precision": 0.5145219185901423
         }
     },
     "bloomz-3b": {
@@ -258,10 +215,6 @@
         "paraphrased": {
             "accuracy": 0.3028421052631579,
             "precision": 0.4714144883327546
-        },
-        "original": {
-            "accuracy": 0.30904699607527425,
-            "precision": 0.4551157932269926
         }
     },
     "bloomz-7b1": {
@@ -269,10 +222,6 @@
         "paraphrased": {
             "accuracy": 0.3509473684210526,
             "precision": 0.448024275208699
-        },
-        "original": {
-            "accuracy": 0.37204387642145514,
-            "precision": 0.4324988423966958
         }
     },
     "bloomz-1b7": {
@@ -280,10 +229,6 @@
         "paraphrased": {
             "accuracy": 0.3201052631578947,
             "precision": 0.4659181731158804
-        },
-        "original": {
-            "accuracy": 0.3007950085538895,
-            "precision": 0.4611114236411701
         }
     },
     "bloomz-1b1": {
@@ -291,10 +236,6 @@
         "paraphrased": {
             "accuracy": 0.3211578947368421,
             "precision": 0.46970690455690184
-        },
-        "original": {
-            "accuracy": 0.33179027875616385,
-            "precision": 0.4610958380802003
         }
     },
     "gpt_neox-20b": {
@@ -302,10 +243,6 @@
         "paraphrased": {
             "accuracy": 0.030210526315789472,
             "precision": 0.6892494122557324
-        },
-        "original": {
-            "accuracy": 0.07899768541813425,
-            "precision": 0.7643770790212198
         }
     },
     "mpt_instruct-6b7": {
@@ -313,10 +250,6 @@
         "paraphrased": {
             "accuracy": 0.19989473684210526,
             "precision": 0.5599276646722522
-        },
-        "original": {
-            "accuracy": 0.1899969809801751,
-            "precision": 0.6014279620321741
         }
     },
     "roberta_squad-0b355": {
@@ -324,10 +257,6 @@
         "paraphrased": {
             "accuracy": 0.02494736842105263,
             "precision": 0.8284224416151431
-        },
-        "original": {
-            "accuracy": 0.033813022038844724,
-            "precision": 0.7944758126930754
         }
     },
     "roberta_squad-0b125": {
@@ -335,10 +264,6 @@
         "paraphrased": {
             "accuracy": 0.07842105263157895,
             "precision": 0.8221395904803787
-        },
-        "original": {
-            "accuracy": 0.1210626949783637,
-            "precision": 0.741088228021229
         }
     },
     "falcon-7b": {
@@ -346,10 +271,13 @@
         "paraphrased": {
             "accuracy": 0.03,
             "precision": 0.6568554965857101
-        },
-        "original": {
-            "accuracy": 0.07950085538895038,
-            "precision": 0.7476828049241783
+        }
+    },
+    "gpt_4-175b": {
+        "size": 175.0,
+        "paraphrased": {
+            "accuracy": 0.7081,
+            "precision": 0.16257780051799556
         }
     },
     "gptj-6b": {
@@ -357,10 +285,6 @@
         "paraphrased": {
             "accuracy": 0.034105263157894736,
             "precision": 0.7035648107729942
-        },
-        "original": {
-            "accuracy": 0.060984200462916374,
-            "precision": 0.8331184726818766
         }
     },
     "roberta-0b125": {
@@ -368,10 +292,6 @@
         "paraphrased": {
             "accuracy": 0.19073684210526315,
             "precision": 0.8355878037582105
-        },
-        "original": {
-            "accuracy": 0.23568481433028077,
-            "precision": 0.8679905881528217
         }
     },
     "roberta-0b355": {
@@ -379,10 +299,6 @@
         "paraphrased": {
             "accuracy": 0.20642105263157895,
             "precision": 0.8406021774051254
-        },
-        "original": {
-            "accuracy": 0.23276642849954715,
-            "precision": 0.8544210560230314
         }
     },
     "mpt-7b": {
@@ -390,10 +306,6 @@
         "paraphrased": {
             "accuracy": 0.2014736842105263,
             "precision": 0.5004159387485629
-        },
-        "original": {
-            "accuracy": 0.24725772365905202,
-            "precision": 0.5534898337739852
         }
     },
     "incite_instruct-3b": {
@@ -401,10 +313,6 @@
         "paraphrased": {
             "accuracy": 0.3737894736842105,
             "precision": 0.5137663166792305
-        },
-        "original": {
-            "accuracy": 0.38261044580859416,
-            "precision": 0.5587809169443483
         }
     },
     "random_full_name-1b": {
@@ -412,10 +320,6 @@
         "paraphrased": {
             "accuracy": 0.06368421052631579,
             "precision": 0.741545817257411
-        },
-        "original": {
-            "accuracy": 0.06068229848042669,
-            "precision": 0.7285115817980271
         }
     },
     "distilbert-0b066": {
@@ -423,10 +327,6 @@
         "paraphrased": {
             "accuracy": 0.014,
             "precision": 0.7184710292255265
-        },
-        "original": {
-            "accuracy": 0.015195733118647478,
-            "precision": 0.6888456929086295
         }
     },
     "incite-3b": {
@@ -434,10 +334,6 @@
         "paraphrased": {
             "accuracy": 0.16515789473684211,
             "precision": 0.5436236541223217
-        },
-        "original": {
-            "accuracy": 0.13484955217872596,
-            "precision": 0.6399902881825141
         }
     },
     "distilbert_squad-0b062": {
@@ -445,10 +341,6 @@
         "paraphrased": {
             "accuracy": 0.1688421052631579,
             "precision": 0.5866591988841308
-        },
-        "original": {
-            "accuracy": 0.11915064908926236,
-            "precision": 0.5760130082926977
         }
     },
     "falcon_instruct-7b": {
@@ -456,10 +348,6 @@
         "paraphrased": {
             "accuracy": 0.04705263157894737,
             "precision": 0.6517118019150174
-        },
-        "original": {
-            "accuracy": 0.08141290127805173,
-            "precision": 0.7548929164361715
         }
     }
 }
