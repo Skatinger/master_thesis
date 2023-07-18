@@ -3,6 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import numpy as np
 import logging
 matplotlib.use('agg')
 
@@ -10,6 +11,7 @@ print(matplotlib.get_backend())
 
 from evaluation.loader import ResultLoader
 from evaluation.single_prediction_eval import SinglePredictionEvaluator
+from evaluation.top_k_prediction_eval import TopKPredictionEvaluator
 
 class Plotter():
 
@@ -59,16 +61,24 @@ class LevenstheinDistancePlotter(Plotter):
             correctness and edit-distance for every model and configuration in the dictionary"""
         for model_class, models in data.items():
             for model, data in models.items():
-                for config in ['original', 'paraphrased']:
+                configs = (data.keys() & ["original", "paraphrased"])
+                for config in configs:
+                    # key might be present but without data if metrics were not computed
+                    # for that config. in that case, just skip it
+                    if not "result" in data[config].keys():
+                        continue
                     results = data[config]['result']['data']
-                    self._plot_single(results, model, config, key)
+                    self._plot_single(results, f"{model_class}-{model}", config, key)
 
 
     def _plot_single(self, results: dict, model_name: str, config: str, key: str) -> None:
         """takes a dictionary of results and plots a barplot showing the correlation between"""
         plt.figure(figsize=(12,8))
+        font_size = 12
         # Convert the data to a pandas DataFrame
         df = pd.DataFrame({ 'distance': results['distance'], 'correct': results['correct']})
+        # round the distance to the closest .1 decimal
+        df['distance'] = df['distance'].round(1)
         # # Group the data by score and correctness to count the entries with the same score
         df_agg = df.groupby(['distance', 'correct']).size().reset_index(name='count')
 
@@ -80,11 +90,18 @@ class LevenstheinDistancePlotter(Plotter):
         ax = sns.barplot(x='distance', y='count', hue='correctness', data=df_agg)
 
         # # Add labels and a title
-        plt.xlabel('Score')
-        plt.ylabel('Count')
-        ax.legend(title="")
-        plt.title('Results by Score and Correctness')
-        plt.savefig(f"evaluation/plotting/plots/{key}_{model_name}_{config}_levensthein_distance.png")
+        plt.xlabel('Levenshtein edit distance', fontsize=font_size)
+        plt.ylabel('number of pages', fontsize=font_size)
+
+        # Increase font size of tick labels
+        plt.xticks(fontsize=font_size)
+        plt.yticks(fontsize=font_size)
+        # plt.legend(fon)
+        ax.legend(title="", fontsize=font_size, loc="upper right")
+        plt.title(f"{model_name}", fontsize=font_size + 8)
+        path = f"evaluation/plotting/plots/{key}_{model_name}_{config}_levensthein_distance.png"
+        logging.info(f"saving to {path}")
+        plt.savefig(path)
 
 
 
@@ -136,7 +153,11 @@ def main():
     else:
         results = loader.load(key)
 
-    computed = SinglePredictionEvaluator.compute_metrics(gt, results)
+
+    configs = ['paraphrased']
+    logging.info(f"Using configs {configs}. If you want to change this, adapt variable configs in plotter.py.")
+
+    computed = TopKPredictionEvaluator.compute_metrics(gt, results, configs)
     plotter = Plotter()
     plotter.plot(name=name, data=computed, key=key)
 
