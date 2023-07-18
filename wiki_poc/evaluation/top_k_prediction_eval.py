@@ -23,7 +23,7 @@ class TopKPredictionEvaluator:
         predicted_string = ""
         any_correct = False
         # iterate predictions, add all matching predictions to a prediction_string
-        min_distance = sys.maxsize
+        min_distance = 15 # we don't compute higher than that anyway
         top_prediction = ""
         for i in range(k_runs):
             prediction = page[f"prediction_{i}"]
@@ -107,7 +107,7 @@ def main():
     model_name = sys.argv[2] if len(sys.argv) > 2 else None
 
     # change this if only one config was used
-    configs = ['paraphrased', 'original']
+    configs = ['paraphrased'] # ['original', 'paraphrased']
 
     loader = ResultLoader()
     print("loading ground truth")
@@ -136,8 +136,8 @@ def main():
                 json_results[name][config] = {}
                 json_results[name][config]['accuracy'] = model[config]['result']['accuracy']
                 json_results[name][config]['precision'] = model[config]['result']['precision']
-                print(model[config]['result']['correct_predictions']['distance'][:20])
-                print(model[config]['result']['incorrect_predictions']['prediction'][:20])
+                # print(model[config]['result']['correct_predictions']['distance'][:20])
+                # print(model[config]['result']['incorrect_predictions']['prediction'][:20])
                 csv_lines.append(f"{name},{model['size']},{config},{model[config]['result']['accuracy']},{model[config]['result']['precision']},{model[config]['result']['correct_predictions']['top_prediction']}")
 
     # write results to json file
