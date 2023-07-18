@@ -97,7 +97,7 @@ class AbstractRunner():
     def get_tokenizer(self):
         logging.info(f"Loading tokenizer for {self.model_name}")
         model_path = self.names()[self.model_name]
-        tokenizer = self._tokenizer_loader().from_pretrained(model_path, padding_side="left")
+        tokenizer = self._tokenizer_loader().from_pretrained(model_path, padding_side="left", truncation=True)
         tokenizer.pad_token = tokenizer.eos_token # define pad token as eos token
         return tokenizer
     
@@ -146,6 +146,7 @@ class AbstractRunner():
         self.examples = {}
         for config in self.configs:
             # shorten input text to max length given
+            import pdb; pdb.set_trace()
             df = self.dataset.map(lambda x: {f"masked_text_{config}": x[f"masked_text_{config}"][:self.input_length]}, num_proc=8)
             # remove all examples which do no longer contain a mask
             df = df.filter(lambda x: '<mask>' in x[f"masked_text_{config}"], num_proc=8)
