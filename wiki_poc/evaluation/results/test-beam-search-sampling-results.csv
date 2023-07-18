@@ -1,0 +1,2 @@
+model,size,config,accuracy,precision,best_prediction
+incite_instruct-3b,3.0,paraphrased,0.24210526315789474,0.5229143697216087,['\nAbraham Lincoln', '\nSamuel Reichmann', '\nMcLeish\n', '\nEdward, Duke of', '\nChaudhry', '\nSiyaka II', '\nThorbecke', '\nStammerer', '\nGennadius', '\nJoseph R. G', '\nStanisław', '\nAravindan', '\nHerold\n\n', '\nAustralian artist\n\n', '\nJean-Guy Laf', '\nJuan Diego Fl', '\nMcInerney', '\nOdermatt', '\nRichard Baughman', '\nSir Edwin Luty', '\nMoskos', '\nLady Rosemoor', '\nDavid Morais\n']
