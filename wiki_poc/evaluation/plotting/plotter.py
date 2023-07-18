@@ -22,7 +22,7 @@ class Plotter():
     def plotters() -> dict:
         return {
             "accuracy-overview": AccuracyOverviewPlotter(),
-            "levensthein-distance": LevenstheinDistancePlotter()
+            "levenshtein-distance": LevenstheinDistancePlotter()
         }
 
     @staticmethod
