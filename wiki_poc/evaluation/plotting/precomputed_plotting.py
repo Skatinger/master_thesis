@@ -29,7 +29,8 @@ class PrecomputedPlotting():
         # self.plot_with_huge(self.results, prepared_df)
         # self.plot_accuracy_overview(self.results)
         # self.plot_accuracy_overview_with_legend(self.results, prepared_df)
-        self.plot_accuracy_input_size_comparison(self.results, prepared_df)
+        # self.plot_accuracy_input_size_comparison(self.results, prepared_df)
+        self.input_length_progression(self.results, prepared_df)
         # self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
         # self.tabulate_results_to_latex(self.results)
 
@@ -86,7 +87,7 @@ class PrecomputedPlotting():
         my_font_size = 24
         plt.figure(figsize=(20, 14))
         # only keep the interesting models
-        interesting_models = ["bloomz", "flan_t5", "roberta", "roberta_squad", "t5"]
+        interesting_models = ["bloomz", "flan_t5", "roberta", "roberta_squad", "t5", "mt0", "bloom"]
 
         # remove all models that are not in the interesting models list
         df2 = df2[df2['model_class'].isin(interesting_models)]
@@ -107,8 +108,8 @@ class PrecomputedPlotting():
             plt.plot(group_data['size'], group_data['accuracy'], color=color, label=group, linewidth=3)
 
         # Set labels and title
-        plt.xlabel("Size [Billion Parameters]", fontsize=my_font_size)
-        plt.ylabel("Accuracy", fontsize=my_font_size)
+        plt.xlabel("size [billion parameters]", fontsize=my_font_size)
+        plt.ylabel("partial name match score", fontsize=my_font_size)
 
         # Increase font size of tick labels
         plt.xticks(fontsize=my_font_size)
@@ -122,6 +123,53 @@ class PrecomputedPlotting():
 
         plt.grid(True)
         plt.savefig(f"evaluation/plotting/plots/plot_accuracy_progression_{results['key']}.png") # , bbox_inches='tight')
+        # ensure pyplot does not run out of memory when too many plots are created
+        plt.close()
+
+    @staticmethod
+    def input_length_progression(results, df):
+        my_font_size = 24
+        plt.figure(figsize=(20, 14))
+
+        # use input size as hue
+        df['input_size'] = df['model_class'].apply(lambda x: x.split("_")[-1])
+        # remove input sizes from model class names
+        df['model_class'] = df['model_class'].apply(lambda x: "_".join(x.split("_")[:-1]))
+
+        # group it
+        df = df.sort_values('input_size', ascending=False)
+        grouped_data = df.groupby('model_class').apply(lambda x: x.sort_values('input_size')).reset_index(drop=True)
+
+        # Get unique model groups and their corresponding colors
+        unique_groups = grouped_data['model_class'].unique()
+        color_palette = sns.color_palette('tab10', n_colors=len(unique_groups))
+
+        my_font_size = 24
+
+        # scatter points
+        sns.scatterplot(data=grouped_data, x='input_size', y='accuracy', hue='model_class', s=250, markers=True, legend=False)
+
+        # Plot separate lines for each group with corresponding colors
+        for group, color in zip(unique_groups, color_palette):
+            group_data = grouped_data[grouped_data['model_class'] == group]
+            plt.plot(group_data['input_size'], group_data['accuracy'], color=color, label=group, linewidth=3)
+
+        # Set labels and title
+        plt.xlabel("input size [characters]", fontsize=my_font_size)
+        plt.ylabel("partial name match score", fontsize=my_font_size)
+
+        # Increase font size of tick labels
+        plt.xticks(fontsize=my_font_size)
+        plt.yticks(fontsize=my_font_size)
+
+        # Add legend
+        legend = plt.legend(fontsize=my_font_size, framealpha=1)
+        # increase linewidth of legend lines
+        for line in legend.get_lines():
+            line.set_linewidth(6)
+
+        plt.grid(True)
+        plt.savefig(f"evaluation/plotting/plots/plot_input_length_progression_{results['key']}.png", bbox_inches='tight')
         # ensure pyplot does not run out of memory when too many plots are created
         plt.close()
 
@@ -426,7 +474,7 @@ class PrecomputedPlotting():
         plt.bar(bar_l + bar_width, instruction_accuracies, width=bar_width, label='instruction tuned', color='blue')
 
         # Set the labels and title
-        plt.ylabel('Partial Name Match Score', fontsize=my_font_size)
+        plt.ylabel('partial name match score', fontsize=my_font_size)
 
         # Set the positions and labels of the x-axis ticks
         plt.xticks(tick_pos, unique_names_with_size)
