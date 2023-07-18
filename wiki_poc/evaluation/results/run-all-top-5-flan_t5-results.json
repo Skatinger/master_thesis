@@ -4,55 +4,35 @@
         "size": 0.78,
         "paraphrased": {
             "accuracy": 0.3357894736842105,
-            "precision": 8.34576802507837
-        },
-        "original": {
-            "accuracy": 0.3554392673845225,
-            "precision": 8.14580973952435
+            "precision": 0.48629810791731315
         }
     },
     "flan_t5-3b": {
         "size": 3.0,
         "paraphrased": {
             "accuracy": 0.36305263157894735,
-            "precision": 7.944041751232241
-        },
-        "original": {
-            "accuracy": 0.39851061688638423,
-            "precision": 7.551010101010101
+            "precision": 0.46916215692516294
         }
     },
     "flan_t5-0b250": {
         "size": 0.25,
         "paraphrased": {
             "accuracy": 0.3036842105263158,
-            "precision": 8.354939341421144
-        },
-        "original": {
-            "accuracy": 0.32444399718224814,
-            "precision": 8.192617866004962
+            "precision": 0.49685329753958973
         }
     },
     "flan_t5-11b": {
         "size": 11.0,
         "paraphrased": {
             "accuracy": 0.3754736842105263,
-            "precision": 7.635828427249789
-        },
-        "original": {
-            "accuracy": 0.40203280668209723,
-            "precision": 7.512390488110138
+            "precision": 0.43296993058951194
         }
     },
     "flan_t5-0b080": {
         "size": 0.08,
         "paraphrased": {
             "accuracy": 0.2816842105263158,
-            "precision": 8.155455904334827
-        },
-        "original": {
-            "accuracy": 0.30421656435543926,
-            "precision": 8.040357260999007
+            "precision": 0.4926008585604213
         }
     }
 }
