@@ -30,9 +30,39 @@ class PrecomputedPlotting():
         # self.plot_accuracy_overview(self.results)
         # self.plot_accuracy_overview_with_legend(self.results, prepared_df)
         # self.plot_accuracy_input_size_comparison(self.results, prepared_df)
-        self.input_length_progression(self.results, prepared_df)
+        # self.input_length_progression(self.results, prepared_df)
+        self.sampling_method_comparison(self.results, prepared_df)
         # self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
         # self.tabulate_results_to_latex(self.results)
+
+    @staticmethod
+    def sampling_method_comparison(results, _df):
+        data_for_df = []
+
+        for key, value in results.items():
+            if key != 'key':
+                method = key.split('--')[-1]
+                if method == "beam-search-sampling":
+                    method = "beam-search\nsampling"
+                elif method == "sampling":
+                    method = "top-k\nsampling"
+                elif method == "beam-search":
+                    method = "beam-search"
+                elif method == "greedy":
+                    method = "greedy\n(top-1)"
+                accuracy = value['paraphrased']['accuracy']
+                data_for_df.append([method, accuracy])
+
+        df = pd.DataFrame(data_for_df, columns=['method', 'accuracy'])
+        df = df.sort_values(by=['accuracy'], ascending=False)
+
+        ax = df.plot(kind='bar', x='method', y='accuracy', legend=False)
+        plt.ylabel('Accuracy')
+        plt.title('Comparison of Different Generation Methods (top 5)')
+        plt.xticks(rotation=45)
+        plt.tight_layout()  # adjusts subplot params so that the subplot fits into the figure area
+
+        plt.savefig('evaluation/plotting/plots/sampling_method_comparison.png')
 
     @staticmethod
     def plot_with_huge(results, df2):
