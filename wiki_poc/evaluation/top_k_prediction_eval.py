@@ -26,7 +26,7 @@ class TopKPredictionEvaluator:
         # iterate predictions, add all matching predictions to a prediction_string
         top_prediction = ""
         for i in range(k_runs):
-            prediction = page[f"prediction_{i}"]
+            prediction = page[f"prediction_{i}"].strip()
             if re.search(regex, prediction):
                 any_correct = True
                 # use the minimum distance of all predictions which were classified as correct
