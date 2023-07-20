@@ -146,7 +146,6 @@ class AbstractRunner():
         self.examples = {}
         for config in self.configs:
             # shorten input text to max length given
-            import pdb; pdb.set_trace()
             df = self.dataset.map(lambda x: {f"masked_text_{config}": x[f"masked_text_{config}"][:self.input_length]}, num_proc=8)
             # remove all examples which do no longer contain a mask
             df = df.filter(lambda x: '<mask>' in x[f"masked_text_{config}"], num_proc=8)
