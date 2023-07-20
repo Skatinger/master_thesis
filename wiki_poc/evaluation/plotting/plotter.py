@@ -78,6 +78,7 @@ class LevenstheinDistancePlotter(Plotter):
         # Convert the data to a pandas DataFrame
         df = pd.DataFrame({ 'distance': results['distance'], 'correct': results['correct']})
         # round the distance to the closest .1 decimal
+        df['distance'] = (df['distance'] / 0.2).round() * 0.2
         df['distance'] = df['distance'].round(1)
         # # Group the data by score and correctness to count the entries with the same score
         df_agg = df.groupby(['distance', 'correct']).size().reset_index(name='count')
@@ -96,6 +97,7 @@ class LevenstheinDistancePlotter(Plotter):
         # Increase font size of tick labels
         plt.xticks(fontsize=font_size)
         plt.yticks(fontsize=font_size)
+        plt.xticks(rotation=60)
         # plt.legend(fon)
         ax.legend(title="", fontsize=font_size, loc="upper right")
         plt.title(f"{model_name}", fontsize=font_size + 8)
@@ -144,7 +146,6 @@ class InputLengthAblationPlotter(Plotter):
        expectes a single model to be passed in the data used for plotting"""
 
     def build(self, data, key, gt):
-        # No longer expecting only one model
         gt_df = pd.DataFrame(gt)
         gt_df = gt_df[['title', 'text']]
 
@@ -161,7 +162,7 @@ class InputLengthAblationPlotter(Plotter):
                 df['text_length'] = df['text'].apply(len)
 
                 # Step 2: Bin the text lengths into groups
-                df['length_group'] = pd.cut(df['text_length'], bins=20)
+                df['length_group'] = pd.cut(df['text_length'], bins=50)
 
                 # Step 3: Compute "size" and "accuracy" for each group
                 grouped = df.groupby('length_group').agg(
@@ -169,8 +170,11 @@ class InputLengthAblationPlotter(Plotter):
                     accuracy=pd.NamedAgg(column='correct', aggfunc='mean')
                 ).reset_index()
 
-                # Plot the results with Seaborn for this model
-                sns.lineplot(data=grouped, x='size', y='accuracy', marker="o", label=f'{model_key}-{size}')
+                # Plot the points with Seaborn for this model
+                sns.scatterplot(data=grouped, x='size', y='accuracy', marker="o", label=f'{model_key}-{size}', alpha=0.6)
+                
+                # Plot a regression line
+                sns.regplot(data=grouped, x='size', y='accuracy', scatter=False, color='black')
                 
         plt.xlabel('average text length')
         plt.ylabel('partial name match score')
