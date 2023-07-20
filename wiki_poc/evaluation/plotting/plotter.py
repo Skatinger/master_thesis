@@ -144,51 +144,44 @@ class InputLengthAblationPlotter(Plotter):
        expectes a single model to be passed in the data used for plotting"""
 
     def build(self, data, key, gt):
-
-        # check that there is only one model and only one size of it
-        assert len(data) == 1, "expected only one model"
-        model_key = list(data.keys())[0]
-        assert len(data[model_key]) == 1, "expected only one size of the model"
-        # import  pdb; pdb.set_trace()
-        size = list(data[model_key].keys())[0]
-        prediction_results = data[model_key][size]['paraphrased']['result']['data']
-
-        # import pdb; pdb.set_trace()
-        predictions_df = pd.DataFrame(prediction_results)
-        # remove unused columns from gt to reduce size for computation
+        # No longer expecting only one model
         gt_df = pd.DataFrame(gt)
         gt_df = gt_df[['title', 'text']]
 
-        df = pd.merge(predictions_df, gt_df, on='title', how='inner')
-
-        # Step 1: Measure the text length
-        df['text_length'] = df['text'].apply(len)
-
-        # Step 2: Bin the text lengths into groups
-        df['length_group'] = pd.cut(df['text_length'], bins=50)
-
-        # Step 3: Group by the bins and calculate accuracy
-        # grouped = df.groupby('length_group')['correct'].mean()
-
-        # Step 3: Compute "size" and "accuracy" for each group
-        grouped = df.groupby('length_group').agg(
-            size=pd.NamedAgg(column='text_length', aggfunc='mean'),
-            accuracy=pd.NamedAgg(column='correct', aggfunc='mean')
-        ).reset_index()
-
-        ####### fine until here #######
-
-        # Plot the results with Seaborn
         plt.figure(figsize=(10,6))
-        sns.lineplot(data=grouped, x='size', y='accuracy', marker="o")
+        
+        for model_key in data.keys():
+            for size in data[model_key].keys():
+                prediction_results = data[model_key][size]['paraphrased']['result']['data']
+                predictions_df = pd.DataFrame(prediction_results)
+
+                df = pd.merge(predictions_df, gt_df, on='title', how='inner')
+
+                # Step 1: Measure the text length
+                df['text_length'] = df['text'].apply(len)
+
+                # Step 2: Bin the text lengths into groups
+                df['length_group'] = pd.cut(df['text_length'], bins=20)
+
+                # Step 3: Compute "size" and "accuracy" for each group
+                grouped = df.groupby('length_group').agg(
+                    size=pd.NamedAgg(column='text_length', aggfunc='mean'),
+                    accuracy=pd.NamedAgg(column='correct', aggfunc='mean')
+                ).reset_index()
+
+                # Plot the results with Seaborn for this model
+                sns.lineplot(data=grouped, x='size', y='accuracy', marker="o", label=f'{model_key}-{size}')
+                
         plt.xlabel('average text length')
         plt.ylabel('partial name match score')
-        plt.title(f"partial name match score by text length\n {key}-{size}")
-
+        plt.title(f"partial name match score by text length\n {key}")
+        plt.legend(title='Model-Size')
+        
         ###### saving, dont change below here #####
         plt.savefig(f"evaluation/plotting/plots/plot_length_ablation_{key}.png")
         # ensure pyplot does not run out of memory when too many plots are created
         matplotlib.pyplot.close()
+
 
 
 def main():
