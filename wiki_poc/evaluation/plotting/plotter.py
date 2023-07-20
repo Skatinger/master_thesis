@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from datasets import Dataset
-import numpy as np
+import matplotlib.lines as mlines
 import logging
 matplotlib.use('agg')
 
@@ -151,6 +151,20 @@ class InputLengthAblationPlotter(Plotter):
 
         plt.figure(figsize=(10,6))
         
+        from matplotlib.colors import ListedColormap
+
+        # Define a color palette with as many distinct colors as there are models
+        colors = sns.color_palette('husl', n_colors=len(data.keys()))
+
+        # Create a colormap that maps model keys to colors
+        cmap = ListedColormap(colors)
+
+        # Keep track of the current color index
+        color_index = 0
+
+        # create a list to hold the legend lines
+        legend_lines = []
+
         for model_key in data.keys():
             for size in data[model_key].keys():
                 prediction_results = data[model_key][size]['paraphrased']['result']['data']
@@ -158,33 +172,39 @@ class InputLengthAblationPlotter(Plotter):
 
                 df = pd.merge(predictions_df, gt_df, on='title', how='inner')
 
-                # Step 1: Measure the text length
                 df['text_length'] = df['text'].apply(len)
-
-                # Step 2: Bin the text lengths into groups
+                # convert text length to words
+                df['text_length'] = df['text_length'] / 5
                 df['length_group'] = pd.cut(df['text_length'], bins=50)
 
-                # Step 3: Compute "size" and "accuracy" for each group
                 grouped = df.groupby('length_group').agg(
                     size=pd.NamedAgg(column='text_length', aggfunc='mean'),
                     accuracy=pd.NamedAgg(column='correct', aggfunc='mean')
                 ).reset_index()
 
-                # Plot the points with Seaborn for this model
-                sns.scatterplot(data=grouped, x='size', y='accuracy', marker="o", label=f'{model_key}-{size}', alpha=0.6)
+                # Use the same color for the regression line
+                sns.regplot(data=grouped, x='size', y='accuracy', scatter=False, lowess=True, color=colors[color_index])
                 
-                # Plot a regression line
-                sns.regplot(data=grouped, x='size', y='accuracy', scatter=False, color='black')
+                # create a custom line to add to the legend
+                legend_line = mlines.Line2D([], [], color=colors[color_index], label=f'{model_key}-{size}')
+                legend_lines.append(legend_line)
                 
-        plt.xlabel('average text length')
+                # Move to the next color
+                color_index += 1
+
+        plt.xlabel('average text length [words]')
         plt.ylabel('partial name match score')
-        plt.title(f"partial name match score by text length\n {key}")
-        plt.legend(title='Model-Size')
+        plt.ylim(0, 1)
+        plt.title(f"partial name match score by text length [words]\n {key}")
+
+        # Add legend manually
+        plt.legend(handles=legend_lines, title='model')
         
         ###### saving, dont change below here #####
-        plt.savefig(f"evaluation/plotting/plots/plot_length_ablation_{key}.png")
+        plt.savefig(f"evaluation/plotting/plots/plot_input_length_ablation_{key}.png")
         # ensure pyplot does not run out of memory when too many plots are created
         matplotlib.pyplot.close()
+
 
 
 
