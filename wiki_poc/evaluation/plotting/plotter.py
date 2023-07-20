@@ -3,11 +3,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+from datasets import Dataset
 import numpy as np
 import logging
 matplotlib.use('agg')
-
-print(matplotlib.get_backend())
 
 from evaluation.loader import ResultLoader
 from evaluation.single_prediction_eval import SinglePredictionEvaluator
@@ -22,7 +21,8 @@ class Plotter():
     def plotters() -> dict:
         return {
             "accuracy-overview": AccuracyOverviewPlotter(),
-            "levenshtein-distance": LevenstheinDistancePlotter()
+            "levenshtein-distance": LevenstheinDistancePlotter(),
+            "input-length-ablation": InputLengthAblationPlotter(),
         }
 
     @staticmethod
@@ -35,20 +35,20 @@ class Plotter():
         args = parser.parse_args()
         return args.name, args.key, args.model
 
-    def plot(self, data: dict, key: str = "", name = None) -> None:
+    def plot(self, data: dict, gt: Dataset, key: str = "", name = None) -> None:
         self.key = key
         if name is None:
-            self.plot_all(data, key)
+            self.plot_all(data, key, gt)
         else:
-            self.plot_one(data, name, key)
+            self.plot_one(data, name, key, gt)
     
-    def plot_all(self, data, key):
+    def plot_all(self, data, key, gt):
         for name in self.plotters().keys():
-            self.plot_one(data, name, key)
+            self.plot_one(data, name, key, gt)
             matplotlib.pyplot.close()
 
-    def plot_one(self, data, name, key):
-        self.plotters()[name].build(data, key)
+    def plot_one(self, data, name, key, gt):
+        self.plotters()[name].build(data, key, gt)
 
 
 class LevenstheinDistancePlotter(Plotter):
@@ -56,7 +56,7 @@ class LevenstheinDistancePlotter(Plotter):
     """creates a plot for every model, showing how correctness and edit-distance correlate
     """
 
-    def build(self, data: dict, key: str) -> None:
+    def build(self, data: dict, key: str, gt: Dataset) -> None:
         """takes a dictionary of results and plots a barplot showing the correlation between
             correctness and edit-distance for every model and configuration in the dictionary"""
         for model_class, models in data.items():
@@ -109,7 +109,7 @@ class AccuracyOverviewPlotter(Plotter):
 
     """creates a plot including every models accuracies for all configs"""
 
-    def build(self, data, key):
+    def build(self, data, key, gt):
         sizes = []
         accuracies = []
         labels = []
@@ -139,6 +139,57 @@ class AccuracyOverviewPlotter(Plotter):
         # ensure pyplot does not run out of memory when too many plots are created
         matplotlib.pyplot.close()
 
+class InputLengthAblationPlotter(Plotter):
+    """creates a plot showing the scores for different lengths of wiki pages
+       expectes a single model to be passed in the data used for plotting"""
+
+    def build(self, data, key, gt):
+
+        # check that there is only one model and only one size of it
+        assert len(data) == 1, "expected only one model"
+        model_key = list(data.keys())[0]
+        assert len(data[model_key]) == 1, "expected only one size of the model"
+        # import  pdb; pdb.set_trace()
+        size = list(data[model_key].keys())[0]
+        prediction_results = data[model_key][size]['paraphrased']['result']['data']
+
+        # import pdb; pdb.set_trace()
+        predictions_df = pd.DataFrame(prediction_results)
+        # remove unused columns from gt to reduce size for computation
+        gt_df = pd.DataFrame(gt)
+        gt_df = gt_df[['title', 'text']]
+
+        df = pd.merge(predictions_df, gt_df, on='title', how='inner')
+
+        # Step 1: Measure the text length
+        df['text_length'] = df['text'].apply(len)
+
+        # Step 2: Bin the text lengths into groups
+        df['length_group'] = pd.cut(df['text_length'], bins=50)
+
+        # Step 3: Group by the bins and calculate accuracy
+        # grouped = df.groupby('length_group')['correct'].mean()
+
+        # Step 3: Compute "size" and "accuracy" for each group
+        grouped = df.groupby('length_group').agg(
+            size=pd.NamedAgg(column='text_length', aggfunc='mean'),
+            accuracy=pd.NamedAgg(column='correct', aggfunc='mean')
+        ).reset_index()
+
+        ####### fine until here #######
+
+        # Plot the results with Seaborn
+        plt.figure(figsize=(10,6))
+        sns.lineplot(data=grouped, x='size', y='accuracy', marker="o")
+        plt.xlabel('average text length')
+        plt.ylabel('partial name match score')
+        plt.title(f"partial name match score by text length\n {key}-{size}")
+
+        ###### saving, dont change below here #####
+        plt.savefig(f"evaluation/plotting/plots/plot_length_ablation_{key}.png")
+        # ensure pyplot does not run out of memory when too many plots are created
+        matplotlib.pyplot.close()
+
 
 def main():
     # key for result dataset from command line arguments
@@ -158,8 +209,9 @@ def main():
     logging.info(f"Using configs {configs}. If you want to change this, adapt variable configs in plotter.py.")
 
     computed = TopKPredictionEvaluator.compute_metrics(gt, results, configs)
+    # import pdb; pdb.set_trace()
     plotter = Plotter()
-    plotter.plot(name=name, data=computed, key=key)
+    plotter.plot(name=name, gt=gt, data=computed, key=key)
 
 
 if __name__ == "__main__":
