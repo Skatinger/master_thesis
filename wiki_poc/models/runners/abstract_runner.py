@@ -204,7 +204,7 @@ class AbstractRunner():
             PATH = self.get_path(config)
             result_df.to_json(PATH)
 
-    def make_predictions(self, examples, config, k_runs=1, cached_cols=[]):
+    def make_predictions(self, examples, config, k_runs=self.k_runs, cached_cols=[]):
         # tokenize inputs and move to GPU
         texts = examples[f"masked_text_{config}"]
         inputs = self.tokenizer(texts, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.device)
@@ -220,7 +220,7 @@ class AbstractRunner():
             generated_ids = self.model.generate(**inputs, num_beams=k_runs, early_stopping=True, no_repeat_ngram_size=2,
                                                 num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
         elif self.strategy == "greedy":
-            if k_runs > 1:
+            if self.k_runs > 1:
                 logging.warning("Greedy decoding does not support multiple runs, setting k_runs to 1")
                 k_runs = 1
                 self.k_runs = 1
