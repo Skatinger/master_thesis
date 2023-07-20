@@ -22,28 +22,6 @@
             "precision": 0.45069447656562855
         }
     },
-    "distilbert-0b066": {
-        "size": 0.066,
-        "paraphrased": {
-            "accuracy": 0.014,
-            "precision": 0.7065290864565162
-        },
-        "original": {
-            "accuracy": 0.015195733118647478,
-            "precision": 0.6820521553203899
-        }
-    },
-    "distilbert_squad-0b062": {
-        "size": 0.062,
-        "paraphrased": {
-            "accuracy": 0.1688421052631579,
-            "precision": 0.5719367053898159
-        },
-        "original": {
-            "accuracy": 0.11915064908926236,
-            "precision": 0.5575259585556475
-        }
-    },
     "falcon_instruct-7b": {
         "size": 7.0,
         "paraphrased": {
