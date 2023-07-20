@@ -216,20 +216,36 @@ class AbstractRunner():
 
         predictions = {}
         # model generates k sequences for each input, all concated to one list
+        # don't allow repetitions of ngrams
         if self.strategy == "beam_search":
-            generated_ids = self.model.generate(**inputs, num_beams=k_runs, early_stopping=True,
+            generated_ids = self.model.generate(**inputs, num_beams=k_runs, early_stopping=True, no_repeat_ngram_size=2,
                                                 num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
         elif self.strategy == "greedy":
+            if k_runs > 1:
+                logging.warning("Greedy decoding does not support multiple runs, setting k_runs to 1")
+                k_runs = 1
+                self.k_runs = 1
+            # don't use beam search, no sampling
             generated_ids = self.model.generate(**inputs, do_sample=False, num_beams=1, early_stopping=True,
                                                 num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
         elif self.strategy == "beam_search_sampling":
             generated_ids = self.model.generate(**inputs, do_sample=True, num_beams=k_runs, early_stopping=True,
                                                 num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
-        elif self.strategy == "sampling":
-            generated_ids = self.model.generate(**inputs, do_sample=True, num_beams=1, early_stopping=True,
+        elif self.strategy == "random_sampling":
+            generated_ids = self.model.generate(**inputs, do_sample=True, top_k=0, early_stopping=True,
+                                                num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        elif self.strategy == "top_p_sampling":
+            generated_ids = self.model.generate(**inputs, do_sample=True, top_p=0.92, top_k=0, early_stopping=True,
+                                                num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        elif self.strategy == "nucleus_sampling":
+            generated_ids = self.model.generate(**inputs, do_sample=True, top_p=0.92, top_k=50, early_stopping=True,
+                                                num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        elif self.strategy == "top_k_sampling":
+            generated_ids = self.model.generate(**inputs, do_sample=True, top_k=50, early_stopping=True,
                                                 num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
         else:
-            raise ValueError(f"Strategy {self.strategy} not supported. Choose from 'beam_search', 'greedy', 'beam_search_sampling'")
+            strategies = ["beam_search", "greedy", "beam_search_sampling", "sampling", "top_p_sampling_0.92"]
+            raise ValueError(f"Strategy {self.strategy} not supported. Choose from {strategies}")
         # decode predictions
         outputs = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
         # split outputs into len(inputs) lists to store them as independent predictions
