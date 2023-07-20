@@ -42,12 +42,20 @@ class PrecomputedPlotting():
         for key, value in results.items():
             if key != 'key':
                 method = key.split('--')[-1]
-                if method == "beam-search-sampling":
+                if method == "beam_search_sampling":
                     method = "beam-search\nsampling"
                 elif method == "sampling":
                     method = "top-k\nsampling"
-                elif method == "beam-search":
-                    method = "beam-search"
+                elif method == "beam_search":
+                    method = "beam\nsearch"
+                elif method == "top_p_sampling":
+                    method = "top-p\nsampling"
+                elif method == "top_k_sampling":
+                    method = "top-k\nsampling"
+                elif method == "nucleus_sampling":
+                    method = "nucleus\nsampling"
+                elif method == "random_sampling":
+                    method = "random\nsampling"
                 elif method == "greedy":
                     method = "greedy\n(top-1)"
                 accuracy = value['paraphrased']['accuracy']
@@ -57,8 +65,8 @@ class PrecomputedPlotting():
         df = df.sort_values(by=['accuracy'], ascending=False)
 
         ax = df.plot(kind='bar', x='method', y='accuracy', legend=False)
-        plt.ylabel('Accuracy')
-        plt.title('Comparison of Different Generation Methods (top 5)')
+        plt.ylabel('partial name match score')
+        plt.title('Comparison of Different Generation Methods (top 5)\nincite_instruct-3b')
         plt.xticks(rotation=45)
         plt.tight_layout()  # adjusts subplot params so that the subplot fits into the figure area
 
