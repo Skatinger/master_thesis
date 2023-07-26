@@ -98,6 +98,8 @@ class LevenstheinDistancePlotter(Plotter):
         plt.xticks(fontsize=font_size)
         plt.yticks(fontsize=font_size)
         plt.xticks(rotation=60)
+        # set the y axis maximum
+        plt.ylim(0, 1200)
         # plt.legend(fon)
         ax.legend(title="", fontsize=font_size, loc="upper right")
         plt.title(f"{model_name}", fontsize=font_size + 8)
