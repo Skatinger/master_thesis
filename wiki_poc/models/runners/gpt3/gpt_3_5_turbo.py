@@ -1,6 +1,5 @@
 import os
 import openai
-from datasets import load_dataset
 from datasets import Dataset
 import logging
 import sys
