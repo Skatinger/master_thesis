@@ -273,8 +273,8 @@
             "precision": 0.6568554965857101
         }
     },
-    "gpt_4-175b": {
-        "size": 175.0,
+    "gpt_4-1800b": {
+        "size": 1800.0,
         "paraphrased": {
             "accuracy": 0.7081,
             "precision": 0.16257780051799556
@@ -348,6 +348,13 @@
         "paraphrased": {
             "accuracy": 0.04705263157894737,
             "precision": 0.6517118019150174
+        }
+    },
+    "gpt3.5turbo-175b": {
+        "size": 175.0,
+        "paraphrased": {
+            "accuracy": 0.5198,
+            "precision": 0.21928311941178238
         }
     }
 }
