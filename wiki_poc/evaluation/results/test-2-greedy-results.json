@@ -1,0 +1,10 @@
+{
+    "key": "test-2-greedy",
+    "incite_instruct-3b": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.22631578947368422,
+            "precision": 0.5949803887389524
+        }
+    }
+}

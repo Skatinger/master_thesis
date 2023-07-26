@@ -1,0 +1,10 @@
+{
+    "key": "test-2-top_k_sampling",
+    "incite_instruct-3b": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.3313684210526316,
+            "precision": 0.5847797231750405
+        }
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "key": "test-2-beam_search",
+    "incite_instruct-3b": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.262,
+            "precision": 0.6464169734682529
+        }
+    }
+}
