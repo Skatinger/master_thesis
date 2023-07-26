@@ -15,12 +15,13 @@ class TopKPredictionEvaluator:
         """
         # compute string edit distance with levensthein distance
         distances = {}
-        min_distance = 50
+        cutoff_distance = 50
+        min_distance = cutoff_distance
         for i in range(k_runs):
             distances[f"prediction_{i}"] = Levenshtein.distance(page["prediction_" + str(i)], page["title"], score_cutoff=min_distance)
         
         ## use a regex to check if any of the predictions contains a substring of the title
-        regex = "|".join(['.*(' + nameFragment + ').*' for nameFragment in page["title"].split()])
+        regex = "|".join(['.*(' + nameFragment.replace(".", "\\.") + ').*' for nameFragment in page["title"].split()])
         predicted_string = ""
         any_correct = False
         # iterate predictions, add all matching predictions to a prediction_string
@@ -38,6 +39,9 @@ class TopKPredictionEvaluator:
         # normalize min_distance by the length of the title
         if not min_distance == 0:
             min_distance = min_distance / len(page["title"])
+        # just set min_distance to max if no prediction was correct
+        if not any_correct:
+            min_distance = cutoff_distance
 
         # usefull for debugging insights
         # if any_correct > 0 and min_distance < 0.3:
