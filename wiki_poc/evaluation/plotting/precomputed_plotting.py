@@ -53,7 +53,7 @@ class PrecomputedPlotting():
                 elif method == "top_k_sampling":
                     method = "top-k\nsampling"
                 elif method == "nucleus_sampling":
-                    method = "nucleus\nsampling"
+                    method = "nucleus\nsampling\n(with top-k)"
                 elif method == "random_sampling":
                     method = "random\nsampling"
                 elif method == "greedy":
