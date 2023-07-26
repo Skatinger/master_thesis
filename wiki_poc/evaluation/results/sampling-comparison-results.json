@@ -1,0 +1,45 @@
+{
+    "key": "sampling-comparison-results",
+    "incite_instruct-3b--beam_search": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.262,
+            "precision": 0.6464169734682529
+        }
+    },
+    "incite_instruct-3b--greedy": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.22631578947368422,
+            "precision": 0.5949803887389524
+        }
+    },
+    "incite_instruct-3b--nucleus_sampling": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.33073684210526316,
+            "precision": 0.5847055161300516
+        }
+    },
+    "incite_instruct-3b--random_sampling": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.3057894736842105,
+            "precision": 0.5941651425919171
+        }
+    },
+    "incite_instruct-3b--top_k_sampling": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.3313684210526316,
+            "precision": 0.5847797231750405
+        }
+    },
+    "incite_instruct-3b--top_p_sampling": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.31863157894736843,
+            "precision": 0.5853325533720435
+        }
+    }
+}
