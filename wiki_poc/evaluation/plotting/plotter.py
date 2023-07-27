@@ -24,6 +24,7 @@ class Plotter():
             "levenshtein-distance": LevenstheinDistancePlotter(),
             "input-length-ablation": InputLengthAblationPlotter(),
             "page-views-proxy": PageViewsProxyPlotter(),
+            "page-edits-proxy": PageEditsProxyPlotter(),
         }
 
     @staticmethod
@@ -146,25 +147,31 @@ class AccuracyOverviewPlotter(Plotter):
         # ensure pyplot does not run out of memory when too many plots are created
         matplotlib.pyplot.close()
 
-class PageViewsProxyPlotter(Plotter):
+class PageXProxyPlotter(Plotter):
     """creates a plot showing the scores for different page views of wiki pages"""
-    def build(self, data, key, gt):
-        # load the data into a dataframe from /dataset/wiki_page_views.csv
-        views_df = pd.read_csv('dataset/wiki_page_views.csv')
-
+    def build(self, data, key, gt, proxy, views_df, bin_size=200, cutoff=None):
         gt_df = pd.DataFrame(gt)
         gt_df = gt_df[['id', 'title']]
 
-        plt.figure(figsize=(10,6))
+        # plt.figure(figsize=(10,6))
         
         from matplotlib.colors import ListedColormap
         import matplotlib.ticker as ticker
+
+        if cutoff:
+            views_df = views_df[views_df[proxy] < cutoff]
 
         # Define a color palette with as many distinct colors as there are models
         colors = sns.color_palette('husl', n_colors=len(data.keys()))
 
         # Create a colormap that maps model keys to colors
         cmap = ListedColormap(colors)
+
+        # Create a figure with two subplots with shared x-axis
+        fig, axs = plt.subplots(2, 1, figsize=(10, 10), sharex=True, gridspec_kw={'height_ratios': [3, 1]})
+
+        # Access the first subplot for the first plot
+        ax = axs[0]
 
         # Keep track of the current color index
         color_index = 0
@@ -187,38 +194,73 @@ class PageViewsProxyPlotter(Plotter):
 
                 df = pd.merge(df, views_df, left_on='id', right_on='page_id', how='inner')
 
-                df['length_group'] = pd.cut(df['page_views'], bins=100)
+                df['length_group'] = pd.cut(df[proxy], bins=bin_size)
 
                 grouped = df.groupby('length_group').agg(
-                    size=pd.NamedAgg(column='page_views', aggfunc='mean'),
+                    size=pd.NamedAgg(column=proxy, aggfunc='mean'),
                     accuracy=pd.NamedAgg(column='correct', aggfunc='mean')
                 ).reset_index()
 
                 # Use the same color for the regression line
-                plot = sns.regplot(data=grouped, x='size', y='accuracy', scatter=True, lowess=True, color=colors[color_index])
+                plot = sns.regplot(ax=ax, data=grouped, x='size', y='accuracy', scatter=False, lowess=True, color=colors[color_index])
 
                 # Create a custom line to add to the legend
                 legend_line = mlines.Line2D([], [], color=colors[color_index], label=f'{model_key}-{size}')
                 legend_lines.append(legend_line)
 
-                plot.xaxis.set_major_formatter(ticker.EngFormatter())
+                ax.xaxis.set_major_formatter(ticker.EngFormatter())
 
                 # Move to the next color
                 color_index += 1
 
-
-        plt.xlabel('number of edits')
-        plt.ylabel('partial name match score')
-        # plt.ylim(0, 1)
-        plt.title(f"partial name match score by wiki page edits\n {key}")
+        ax.set_ylabel('partial name match score')
+        if cutoff:
+            cutoff_label = f"\n(cutoff for pages with more than {cutoff:,} {proxy})"
+        else:
+            cutoff_label = ''
+        ax.set_title(f"partial name match score by wiki {proxy}{cutoff_label}\n$\it{{DRAFT (data used from: {key})}}$", fontsize=14)
 
         # Add legend manually
-        plt.legend(handles=legend_lines, title='model')
-        
-        ###### saving, dont change below here #####
-        plt.savefig(f"evaluation/plotting/plots/proxies/plot_wiki_edits_{key}.png")
+        ax.legend(handles=legend_lines, title='model')
+
+        # Access the second subplot for the second plot
+        ax = axs[1]
+
+        plot = sns.histplot(ax=ax, data=views_df, x=proxy, bins=bin_size, log_scale=(False, True), color='skyblue', edgecolor='black')
+        if proxy == 'page_views':
+            ax.set_xlabel('Number of Page Views')
+        else:
+            ax.set_label('Number of Page Edits')
+        ax.set_ylabel('Number of Pages')
+        if proxy == 'page_views':
+            ax.set_title('Distribution of Number of Pages Compared to View Count')
+        else:
+            ax.set_title('Distribution of Number of Pages Compared to Edit Count')
+        ax.xaxis.set_major_formatter(ticker.EngFormatter())
+
+        plt.tight_layout()
+
+        # save to file
+        plt.savefig(f"evaluation/plotting/plots/proxies/combined_plot_{proxy}.png", dpi=300, bbox_inches='tight')
         # ensure pyplot does not run out of memory when too many plots are created
         matplotlib.pyplot.close()
+
+class PageViewsProxyPlotter(PageXProxyPlotter):
+    """creates a plot showing the scores for different page views of wiki pages"""
+    def build(self, data, key, gt):
+        views_df = pd.read_csv(f"dataset/wiki_page_views.csv")
+        # for the page views data, entries above 1000000 are outliers, so we remove them
+        cutoff = 1000000
+        return super().build(data, key, gt, 'page_views', views_df, 150, cutoff)
+
+class PageEditsProxyPlotter(PageXProxyPlotter):
+    """creates a plot showing the scores for different page edits of wiki pages"""
+    def build(self, data, key, gt, bin_size=150):
+        views_df = pd.read_csv(f"dataset/wiki_page_edits.csv")
+        # for the page edits data, entries above 100000 are outliers, so we remove them
+        cutoff = 220000
+        bin_size = 150
+        return super().build(data, key, gt, 'page_edits', views_df, cutoff, bin_size)
 
 class InputLengthAblationPlotter(Plotter):
     """creates a plot showing the scores for different lengths of wiki pages
