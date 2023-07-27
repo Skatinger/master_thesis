@@ -158,7 +158,7 @@ class PageXProxyPlotter(Plotter):
         from matplotlib.colors import ListedColormap
         import matplotlib.ticker as ticker
 
-        if cutoff:
+        if cutoff is not None:
             views_df = views_df[views_df[proxy] < cutoff]
 
         # Define a color palette with as many distinct colors as there are models
@@ -257,9 +257,11 @@ class PageEditsProxyPlotter(PageXProxyPlotter):
     """creates a plot showing the scores for different page edits of wiki pages"""
     def build(self, data, key, gt, bin_size=150):
         views_df = pd.read_csv(f"dataset/wiki_page_edits.csv")
+        # remove any entries with None values
+        views_df = views_df[views_df['page_edits'].notna()]
         # for the page edits data, entries above 100000 are outliers, so we remove them
-        cutoff = 220000
-        bin_size = 150
+        cutoff = 10000000
+        bin_size = 30
         return super().build(data, key, gt, 'page_edits', views_df, cutoff, bin_size)
 
 class InputLengthAblationPlotter(Plotter):
