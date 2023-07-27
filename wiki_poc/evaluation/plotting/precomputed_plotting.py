@@ -70,7 +70,7 @@ class PrecomputedPlotting():
         plt.xticks(rotation=45)
         plt.tight_layout()  # adjusts subplot params so that the subplot fits into the figure area
 
-        plt.savefig('evaluation/plotting/plots/sampling_method_comparison.png')
+        plt.savefig('evaluation/plotting/plots/ablations/sampling_method_comparison.png')
 
     @staticmethod
     def plot_with_huge(results, df2):
@@ -160,7 +160,7 @@ class PrecomputedPlotting():
             line.set_linewidth(6)
 
         plt.grid(True)
-        plt.savefig(f"evaluation/plotting/plots/plot_accuracy_progression_{results['key']}.png") # , bbox_inches='tight')
+        plt.savefig(f"evaluation/plotting/plots/ablations/plot_accuracy_progression_{results['key']}.png") # , bbox_inches='tight')
         # ensure pyplot does not run out of memory when too many plots are created
         plt.close()
 
@@ -441,7 +441,7 @@ class PrecomputedPlotting():
                    markerscale=3.5, framealpha=1)
         # plt.grid(True)
 
-        plt.savefig(f"evaluation/plotting/plots/plot_normal_to_instructional_{results['key']}.png")
+        plt.savefig(f"evaluation/plotting/plots/ablations/plot_normal_to_instructional_{results['key']}.png")
 
     @staticmethod
     def plot_normal_to_instructional_barplot(results, df):

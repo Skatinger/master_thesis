@@ -203,7 +203,7 @@ class InputLengthAblationPlotter(Plotter):
         plt.legend(handles=legend_lines, title='model')
         
         ###### saving, dont change below here #####
-        plt.savefig(f"evaluation/plotting/plots/plot_input_length_ablation_{key}.png")
+        plt.savefig(f"evaluation/plotting/plots/ablations/plot_input_length_ablation_{key}.png")
         # ensure pyplot does not run out of memory when too many plots are created
         matplotlib.pyplot.close()
 
