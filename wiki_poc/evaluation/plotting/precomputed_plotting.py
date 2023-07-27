@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import logging
 import matplotlib
 from adjustText import adjust_text
 
@@ -18,6 +19,15 @@ class PrecomputedPlotting():
         self.accuracy_label = "Accuracy"
         print("loading results...")
         self.results = ResultLoader().load_computed(key, model_name)
+        self.set_baseline_values()
+
+    
+    def set_baseline_values(self):
+        logging.info("setting baseline values, using: ")
+        self.baseline_random = 0.394
+        self.baseline_majority = 0.375
+        logging.info(f"random_full_name: {self.baseline_random}")
+        logging.info(f"majority_full_name: {self.baseline_majority}")
 
     def plot(self):
         # convert results to dataframe format for easier plotting
@@ -31,9 +41,10 @@ class PrecomputedPlotting():
         # self.plot_accuracy_overview_with_legend(self.results, prepared_df)
         # self.plot_accuracy_input_size_comparison(self.results, prepared_df)
         # self.input_length_progression(self.results, prepared_df)
-        self.sampling_method_comparison(self.results, prepared_df)
+        # self.sampling_method_comparison(self.results, prepared_df)
         # self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
-        # self.tabulate_results_to_latex(self.results)
+        self.plot_model_types_comparison(self.results, prepared_df)
+        self.tabulate_results_to_latex(self.results)
 
     @staticmethod
     def sampling_method_comparison(results, _df):
@@ -95,8 +106,8 @@ class PrecomputedPlotting():
                          fontsize=my_font_size)
 
         # baselines hardcoded (TODO: make dynamic or change if test set changes)
-        plt.axhline(y=0.06, color='blue', linewidth=2.5, label="random names")
-        plt.axhline(y=0.13, color='orange', linewidth=2.5, label="majority names")
+        plt.axhline(y=self.random_baseline, color='blue', linewidth=2.5, label="random names")
+        plt.axhline(y=self.majority_baseline, color='orange', linewidth=2.5, label="majority names")
 
         # Annotate the baselines
         plt.annotate("random names", (df2['size'].min(), 0.06), xytext=(-10, 5), textcoords='offset points', color='blue', fontsize=my_font_size)
@@ -210,6 +221,12 @@ class PrecomputedPlotting():
         plt.savefig(f"evaluation/plotting/plots/plot_input_length_progression_{results['key']}.png", bbox_inches='tight')
         # ensure pyplot does not run out of memory when too many plots are created
         plt.close()
+    
+    def plot_wiki_edits_proxy(results, df2):
+        """Plot the wiki edits proxy metric for each model
+           this shows the number of edits to a page compared to the length of the page"""
+
+
 
     @staticmethod
     def plot_best_performers(results, df2):
@@ -280,6 +297,7 @@ class PrecomputedPlotting():
         configs = []
         accuracies = []
         precisions = []
+        weighted_scores = []
         model_classes = []
 
         # Iterate over the dictionary and extract the data
@@ -297,9 +315,11 @@ class PrecomputedPlotting():
             configs.append('paraphrased')
             precisions.append(model_data['paraphrased']["precision"])
             model_classes.append(model.split("-")[0])
+            weighted_scores.append(model_data['paraphrased']["weighted_score"])
 
         # # Create a DataFrame from the extracted data
-        return pd.DataFrame({"model": models, "model_class": model_classes, "size": sizes, "precision": precisions, "accuracy": accuracies})
+        return pd.DataFrame({"model": models, "model_class": model_classes, "size": sizes, "precision": precisions,
+                             "accuracy": accuracies, "weighted_score": weighted_scores, "config": configs})
 
     @staticmethod
     def plot_accuracy_overview(results):
@@ -343,17 +363,81 @@ class PrecomputedPlotting():
         plt.savefig(f"evaluation/plotting/plots/plot_accuracies_{results['key']}.png", bbox_inches='tight')
         # ensure pyplot does not run out of memory when too many plots are created
         plt.close()
+    
+    def plot_model_types_comparison(self, results, df):
 
-    @staticmethod
-    def plot_accuracy_overview_with_legend_and_size(results, df2):
+        # Dict
+        model_types = {
+            "bert": "fill_mask",
+            "bloom": "text_generation",
+            "bloomz": "text_generation",
+            "cerebras": "text_generation",
+            "deberta": "fill_mask",
+            "deberta_squad": "question_answering",
+            "distilbert_squad": "question_answering",
+            "distilbert": "fill_mask",
+            "falcon": "text_generation",
+            "falcon_instruct": "text_generation",
+            "flan_t5": "text_generation",
+            "gptj": "text_generation",
+            "incite_instruct": "text_generation",
+            "llama": "text_generation",
+            "mpt": "text_generation",
+            "mt0": "text_generation",
+            "mt5": "text_generation",
+            "pythia": "text_generation",
+            "roberta_squad": "question_answering",
+            "t5": "text_generation",
+            "roberta": "fill_mask",
+            "gpt3.5turbo": "text_generation",
+            "gpt_4": "text_generation",
+        }
+
+        # Convert dict to DataFrame
+        model_types_df = pd.DataFrame(list(model_types.items()), columns=['model_class', 'model_type'])
+
+        # Merge dataframes on model_class
+        df = pd.merge(df, model_types_df, on='model_class')
+
+        # Apply log transformation to 'size' column
+        df['log_size'] = np.log1p(df['size'])
+
+        # Divide 'log_size' into quantiles
+        bins = [0,1,10,15,100,200]
+        df['size_group'] = pd.cut(df['size'], bins=bins)
+        print(df)
+
+        # Sorting by size_group and weighted_score
+        df.sort_values(by=['weighted_score'], inplace=True)
+
+        # Convert size_group to string for plotting
+        df['size_group'] = 'Group ' + pd.cut(df['size'], bins=bins).cat.codes.astype(str)
+
+        # Plot
+        plt.figure(figsize=(10, 8))
+        sns.barplot(x='accuracy', y='model', hue='model_type', data=df, dodge=False)
+
+        # Adding a vertical line to separate the groups
+        unique_groups = df['size_group'].unique()
+        for i in range(1, len(unique_groups)):
+            plt.axhline(y=df[df['size_group'] == unique_groups[i]].index.min()-0.5, color='black', linestyle='--')
+
+        plt.xlabel('Accuracy')
+        plt.ylabel('Model')
+        plt.title('Model Performance by Type')
+        plt.savefig(f"evaluation/plotting/plots/plot_model_types_comparison_{results['key']}_2.png")
+
+
+    def plot_accuracy_overview_with_legend_and_size(self, results, df2):
+        print(df2.head())
         plt.figure(figsize=(20, 14))
 
         my_font_size = 24
-        sns.scatterplot(data=df2, x="size", y="accuracy", hue="model_class", s=350, markers=True)
+        sns.scatterplot(data=df2, x="size", y="weighted_score", hue="model_class", s=350, markers=True)
 
         # baselines
-        plt.axhline(y=0.06, color='blue', linewidth=2.5, label="random names")
-        plt.axhline(y=0.13, color='orange', linewidth=2.5, label="majority names")
+        plt.axhline(y=self.baseline_random, color='blue', linewidth=2.5, label="random names")
+        plt.axhline(y=self.baseline_majority, color='orange', linewidth=2.5, label="majority names")
 
         # Set labels and title
         plt.xlabel("Size [Billion Parameters]", fontsize=my_font_size)
