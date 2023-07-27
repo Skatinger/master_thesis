@@ -23,6 +23,7 @@ class Plotter():
             "accuracy-overview": AccuracyOverviewPlotter(),
             "levenshtein-distance": LevenstheinDistancePlotter(),
             "input-length-ablation": InputLengthAblationPlotter(),
+            "page-views-proxy": PageViewsProxyPlotter(),
         }
 
     @staticmethod
@@ -70,7 +71,6 @@ class LevenstheinDistancePlotter(Plotter):
                     results = data[config]['result']['data']
                     self._plot_single(results, f"{model_class}-{model}", config, key)
 
-
     def _plot_single(self, results: dict, model_name: str, config: str, key: str) -> None:
         """takes a dictionary of results and plots a barplot showing the correlation between"""
         plt.figure(figsize=(12,8))
@@ -87,8 +87,14 @@ class LevenstheinDistancePlotter(Plotter):
         df_agg['correctness'] = df_agg['correct'].replace({1: 'correct', 0: 'incorrect'})
         df_agg.drop('correct', axis=1, inplace=True)
 
+        # Filter the data to only include correct results
+        df_agg = df_agg[df_agg['correctness'] == 'correct']
+
         # Define the barplot using seaborn
         ax = sns.barplot(x='distance', y='count', hue='correctness', data=df_agg)
+
+        # Remove the legend
+        ax.get_legend().remove()
 
         # # Add labels and a title
         plt.xlabel('Levenshtein edit distance', fontsize=font_size)
@@ -100,13 +106,10 @@ class LevenstheinDistancePlotter(Plotter):
         plt.xticks(rotation=60)
         # set the y axis maximum
         plt.ylim(0, 1200)
-        # plt.legend(fon)
-        ax.legend(title="", fontsize=font_size, loc="upper right")
         plt.title(f"{model_name}", fontsize=font_size + 8)
         path = f"evaluation/plotting/plots/{key}_{model_name}_{config}_levensthein_distance.png"
         logging.info(f"saving to {path}")
         plt.savefig(path)
-
 
 
 class AccuracyOverviewPlotter(Plotter):
@@ -140,6 +143,80 @@ class AccuracyOverviewPlotter(Plotter):
         plt.title('Accuracy by Model Size and Configuration')
         plt.grid(True)
         plt.savefig(f"evaluation/plotting/plots/plot_{key}.png")
+        # ensure pyplot does not run out of memory when too many plots are created
+        matplotlib.pyplot.close()
+
+class PageViewsProxyPlotter(Plotter):
+    """creates a plot showing the scores for different page views of wiki pages"""
+    def build(self, data, key, gt):
+        # load the data into a dataframe from /dataset/wiki_page_views.csv
+        views_df = pd.read_csv('dataset/wiki_page_views.csv')
+
+        gt_df = pd.DataFrame(gt)
+        gt_df = gt_df[['id', 'title']]
+
+        plt.figure(figsize=(10,6))
+        
+        from matplotlib.colors import ListedColormap
+        import matplotlib.ticker as ticker
+
+        # Define a color palette with as many distinct colors as there are models
+        colors = sns.color_palette('husl', n_colors=len(data.keys()))
+
+        # Create a colormap that maps model keys to colors
+        cmap = ListedColormap(colors)
+
+        # Keep track of the current color index
+        color_index = 0
+
+        # create a list to hold the legend lines
+        legend_lines = []
+
+        for model_key in data.keys():
+            for size in data[model_key].keys():
+                prediction_results = data[model_key][size]['paraphrased']['result']['data']
+                predictions_df = pd.DataFrame(prediction_results)
+
+                # First merge the predictions with the ground truth to receive the id of the pages
+                df = pd.merge(predictions_df, gt_df, on='title', how='inner')
+
+                # Then join the page views with the predictions
+                # Match the ids type to the page_id type
+                df['id'] = df['id'].astype(int)
+                views_df['page_id'] = views_df['page_id'].astype(int)
+
+                df = pd.merge(df, views_df, left_on='id', right_on='page_id', how='inner')
+
+                df['length_group'] = pd.cut(df['page_views'], bins=100)
+
+                grouped = df.groupby('length_group').agg(
+                    size=pd.NamedAgg(column='page_views', aggfunc='mean'),
+                    accuracy=pd.NamedAgg(column='correct', aggfunc='mean')
+                ).reset_index()
+
+                # Use the same color for the regression line
+                plot = sns.regplot(data=grouped, x='size', y='accuracy', scatter=True, lowess=True, color=colors[color_index])
+
+                # Create a custom line to add to the legend
+                legend_line = mlines.Line2D([], [], color=colors[color_index], label=f'{model_key}-{size}')
+                legend_lines.append(legend_line)
+
+                plot.xaxis.set_major_formatter(ticker.EngFormatter())
+
+                # Move to the next color
+                color_index += 1
+
+
+        plt.xlabel('number of edits')
+        plt.ylabel('partial name match score')
+        # plt.ylim(0, 1)
+        plt.title(f"partial name match score by wiki page edits\n {key}")
+
+        # Add legend manually
+        plt.legend(handles=legend_lines, title='model')
+        
+        ###### saving, dont change below here #####
+        plt.savefig(f"evaluation/plotting/plots/proxies/plot_wiki_edits_{key}.png")
         # ensure pyplot does not run out of memory when too many plots are created
         matplotlib.pyplot.close()
 
@@ -203,11 +280,9 @@ class InputLengthAblationPlotter(Plotter):
         plt.legend(handles=legend_lines, title='model')
         
         ###### saving, dont change below here #####
-        plt.savefig(f"evaluation/plotting/plots/ablations/plot_input_length_ablation_{key}.png")
+        plt.savefig(f"evaluation/plotting/plots/proxies/plot_input_length_{key}.png")
         # ensure pyplot does not run out of memory when too many plots are created
         matplotlib.pyplot.close()
-
-
 
 
 def main():
