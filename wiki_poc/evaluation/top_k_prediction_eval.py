@@ -42,16 +42,31 @@ class TopKPredictionEvaluator:
         # just set min_distance to max if no prediction was correct
         if not any_correct:
             min_distance = cutoff_distance
+        
+        last_name = page["title"].split()[-1:]
+        # use the re.escape function to escape all special characters in the last name
+        last_name_regex = f'.*({re.escape(page["title"].split()[-1])}).*'
+        last_name_match = False
+        last_name_min_distance = cutoff_distance
+        for i in range(k_runs):
+            prediction = page[f"prediction_{i}"].strip()
+            if re.search(last_name_regex, prediction):
+                last_name_match = True
+                distance = Levenshtein.distance(prediction, last_name, score_cutoff=min_distance)
+                if distance < last_name_min_distance:
+                    last_name_min_distance = distance
 
-        # usefull for debugging insights
-        # if any_correct > 0 and min_distance < 0.3:
-            # print(f"Correct prediction: {top_prediction} for {page['title']}")
+        # normalize last_name_min_distance by the length of the last name
+        if not last_name_min_distance == 0:
+            last_name_min_distance = last_name_min_distance / len(last_name)
 
         # if we got any correct predictions for the page
         if any_correct > 0:
-            return { "correct": 1, "prediction": predicted_string, "top_prediction": top_prediction, "title": page["title"], "distance": min_distance }
+            return { "correct": 1, "last_name_correct": last_name_match, "last_name_distance": last_name_min_distance,
+                    "prediction": predicted_string, "top_prediction": top_prediction, "title": page["title"], "distance": min_distance }
         else:
-            return { "correct": 0, "prediction": predicted_string, "top_prediction": top_prediction, "title": page["title"], "distance": min_distance }
+            return { "correct": 0, "last_name_correct": last_name_match, "last_name_distance": last_name_min_distance,
+                    "prediction": predicted_string, "top_prediction": top_prediction, "title": page["title"], "distance": min_distance }
     
     @staticmethod
     def compute_metrics(gt: Dataset, data: Dict, configs=['original', 'paraphrased']) -> dict:
@@ -96,11 +111,33 @@ class TopKPredictionEvaluator:
                         average_precision = sum(correct_predictions['distance']) / correct
                         accuracy = correct / len(dataset)
                     
+                    # compute same metrics for last name only
+                    last_name_correct = computed.filter(lambda x: x['last_name_correct'] == 1)
+                    if len(last_name_correct) == 0:
+                        last_name_accuracy = 0
+                    else:
+                        last_name_accuracy = len(last_name_correct) / len(dataset)
+                        average_last_name_precision = sum(last_name_correct['last_name_distance']) / len(last_name_correct)
+                    
+                    full_name_accuracy = accuracy
+                    average_full_name_precision = average_precision
+
+                    # compute weighted score
+                    full_name_weight = 0.35
+                    last_name_weight = 0.65
+                    weighted_score = full_name_weight * full_name_accuracy + last_name_weight * last_name_accuracy
+
+                    
                     model[config]["result"] = {}
                     model[config]["result"]["data"] = computed
                     model[config]["result"]["accuracy"] = accuracy
                     model[config]["result"]["precision"] = average_precision
+                    model[config]["result"]["last_name_accuracy"] = last_name_accuracy
+                    model[config]["result"]["last_name_precision"] = average_last_name_precision
+                    model[config]["result"]["precision"] = average_full_name_precision
+                    model[config]["result"]["weighted_score"] = weighted_score
                     model[config]["result"]["correct_predictions"] = correct_predictions
+                    model[config]["result"]["correct_last_name_predictions"] = incorrect_predictions
                     model[config]["result"]["incorrect_predictions"] = incorrect_predictions
         return data
 
@@ -137,11 +174,16 @@ def main():
                 print(f"Model: {name:<15} Config: {config}")
                 print(f"Accuracy: {round(model[config]['result']['accuracy'], 2)}")
                 print(f"Precision: {round(model[config]['result']['precision'], 2)}")
+                print(f"Last Name Accuracy: {round(model[config]['result']['last_name_accuracy'], 2)}")
+                print(f"Last Name Precision: {round(model[config]['result']['last_name_precision'], 2)}")
+                print(f"Weighted Score: {round(model[config]['result']['weighted_score'], 2)}")
                 json_results[name][config] = {}
                 json_results[name][config]['accuracy'] = model[config]['result']['accuracy']
                 json_results[name][config]['precision'] = model[config]['result']['precision']
-                # print(model[config]['result']['correct_predictions']['distance'][:20])
-                # print(model[config]['result']['incorrect_predictions']['prediction'][:20])
+                json_results[name][config]['last_name_accuracy'] = model[config]['result']['last_name_accuracy']
+                json_results[name][config]['last_name_precision'] = model[config]['result']['last_name_precision']
+                json_results[name][config]['weighted_score'] = model[config]['result']['weighted_score']
+                # also write the results to a csv file
                 csv_lines.append(f"{name},{model['size']},{config},{model[config]['result']['accuracy']},{model[config]['result']['precision']},{model[config]['result']['correct_predictions']['top_prediction']}")
 
     # write results to json file
