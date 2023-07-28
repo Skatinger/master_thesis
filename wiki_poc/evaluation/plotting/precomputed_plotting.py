@@ -24,8 +24,9 @@ class PrecomputedPlotting():
     
     def set_baseline_values(self):
         logging.info("setting baseline values, using: ")
-        self.baseline_random = 0.394
-        self.baseline_majority = 0.375
+        # hardcoded baselines for weighted scores
+        self.baseline_random = 0.0155
+        self.baseline_majority = 0.046
         logging.info(f"random_full_name: {self.baseline_random}")
         logging.info(f"majority_full_name: {self.baseline_majority}")
 
@@ -43,8 +44,9 @@ class PrecomputedPlotting():
         # self.input_length_progression(self.results, prepared_df)
         # self.sampling_method_comparison(self.results, prepared_df)
         # self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
-        self.plot_model_types_comparison(self.results, prepared_df)
-        self.tabulate_results_to_latex(self.results)
+        # self.plot_model_types_comparison(self.results, prepared_df)
+        self.plot_model_types_comparison_scatter(self.results, prepared_df)
+        # self.tabulate_results_to_latex(self.results)
 
     @staticmethod
     def sampling_method_comparison(results, _df):
@@ -363,6 +365,95 @@ class PrecomputedPlotting():
         plt.savefig(f"evaluation/plotting/plots/plot_accuracies_{results['key']}.png", bbox_inches='tight')
         # ensure pyplot does not run out of memory when too many plots are created
         plt.close()
+
+    def plot_model_types_comparison_scatter(self, results, df):
+        # add slighly larger fontsize
+        my_font_size = 12
+        # Dict
+        model_types = {
+            "bert": "fill_mask",
+            "bloom": "text_generation",
+            "bloomz": "text_generation",
+            "cerebras": "text_generation",
+            "deberta": "fill_mask",
+            "deberta_squad": "question_answering",
+            "distilbert_squad": "question_answering",
+            "distilbert": "fill_mask",
+            "falcon": "text_generation",
+            "falcon_instruct": "text_generation",
+            "flan_t5": "text_generation",
+            "gptj": "text_generation",
+            "incite_instruct": "text_generation",
+            "llama": "text_generation",
+            "mpt": "text_generation",
+            "mt0": "text_generation",
+            "mt5": "text_generation",
+            "pythia": "text_generation",
+            "roberta_squad": "question_answering",
+            "t5": "text_generation",
+            "roberta": "fill_mask",
+            "gpt3.5turbo": "text_generation",
+            "gpt_4": "text_generation",
+        }
+
+        # Convert dict to DataFrame
+        model_types_df = pd.DataFrame(list(model_types.items()), columns=['model_class', 'model_type'])
+
+        # Merge dataframes on model_class
+        df = pd.merge(df, model_types_df, on='model_class')
+
+        # Plot
+        plt.figure(figsize=(10, 8))
+        print(df)
+
+        # group it
+        df = df.sort_values('size', ascending=False)
+        grouped_data = df.groupby('model_type').apply(lambda x: x.sort_values('size')).reset_index(drop=True)
+
+        # Get unique model groups and their corresponding colors
+        unique_groups = grouped_data['model_type'].unique()
+        color_palette = sns.color_palette('tab10', n_colors=len(unique_groups))
+
+        my_font_size = 24
+
+        # scatter points
+        scatter = sns.scatterplot(data=grouped_data, x='size', y='weighted_score', hue='model_type', s=250, markers=True, legend=True)
+        handles, labels = scatter.get_legend_handles_labels()
+
+        # baselines
+        plt.axhline(y=self.baseline_random, color='blue', linewidth=2.5, label="random names", zorder=0)
+        plt.axhline(y=self.baseline_majority, color='orange', linewidth=2.5, label="majority names", zorder=0)
+
+        # Create custom legend entries
+        import matplotlib.lines as mlines
+        # random_patch = mpatches.Patch(color='blue', label='random names')
+        # majority_patch = mpatches.Patch(color='orange', label='majority names')
+        random_line = mlines.Line2D([], [], color='blue', marker='_', markersize=15, label='random names baseline', linewidth=1.5)
+        majority_line = mlines.Line2D([], [], color='orange', marker='_', markersize=15, label='majority names baseline', linewidth=1.5)
+
+
+        # handles.extend([random_patch, majority_patch])
+        handles.extend([random_line, majority_line])
+        labels.extend(['random names', 'majority names'])
+
+        plt.legend(handles=handles, labels=labels)
+
+        # Plot separate lines for each group with corresponding colors
+        for group, color in zip(unique_groups, color_palette):
+            group_data = grouped_data[grouped_data['model_type'] == group]
+            plt.plot(group_data['size'], group_data['weighted_score'], color=color, label="_nolegend_", linewidth=3)
+
+
+
+        # sns.scatterplot(data=df, x="size", y="weighted_score", hue="model_type", s=250, markers=True, legend=True)
+
+        plt.legend(fontsize="x-large")
+        plt.xlabel('model size [million parameters]', fontsize="x-large")
+        plt.ylabel('weighted partial name match score', fontsize="x-large")
+        plt.title('Model Performance by Type')
+        plt.savefig(f"evaluation/plotting/plots/ablations/plot_model_types_comparison_scatter_{results['key']}.png")
+
+
     
     def plot_model_types_comparison(self, results, df):
 
@@ -403,12 +494,12 @@ class PrecomputedPlotting():
         df['log_size'] = np.log1p(df['size'])
 
         # Divide 'log_size' into quantiles
-        bins = [0,1,10,15,100,200]
+        bins = [0.1,0.5,1]
         df['size_group'] = pd.cut(df['size'], bins=bins)
         print(df)
 
         # Sorting by size_group and weighted_score
-        df.sort_values(by=['weighted_score'], inplace=True)
+        df.sort_values(by=['weighted_score', 'size'], inplace=True)
 
         # Convert size_group to string for plotting
         df['size_group'] = 'Group ' + pd.cut(df['size'], bins=bins).cat.codes.astype(str)
@@ -425,7 +516,7 @@ class PrecomputedPlotting():
         plt.xlabel('Accuracy')
         plt.ylabel('Model')
         plt.title('Model Performance by Type')
-        plt.savefig(f"evaluation/plotting/plots/plot_model_types_comparison_{results['key']}_2.png")
+        plt.savefig(f"evaluation/plotting/plots/ablations/plot_model_types_comparison_{results['key']}_2.png")
 
 
     def plot_accuracy_overview_with_legend_and_size(self, results, df2):
@@ -740,15 +831,17 @@ class PrecomputedPlotting():
     def tabulate_results_to_latex(results):
         df2 = PrecomputedPlotting.convert_to_df(results)        
         # Keep only the specified columns
-        df2 = df2[['model_class', 'size', 'accuracy', 'precision']]
+        df2 = df2[['model_class', 'size', 'accuracy', 'precision', 'weighted_score']]
         
-        df2 = df2.sort_values(by=['accuracy'], ascending=False)
+        df2 = df2.sort_values(by=['weighted_score'], ascending=False)
         # round and reduce accuracy to 2 digits
         df2['accuracy'] = df2['accuracy'].apply(lambda x: round(x, 2))
         df2['size'] = df2['size'].apply(lambda x: round(x, 2))
+        df2['precision'] = df2['precision'].apply(lambda x: round(x, 2))
+        df2['weighted_score'] = df2['weighted_score'].apply(lambda x: round(x, 2))
 
         # Rename the columns
-        df2 = df2.rename(columns={'size': 'size [billions]', 'precision': 'partial name matching score'})
+        df2 = df2.rename(columns={'size': 'size [billions]', 'precision': 'partial name matching score', 'weighted_score': 'weighted score'})
     
         # Ensure the index is of string type
         df2.index = df2.index.astype(str)
