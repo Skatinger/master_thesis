@@ -35,7 +35,7 @@ class PrecomputedPlotting():
         prepared_df = self.convert_to_df(self.results)
         # self.plot_normal_to_instructional(self.results, prepared_df)
         # self.plot_normal_to_instructional_barplot(self.results, prepared_df)
-        # self.plot_accuracy_progression(self.results, prepared_df)
+        self.plot_accuracy_progression(self.results, prepared_df)
         # self.plot_best_performers(self.results, prepared_df)
         # self.plot_with_huge(self.results, prepared_df)
         # self.plot_accuracy_overview(self.results)
@@ -45,7 +45,7 @@ class PrecomputedPlotting():
         # self.sampling_method_comparison(self.results, prepared_df)
         # self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
         # self.plot_model_types_comparison(self.results, prepared_df)
-        self.plot_model_types_comparison_scatter(self.results, prepared_df)
+        # self.plot_model_types_comparison_scatter(self.results, prepared_df)
         # self.tabulate_results_to_latex(self.results)
 
     @staticmethod
@@ -143,6 +143,10 @@ class PrecomputedPlotting():
         # remove all models that are not in the interesting models list
         df2 = df2[df2['model_class'].isin(interesting_models)]
 
+        # remove any models above 20 billion parameters, as they are not interesting because
+        # they pull apart the plot too much
+        df2 = df2[df2['size'] < 20]
+
         # group it
         grouped_data = df2.groupby('model_class').apply(lambda x: x.sort_values('size')).reset_index(drop=True)
 
@@ -151,16 +155,16 @@ class PrecomputedPlotting():
         color_palette = sns.color_palette('tab10', n_colors=len(unique_groups))
 
         # scatter points
-        sns.scatterplot(data=grouped_data, x='size', y='accuracy', hue='model_class', s=250, markers=True, legend=False)
+        sns.scatterplot(data=grouped_data, x='size', y='weighted_score', hue='model_class', s=250, markers=True, legend=False)
 
         # Plot separate lines for each group with corresponding colors
         for group, color in zip(unique_groups, color_palette):
             group_data = grouped_data[grouped_data['model_class'] == group]
-            plt.plot(group_data['size'], group_data['accuracy'], color=color, label=group, linewidth=3)
+            plt.plot(group_data['size'], group_data['weighted_score'], color=color, label=group, linewidth=3)
 
         # Set labels and title
         plt.xlabel("size [billion parameters]", fontsize=my_font_size)
-        plt.ylabel("partial name match score", fontsize=my_font_size)
+        plt.ylabel("weighted partial name match score", fontsize=my_font_size)
 
         # Increase font size of tick labels
         plt.xticks(fontsize=my_font_size)
@@ -173,7 +177,7 @@ class PrecomputedPlotting():
             line.set_linewidth(6)
 
         plt.grid(True)
-        plt.savefig(f"evaluation/plotting/plots/ablations/plot_accuracy_progression_{results['key']}.png") # , bbox_inches='tight')
+        plt.savefig(f"evaluation/plotting/plots/ablations/plot_accuracy_progression_{results['key']}.png", bbox_inches='tight')
         # ensure pyplot does not run out of memory when too many plots are created
         plt.close()
 
@@ -450,7 +454,7 @@ class PrecomputedPlotting():
         plt.legend(fontsize="x-large")
         plt.xlabel('model size [million parameters]', fontsize="x-large")
         plt.ylabel('weighted partial name match score', fontsize="x-large")
-        plt.title('Model Performance by Type')
+        plt.title('Model Performance by Type', fontsize="x-large")
         plt.savefig(f"evaluation/plotting/plots/ablations/plot_model_types_comparison_scatter_{results['key']}.png")
 
 
@@ -557,11 +561,13 @@ class PrecomputedPlotting():
         # expect the following models
         models = ["falcon", "roberta", "distilbert", "mpt", "incite", "t5"]
 
+        print("at least here")
+
         df2["is_instructional"] = df2["model_class"].apply(
             lambda x: "instruction tuned" if ("squad" in x or "flan" in x or "instruct" in x) else "base")
 
         my_font_size = 24
-        sns.scatterplot(data=df2, x="size", y="accuracy", hue="is_instructional", s=350, markers=True)
+        sns.scatterplot(data=df2, x="size", y="weighted_score", hue="is_instructional", s=350, markers=True)
 
         for i, row in df2.iterrows():
             label_length = len(row['model'])
@@ -571,7 +577,7 @@ class PrecomputedPlotting():
             # small hack for gptj, to make it fit as well
             else:
                 mv_left = 12
-            plt.annotate(row['model_class'], (row['size'], row['accuracy']), xytext=(mv_left, -7), textcoords='offset points',
+            plt.annotate(row['model_class'], (row['size'], row['weighted_score']), xytext=(mv_left, -7), textcoords='offset points',
                          fontsize=my_font_size)
 
         grouped_data = df2.groupby(df2["model"].str.extract(f"({'|'.join(models)})")[0])
@@ -582,8 +588,8 @@ class PrecomputedPlotting():
             sorted_data = group_data.sort_values('is_instructional')
             
             # Extract the x and y values for the two points
-            x1, y1 = sorted_data.iloc[0]['size'], sorted_data.iloc[0]['accuracy']
-            x2, y2 = sorted_data.iloc[1]['size'], sorted_data.iloc[1]['accuracy']
+            x1, y1 = sorted_data.iloc[0]['size'], sorted_data.iloc[0]['weighted_score']
+            x2, y2 = sorted_data.iloc[1]['size'], sorted_data.iloc[1]['weighted_score']
             
             # padding to not overlap labels
             padding = 0.004
@@ -616,7 +622,7 @@ class PrecomputedPlotting():
                    markerscale=3.5, framealpha=1)
         # plt.grid(True)
 
-        plt.savefig(f"evaluation/plotting/plots/ablations/plot_normal_to_instructional_{results['key']}.png")
+        plt.savefig(f"evaluation/plotting/plots/ablations/plot_normal_to_instructional_{results['key']}.png", bbox_inches='tight')
 
     @staticmethod
     def plot_normal_to_instructional_barplot(results, df):
@@ -639,7 +645,7 @@ class PrecomputedPlotting():
         # Prepare data for plot
         plot_data = []
         for name, group in grouped:
-            plot_data.append((name[0], name[1], group['accuracy'].mean()))
+            plot_data.append((name[0], name[1], group['weighted_score'].mean()))
 
         # Sort data by model name
         plot_data.sort()
@@ -687,7 +693,7 @@ class PrecomputedPlotting():
         plt.bar(bar_l + bar_width, instruction_accuracies, width=bar_width, label='instruction tuned', color='blue')
 
         # Set the labels and title
-        plt.ylabel('partial name match score', fontsize=my_font_size)
+        plt.ylabel('weighted partial name match score', fontsize=my_font_size)
 
         # Set the positions and labels of the x-axis ticks
         plt.xticks(tick_pos, unique_names_with_size)
@@ -703,7 +709,7 @@ class PrecomputedPlotting():
         plt.xticks(fontsize=my_font_size)
         plt.yticks(fontsize=my_font_size)
 
-        plt.savefig(f"evaluation/plotting/plots/plot_normal_to_instructional_barplot_{results['key']}.png")
+        plt.savefig(f"evaluation/plotting/plots/ablations/plot_normal_to_instructional_barplot_{results['key']}.png", bbox_inches='tight')
 
     @staticmethod
     def plot_accuracy_input_size_comparison(results, df2):
