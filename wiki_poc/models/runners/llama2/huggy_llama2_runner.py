@@ -44,8 +44,7 @@ class HuggyLlama2Runner(AbstractRunner):
         if torch.cuda.is_available():
             logging.info("GPU available, loading model in FP16 mode on GPU.")
             logging.info("Using tensorflow weights, as pytorch weights are not available for llama2.")
-            return self._model_loader().from_pretrained(model_path, config=configuration,
-                                                        device_map="auto", use_auth_token=True, from_tf=True)
+            return self._model_loader().from_pretrained(model_path, device_map="auto", use_auth_token=True, from_tf=True)
             
         else:
             logging.warning("GPU not available, loading model in FP32 mode on CPU. This will be very slow.")
