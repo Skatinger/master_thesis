@@ -68,7 +68,7 @@ if __name__ == "__main__":
              'prediction_3': [], 'prediction_4': [], 'page_id': [], 'input_length': []})
     
     # shorten dataset to 1000 characters
-    dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": x[f"masked_text_{CONFIG}"][:1000]}, num_proc=8)
+    dataset = dataset.map(lambda x: {f"masked_text_{CONFIG}": x[f"masked_text_{CONFIG}"][:10000]}, num_proc=8)
     # remove all examples which do no longer contain a mask
     dataset = dataset.filter(lambda x: "<mask>" in x[f"masked_text_{CONFIG}"])
 
