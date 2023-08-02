@@ -44,7 +44,7 @@ if __name__ == "__main__":
     assert openai.api_key is not None, "OPENAI_API_KEY environment variable not set."
 
     MODEL_NAME = "gpt-4-0613"
-    PATH = f"{dataset}_predictions_{MODEL_NAME.replace('/', '_')}_{CONFIG}.jsonl"
+    PATH = f"results/gpt4/{dataset}_predictions_{MODEL_NAME.replace('/', '_')}_{CONFIG}.jsonl"
 
     user_prompt = """Who is the person refered to as <mask>? Only give the exact name without punctuation.
                    You are not allowed to respond with anything but the name, no more than 3 words.
