@@ -153,7 +153,7 @@ def parse_options():
     return models_list, args.size, args.model_class, args.key, args.exclude, args.device, args.save_memory, \
            args.top_k, args.fast, args.dry_run, args.dataset, options
 
-def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_set_ids.csv", dataset_type = "wiki"):
+def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_set_ids.csv", dataset_type = "wiki", no_cache = False):
     """load test dataset from cache or generates it from the full dataset and caches it
     Args:
         path (str, optional): path to cache. Defaults to "models/cache/reduced_test_set".
@@ -167,7 +167,7 @@ def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_
     else:
         dataset_name = "Skatinger/wikipedia-persons-masked"
     # load cached dataset if it exists
-    if os.path.exists(path):
+    if os.path.exists(path) and not no_cache:
         dataset = Dataset.load_from_disk(path)
     else:
         assert os.path.exists(ids_file_path), f"{ids_file_path} file not found. Please run generate_test_set_ids.py first."
