@@ -9,24 +9,24 @@ class HuggyLlamaRunner(AbstractRunner):
     @staticmethod
     def names():
         return {
-            "llama-7b": "huggyllama/llama-7b",
-            "llama-13b": "huggyllama/llama-13b",
+            "llama2-7b": "meta-llama/llama-2-7b",
+            "llama2-13b": "meta-llama/llama-2-13b",
             # "llama-70b": "huggyllama/llama-70b",
         }
     
     @staticmethod
     def sizes():
         return {
-            "L": "llama-7b",
-            "XL": "llama-13b",
+            "L": "llama2-7b",
+            "XL": "llama2-13b",
             # "XXXL": "llama-70b",
         }
         
     @staticmethod
     def batch_sizes():
         return {
-            "llama-7b": 8,
-            "llama-13b": 8,
+            "llama2-7b": 8,
+            "llama2-13b": 8,
             # "llama-70b": 4,
         }
 
