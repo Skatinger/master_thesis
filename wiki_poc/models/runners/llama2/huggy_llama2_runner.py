@@ -4,7 +4,7 @@ import torch
 from transformers import LlamaModel, LlamaConfig
 from transformers import LlamaForCausalLM, LlamaTokenizer
 
-class HuggyLlamaRunner(AbstractRunner):
+class HuggyLlama2Runner(AbstractRunner):
 
     @staticmethod
     def names():
