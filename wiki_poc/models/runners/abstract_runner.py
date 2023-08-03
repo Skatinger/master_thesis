@@ -223,12 +223,14 @@ class AbstractRunner():
         # tokenize inputs and move to GPU
         texts = examples[f"masked_text_{config}"]
         inputs = self.tokenizer(texts, return_tensors="pt", padding=True,
-                                return_token_type_ids=False).to(self.device)
+                                return_token_type_ids=False)
         # truncate inputs to max length of model
         if self.truncate:
             max_length = self.tokenizer.model_max_length
             # inputs is a list of tensors, each tensor is one input
             inputs = {k: v[:, :max_length] for k, v in inputs.items()}
+        # move inputs to GPU
+        inputs.to(self.device)
         # compute lengths of the inputs to store with the result
         input_lengths = [len(i) for i in examples[f"masked_text_{config}"]]
         # generate predictions
