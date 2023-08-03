@@ -12,6 +12,7 @@ from .runners.bloom.bloom_runner import BloomRunner
 from .runners.mt0.mt0_runner import MT0Runner
 from .runners.cerebras.cerebras_runner import CerebrasRunner
 from .runners.roberta_runner import RobertaRunner
+from .runners.t0.t0_runner import T0Runner
 from .runners.t5.t5_runner import T5Runner
 from .runners.pythia.pythia_runner import PythiaRunner
 from .runners.mpt.mpt_runner import MPTRunner
@@ -42,6 +43,8 @@ def runners():
         "bloomz": BloomzRunner,
         "cerebras": CerebrasRunner,
         "roberta": RobertaRunner,
+        "t0": T0Runner,
+        "t0pp": T0Runner,
         "t5": T5Runner,
         "mt5": MT5Runner,
         "mt0": MT0Runner,
