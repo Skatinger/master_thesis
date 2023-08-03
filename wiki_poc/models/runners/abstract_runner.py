@@ -38,6 +38,9 @@ class AbstractRunner():
         self.cached_predictions = {}
         self.k_runs = 1
         self.save_memory = False
+        # by default don't truncate the input, so it logs a warning
+        # if the input is too long and does not just silently truncate it
+        self.truncate = False
         self.device_number = "0"
         self.strategy = "beam_search"
         self.configs = ['paraphrased', 'original']
@@ -65,6 +68,8 @@ class AbstractRunner():
             self.device_number = options["device"]
         if "strategy" in options:
             self.strategy = options["strategy"]
+        if "truncate" in options:
+            self.truncate = options["truncate"]
         if "configs" in options:
             if not isinstance(options["configs"], list):
                 raise ValueError("Option configs must be a list")
@@ -211,7 +216,8 @@ class AbstractRunner():
     def make_predictions(self, examples, config, k_runs=1, cached_cols=[]):
         # tokenize inputs and move to GPU
         texts = examples[f"masked_text_{config}"]
-        inputs = self.tokenizer(texts, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.device)
+        inputs = self.tokenizer(texts, return_tensors="pt", truncation=self.truncate, padding=True,
+                                return_token_type_ids=False).to(self.device)
         # compute lengths of the inputs to store with the result
         input_lengths = [len(i) for i in examples[f"masked_text_{config}"]]
         # generate predictions
