@@ -56,34 +56,42 @@ class PrecomputedPlotting():
             if key != 'key':
                 method = key.split('--')[-1]
                 if method == "beam_search_sampling":
-                    method = "beam-search\nsampling"
+                    method = "beam-search"
                 elif method == "sampling":
                     method = "top-k\nsampling"
                 elif method == "beam_search":
-                    method = "beam\nsearch"
+                    method = "beam search\n(n_beams=5)"
                 elif method == "top_p_sampling":
-                    method = "top-p\nsampling"
+                    method = "top-p\n(p=0.92)"
                 elif method == "top_k_sampling":
-                    method = "top-k\nsampling"
+                    method = "top-k\n(k=50)"
                 elif method == "nucleus_sampling":
-                    method = "nucleus\nsampling\n(with top-k)"
+                    method = "nucleus\n(k=50, p=0.92)"
                 elif method == "random_sampling":
-                    method = "random\nsampling"
+                    method = "random"
                 elif method == "greedy":
                     method = "greedy\n(top-1)"
-                accuracy = value['paraphrased']['accuracy']
-                data_for_df.append([method, accuracy])
+                elif method == "top_k_sampling_kruns":
+                    method = "top-k\n(k=5)"
+                # accuracy = value['paraphrased']['accuracy']
+                weighted_score = value['paraphrased']['weighted_score']
+                # data_for_df.append([method, accuracy])
+                data_for_df.append([method, weighted_score])
 
-        df = pd.DataFrame(data_for_df, columns=['method', 'accuracy'])
-        df = df.sort_values(by=['accuracy'], ascending=False)
+        df = pd.DataFrame(data_for_df, columns=['method', 'weighted_score'])
+        df = df.sort_values(by=['weighted_score'], ascending=False)
 
-        ax = df.plot(kind='bar', x='method', y='accuracy', legend=False)
-        plt.ylabel('partial name match score')
-        plt.title('Comparison of Different Generation Methods (top 5)\nincite_instruct-3b')
-        plt.xticks(rotation=45)
+        ax = df.plot(kind='bar', x='method', y='weighted_score', legend=False)
+        plt.ylabel('W-PNMS', fontsize=16)
+        # plt.title('Comparison of Different Generation Methods (top 5)\nincite_instruct-3b')
+        plt.xticks(rotation=45, ha='right')
+        # remove x axis label
+        # increase font size of labels
+        plt.tick_params(axis='both', which='major', labelsize=16)
+        ax.set_xlabel('')
         plt.tight_layout()  # adjusts subplot params so that the subplot fits into the figure area
 
-        plt.savefig('evaluation/plotting/plots/ablations/sampling_method_comparison.png')
+        plt.savefig('evaluation/plotting/plots/ablations/sampling_method_comparison.png', dpi=400, bbox_inches='tight')
 
     @staticmethod
     def plot_with_huge(results, df2):
