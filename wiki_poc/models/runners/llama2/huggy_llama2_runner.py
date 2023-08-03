@@ -9,8 +9,8 @@ class HuggyLlama2Runner(AbstractRunner):
     @staticmethod
     def names():
         return {
-            "llama2-7b": "meta-llama/llama-2-7b",
-            "llama2-13b": "meta-llama/llama-2-13b",
+            "llama2-7b": "meta-llama/Llama-2-7b-hf",
+            "llama2-13b": "meta-llama/llama-2-13b-hf",
             # "llama-70b": "huggyllama/llama-70b",
         }
     
