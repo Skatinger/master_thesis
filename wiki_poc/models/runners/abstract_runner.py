@@ -69,7 +69,13 @@ class AbstractRunner():
         if "strategy" in options:
             self.strategy = options["strategy"]
         if "truncate" in options:
-            self.truncate = options["truncate"]
+            # convert options["truncate"] to bool
+            if options["truncate"] == "True":
+                self.truncate = True
+            elif options["truncate"] == "False":
+                self.truncate = False
+            else:
+                raise ValueError("Option truncate must be either True or False")
         if "configs" in options:
             if not isinstance(options["configs"], list):
                 raise ValueError("Option configs must be a list")
