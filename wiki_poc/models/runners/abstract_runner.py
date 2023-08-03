@@ -229,6 +229,8 @@ class AbstractRunner():
             max_length = self.tokenizer.model_max_length
             # inputs is a list of tensors, each tensor is one input
             inputs = {k: v[:, :max_length] for k, v in inputs.items()}
+            # convert to half precision and move to GPU
+            inputs = {name: tensor.half().to(self.device) for name, tensor in inputs.items()}
         # move inputs to GPU
         inputs.to(self.device)
         # compute lengths of the inputs to store with the result
