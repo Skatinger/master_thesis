@@ -254,6 +254,9 @@ class AbstractRunner():
         elif self.strategy == "top_k_sampling":
             generated_ids = self.model.generate(**inputs, do_sample=True, top_k=50, early_stopping=True,
                                                 num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
+        elif self.strategy == "top_k_sampling_kruns":
+            generated_ids = self.model.generate(**inputs, do_sample=True, top_k=k_runs, early_stopping=True,
+                                                num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
         else:
             strategies = ["beam_search", "greedy", "beam_search_sampling", "sampling", "top_p_sampling_0.92"]
             raise ValueError(f"Strategy {self.strategy} not supported. Choose from {strategies}")
