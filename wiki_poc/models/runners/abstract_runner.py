@@ -229,8 +229,8 @@ class AbstractRunner():
             max_length = self.tokenizer.model_max_length
             # inputs is a list of tensors, each tensor is one input
             inputs = {k: v[:, :max_length] for k, v in inputs.items()}
-            # convert to half precision and move to GPU
-            inputs = {name: tensor.half().to(self.device) for name, tensor in inputs.items()}
+            # convert f32 tensors to half precision and move to GPU
+            inputs = {name: tensor.half().to(self.device) if tensor.dtype is torch.float32 else tensor.to(self.device) for name, tensor in inputs.items()}
         # compute lengths of the inputs to store with the result
         input_lengths = [len(i) for i in examples[f"masked_text_{config}"]]
         # generate predictions
