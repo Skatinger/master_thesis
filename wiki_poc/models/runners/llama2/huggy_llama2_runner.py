@@ -1,7 +1,7 @@
 from ..abstract_runner import AbstractRunner
 import logging
 import torch
-from transformers import LlamaModel, LlamaConfig
+from transformers import LlamaModel, LlamaConfig, AutoModel, AutoTokenizer
 from transformers import LlamaForCausalLM, LlamaTokenizer
 
 class HuggyLlama2Runner(AbstractRunner):
@@ -30,11 +30,11 @@ class HuggyLlama2Runner(AbstractRunner):
             # "llama-70b": 4,
         }
 
-    def _tokenizer_loader(self):
-        return LlamaTokenizer
+    # def _tokenizer_loader(self):
+    #     return AutoTokenizer
 
-    def _model_loader(self):
-        return LlamaForCausalLM
+    # def _model_loader(self):
+    #     return AutoModel
     
     def get_model(self):
         """retrieves model from huggingface model hub and load it to specified device"""
