@@ -10,7 +10,7 @@ class HuggyLlama2Runner(AbstractRunner):
     def names():
         return {
             "llama2-7b": "meta-llama/Llama-2-7b-hf",
-            "llama2-13b": "meta-llama/llama-2-13b-hf",
+            "llama2-13b": "meta-llama/Llama-2-13b-hf",
             # "llama-70b": "huggyllama/llama-70b",
         }
     
@@ -44,7 +44,7 @@ class HuggyLlama2Runner(AbstractRunner):
         if torch.cuda.is_available():
             logging.info("GPU available, loading model in FP16 mode on GPU.")
             logging.info("Using tensorflow weights, as pytorch weights are not available for llama2.")
-            return self._model_loader().from_pretrained(model_path, device_map="auto", use_auth_token=True)
+            return self._model_loader().from_pretrained(model_path, device_map="auto", use_auth_token=True, load_in_8bit=True)
                                                         #, config=configuration,
                                                         # device_map="auto", use_auth_token=True) # , from_tf=True)
             
