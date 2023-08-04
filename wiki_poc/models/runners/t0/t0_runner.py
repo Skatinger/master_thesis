@@ -10,7 +10,7 @@ class T0Runner(AbstractTextToTextRunner):
     @staticmethod
     def names():
         return {
-            "t0-11b": "bigscience/T0_3B",
+            "t0-11b": "bigscience/T0_11B",
             "t0-3b": "bigscience/T0_3B",
             "t0pp-11b": "bigscience/T0pp",
         }
@@ -22,7 +22,7 @@ class T0Runner(AbstractTextToTextRunner):
     @staticmethod
     def batch_sizes():
         return {
-            "t0-11b": 4,
+            "t0-11b": 2,
             "t0-3b": 4,
             "t0pp-11b": 4,
         }
