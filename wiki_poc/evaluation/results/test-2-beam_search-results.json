@@ -3,8 +3,11 @@
     "incite_instruct-3b": {
         "size": 3.0,
         "paraphrased": {
-            "accuracy": 0.262,
-            "precision": 0.6464169734682529
+            "accuracy": 0.2511578947368421,
+            "precision": 0.6363421235674727,
+            "last_name_accuracy": 0.1368421052631579,
+            "last_name_precision": 1.0353846153846153,
+            "weighted_score": 0.17685263157894737
         }
     }
 }

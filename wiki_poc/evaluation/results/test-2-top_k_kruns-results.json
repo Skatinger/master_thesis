@@ -1,0 +1,13 @@
+{
+    "key": "test-2-top_k_kruns",
+    "incite_instruct-3b": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.3263157894736842,
+            "precision": 0.5668734433200342,
+            "last_name_accuracy": 0.21810526315789475,
+            "last_name_precision": 1.0173745173745175,
+            "weighted_score": 0.2559789473684211
+        }
+    }
+}
