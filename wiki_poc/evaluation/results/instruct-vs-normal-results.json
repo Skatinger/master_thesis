@@ -3,103 +3,101 @@
     "t5-3b": {
         "size": 3.0,
         "paraphrased": {
-            "accuracy": 0.266,
-            "precision": 0.5645618898104612
-        },
-        "original": {
-            "accuracy": 0.2595350709469659,
-            "precision": 0.5638990429952118
+            "accuracy": 0.25694736842105265,
+            "precision": 0.588192088783389,
+            "last_name_accuracy": 0.19094736842105264,
+            "last_name_precision": 1.0523704520396913,
+            "weighted_score": 0.21404736842105265
         }
     },
     "flan_t5-3b": {
         "size": 3.0,
         "paraphrased": {
-            "accuracy": 0.36305263157894735,
-            "precision": 0.47196540723383956
-        },
-        "original": {
-            "accuracy": 0.39851061688638423,
-            "precision": 0.45069447656562855
+            "accuracy": 0.35389473684210526,
+            "precision": 0.48127954532510386,
+            "last_name_accuracy": 0.25684210526315787,
+            "last_name_precision": 1.0032786885245901,
+            "weighted_score": 0.29081052631578946
         }
     },
     "falcon_instruct-7b": {
         "size": 7.0,
         "paraphrased": {
-            "accuracy": 0.04705263157894737,
-            "precision": 0.646728530153222
-        },
-        "original": {
-            "accuracy": 0.08141290127805173,
-            "precision": 0.6963564419231816
+            "accuracy": 0.04494736842105263,
+            "precision": 0.7158287582001152,
+            "last_name_accuracy": 0.022631578947368423,
+            "last_name_precision": 1.0790697674418606,
+            "weighted_score": 0.030442105263157895
         }
     },
     "falcon-7b": {
         "size": 7.0,
         "paraphrased": {
-            "accuracy": 0.03,
-            "precision": 0.6471113226310097
-        },
-        "original": {
-            "accuracy": 0.07950085538895038,
-            "precision": 0.6840410915039827
+            "accuracy": 0.029578947368421052,
+            "precision": 0.774318060738123,
+            "last_name_accuracy": 0.012105263157894737,
+            "last_name_precision": 1.1565217391304348,
+            "weighted_score": 0.018221052631578947
         }
     },
     "mpt-7b": {
         "size": 7.0,
         "paraphrased": {
-            "accuracy": 0.2014736842105263,
-            "precision": 0.5004159387485629
-        },
-        "original": {
-            "accuracy": 0.24725772365905202,
-            "precision": 0.5534898337739852
+            "accuracy": 0.20010526315789473,
+            "precision": 0.52769204496144,
+            "last_name_accuracy": 0.10926315789473684,
+            "last_name_precision": 1.02504816955684,
+            "weighted_score": 0.1410578947368421
         }
     },
     "mpt_instruct-6b7": {
         "size": 6.7,
         "paraphrased": {
-            "accuracy": 0.19989473684210526,
-            "precision": 0.5599276646722522
-        },
-        "original": {
-            "accuracy": 0.1899969809801751,
-            "precision": 0.6014279620321741
+            "accuracy": 0.19494736842105262,
+            "precision": 0.607054242699014,
+            "last_name_accuracy": 0.11884210526315789,
+            "last_name_precision": 1.1310894596988486,
+            "weighted_score": 0.14547894736842104
         }
     },
     "incite_instruct-3b": {
         "size": 3.0,
         "paraphrased": {
-            "accuracy": 0.3737894736842105,
-            "precision": 0.5137663166792305
-        },
-        "original": {
-            "accuracy": 0.38261044580859416,
-            "precision": 0.5587809169443483
+            "accuracy": 0.36557894736842106,
+            "precision": 0.5302171931280331,
+            "last_name_accuracy": 0.25705263157894737,
+            "last_name_precision": 1.00982800982801,
+            "weighted_score": 0.29503684210526315
         }
     },
     "incite-3b": {
         "size": 3.0,
         "paraphrased": {
-            "accuracy": 0.16515789473684211,
-            "precision": 0.5436236541223217
-        },
-        "original": {
-            "accuracy": 0.13484955217872596,
-            "precision": 0.6399902881825141
+            "accuracy": 0.16263157894736843,
+            "precision": 0.5751180781951964,
+            "last_name_accuracy": 0.11147368421052632,
+            "last_name_precision": 1.0273843248347498,
+            "weighted_score": 0.12937894736842107
         }
     },
     "bloom_instruct-7b1": {
         "size": 7.1,
         "paraphrased": {
-            "accuracy": 0.3509473684210526,
-            "precision": 0.448024275208699
+            "accuracy": 0.3426315789473684,
+            "precision": 0.4539519220798345,
+            "last_name_accuracy": 0.2595789473684211,
+            "last_name_precision": 1.0016220600162207,
+            "weighted_score": 0.28864736842105265
         }
     },
     "bloom-7b1": {
         "size": 7.1,
         "paraphrased": {
-            "accuracy": 0.21473684210526317,
-            "precision": 0.5606230596903278
+            "accuracy": 0.20705263157894738,
+            "precision": 0.5724221344284783,
+            "last_name_accuracy": 0.15357894736842106,
+            "last_name_precision": 1.0644276901987664,
+            "weighted_score": 0.17229473684210528
         }
     }
 }
