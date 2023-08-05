@@ -258,7 +258,7 @@ class AbstractRunner():
             generated_ids = self.model.generate(**inputs, do_sample=True, top_k=k_runs, early_stopping=True,
                                                 num_return_sequences=k_runs, pad_token_id=pad_token, max_new_tokens=5)
         else:
-            strategies = ["beam_search", "greedy", "beam_search_sampling", "sampling", "top_p_sampling", "top_k_sampling_kruns"]
+            strategies = ["beam_search", "greedy", "beam_search_sampling", "top_k_sampling", "top_p_sampling", "top_k_sampling_kruns"]
             raise ValueError(f"Strategy {self.strategy} not supported. Choose from {strategies}")
         # decode predictions
         outputs = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
