@@ -10,7 +10,7 @@ class T0Runner(AbstractTextToTextRunner):
     @staticmethod
     def names():
         return {
-            "t0-11b": "bigscience/T0_11B",
+            "t0-11b": "bigscience/T0",
             "t0-3b": "bigscience/T0_3B",
             "t0pp-11b": "bigscience/T0pp",
         }
