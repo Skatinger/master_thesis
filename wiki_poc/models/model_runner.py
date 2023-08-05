@@ -80,16 +80,14 @@ def runners():
     }
 
 def models_for_rulings():
-    """careful: this will also match models which have a substring of the name, e.g. "t5" will match "mt5" """
     return [
-        "legal_swiss_longformer",
-        "legal_xlm_longformer",
-        "legal_swiss_roberta",
-        "legal_xlm_roberta",
-        "mt5",
-        "bloomz",
-        "bert",
-        "swiss_bert",
+        "legal_swiss_longformer-0b279",
+        "legal_xlm_longformer-0b279",
+        "legal_swiss_roberta-0b651",
+        "legal_xlm_roberta-0b651",
+        "mt0-13b",
+        "swiss_bert-0b110",
+        "xlm_swiss_bert-0b110",
     ]
 
 def prepare_rulings_dataset(dataset):
@@ -215,7 +213,7 @@ def get_all_model_names(model_class=None, model_size=None, dataset_type="wiki"):
         # if dataset_type == "rulings" only keep models which are available for the rulings dataset
         if dataset_type == "rulings":
             # keep the model if its model_class is in the list of models which are available for the rulings dataset
-            models = [model for model in models if model.split("-")[0] in "".join(models_for_rulings())]
+            models = models_for_rulings()
         return models
 
 def check_model_exists(model_name):
