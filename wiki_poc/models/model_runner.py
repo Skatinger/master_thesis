@@ -83,8 +83,8 @@ def models_for_rulings():
     return [
         "legal_swiss_longformer-0b279",
         "legal_xlm_longformer-0b279",
-        "legal_swiss_roberta-0b651",
-        "legal_xlm_roberta-0b651",
+        "legal_swiss_roberta-0b561",
+        "legal_xlm_roberta-0b561",
         "mt0-13b",
         "swiss_bert-0b110",
         "xlm_swiss_bert-0b110",
