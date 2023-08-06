@@ -5,20 +5,24 @@ from langchain.document_loaders import CSVLoader
 from langchain.vectorstores import Chroma
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-
+import sys
+import csv
 """
-fills vector database with provided file
+fills vector database with provided file, filtering by the same criteria as the
+test set ids. In this case, extract all news articles which are from the year 2019
 """
 
-DATA_PATH = "data/newsarticles_tiny.tsv"
+# DATA_PATH = "data/news-articles-2019.tsv"
+# try with tiny version first
+DATA_PATH = "data/news-articles-2019-tiny.tsv"
+
 assert path.exists(DATA_PATH), "Missing data file"
 
 # load file
 # use commas delimiter, double quotes and replace None with empty string
 # to not cause parsing problems with the CSVLoader from langchain
 CSV_OPTIONS = { "delimiter": "\t", "quotechar": '"'} #, "restval": ''}
-import sys
-import csv
+
 csv.field_size_limit(sys.maxsize)
 loader = CSVLoader(file_path=DATA_PATH, csv_args=CSV_OPTIONS)
 documents = loader.load()
