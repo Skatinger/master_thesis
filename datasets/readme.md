@@ -8,71 +8,62 @@ the usage agreements this is not permitted.
 Queried from Swissdox, with the following parameters:  
 ```yml
 query:
-  sources:
-    - ZWA
-    - AZ
-    - AT
-    - AZM
-    - APPZ
-    - BLZ
-    - BAZ
-    - BEO
-    - BEOL
-    - BZ
-    - BIZ
-    - BU
-    - FUW
-    - FUWM
-    - SHZ
-    - LUZ
-    - MLZ
-    - NEWS
-    - CAMP
-    - NZZG
-    - NZZS
-    - NZZ
-    - NIW
-    - SGT
-    - AZO
-    - ZUE
-    - NNBE
-    - NNBU
-    - SHZO
-    - NZZO
-    - SRF
-  dateRange:
-    - 2012-04-01..2022-04-01
+  dates:
+    - from: 2019-01-01
+      to: 2019-12-31
   languages:
-    - de # TODO: Add french news articles as well
-  doctypes:
-    - PLD
-    - PLW
-    - WWE
-    - PRD
-    - PJO
-    - PND
-    - NNE
-    - PMA
+    - fr
+    - de
+    - it
   content:
     - verhandlung
     - urteil
-    - verurteilt
-    - bundesgericht
     - gericht
-    - strafe
     - schuldig
+    - verurteilt
     - BGer
-    - Entscheid
-    - freispruch
-    - spricht frei
-    - anklage
-    - angeklagt
-    - Verfahren
-    - Nötigung
+    - Freispruch
+    - Anklage
     - Hinweis
+    - Nötigung
+    - Verfahren
+    - angeklagt
+    - Entscheid
+    - Bundesgericht
+    - Strafe
+    - négociation
+    - jugement
+    - tribunal
+    - coupable
+    - condamné
+    - BGer
+    - acquittement
+    - accusation
+    - indice
+    - contrainte
+    - procédure
+    - accusé
+    - décision
+    - Cour fédérale
+    - peine
+    - negoziazione
+    - giudizio
+    - tribunale
+    - colpevole
+    - condannato
+    - BGer
+    - assoluzione
+    - accusa
+    - indizio
+    - coercizione
+    - procedura
+    - accusato
+    - decisione
+    - Corte federale
+    - pena
 result:
   format: TSV
-  maxResults: 10000000
+  maxResults: 1020000
   columns:
     - id
     - pubtime
@@ -89,7 +80,7 @@ result:
     - subhead
     - content_id
     - content
-version: 1.1
+version: 1.2
 ```
 
 ### Extracted decisions in news
