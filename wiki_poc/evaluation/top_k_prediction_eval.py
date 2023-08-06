@@ -80,6 +80,9 @@ class TopKPredictionEvaluator:
             print("Processing results for: " + _key)
             for _model_name, model in models.items():
                 for config in configs:
+                    # check if config exists, otherwise skip it
+                    if not config in model:
+                        continue
                     dataset = model[config]['train']
                     gt = gt_with_mask[config]
                     ## add ground truth label to each prediction
@@ -148,7 +151,7 @@ def main():
     model_name = sys.argv[2] if len(sys.argv) > 2 else None
 
     # change this if only one config was used
-    configs = ['paraphrased'] # ['original', 'paraphrased']
+    configs = ['paraphrased', 'original'] # ['original', 'paraphrased']
 
     loader = ResultLoader()
     print("loading ground truth")
@@ -171,6 +174,9 @@ def main():
             name = f"{model_class}-{m_name}"
             json_results[name] = { "size": model['size'] }
             for config in configs:
+                # if config was not processed for this model just skip it
+                if config not in model.keys():
+                    continue
                 print(f"Model: {name:<15} Config: {config}")
                 print(f"Accuracy: {round(model[config]['result']['accuracy'], 2)}")
                 print(f"Precision: {round(model[config]['result']['precision'], 2)}")
