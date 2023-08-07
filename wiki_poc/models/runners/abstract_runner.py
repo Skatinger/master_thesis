@@ -4,11 +4,9 @@ import logging
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from datasets import load_dataset, Dataset
 from accelerate import infer_auto_device_map, init_empty_weights
+from nltk.tokenize import sent_tokenize
 
 from abc import ABC, abstractmethod, abstractproperty
-
-# TODO: caching for columns is no longer working correctly, model will always predict top_k results,
-#       regardless of wether they are cached or not (e.g. 2 predictions cached, but 5 requested)
 
 
 class AbstractRunner():
@@ -24,6 +22,7 @@ class AbstractRunner():
                 - save memory (bool) if true, the runner will reduce batch size to 1
                 - device (int) the device to run the model on (only used if device_map is not set to auto)
                 - configs (list) the configs to run the model on (e.g. original, paraphrased)
+                - input_sentences_count if the input to models should be in number of sentences, not characters
         """
 
         logging.info("Initializing runner for model %s", model_name)
@@ -37,6 +36,7 @@ class AbstractRunner():
         self.input_length = 1000
         self.cached_predictions = {}
         self.k_runs = 1
+        self.input_sentences_count = None
         self.save_memory = False
         # by default don't truncate the input, so it logs a warning
         # if the input is too long and does not just silently truncate it
@@ -68,6 +68,11 @@ class AbstractRunner():
             self.device_number = options["device"]
         if "strategy" in options:
             self.strategy = options["strategy"]
+        if "input_sentences_count" in options:
+            # cannot specify both parameters
+            if "input_length" in options:
+                logging.warning("Cannot specify input_length and input_sentences_count at the same time. Using input_sentences_count.")
+            self.input_sentences_count = int(options["input_sentences_count"])
         if "truncate" in options:
             # convert options["truncate"] to bool
             if options["truncate"] == "True":
@@ -157,13 +162,36 @@ class AbstractRunner():
 
     def prepare_examples(self):
         """shortens input text to max length given and pre- and append prompt to examples"""
-        logging.info(f"Preparing examples for {self.model_name}")
+        # if input sentences count option is set, use that
+        if self.input_sentences_count:
+            return self.prepare_examples_by_sentence_count()
+        logging.info(f"Preparing examples for {self.model_name} using input length of {self.input_length} characters.")
         self.examples = {}
         for config in self.configs:
             # shorten input text to max length given
             df = self.dataset.map(lambda x: {f"masked_text_{config}": x[f"masked_text_{config}"][:self.input_length]}, num_proc=8)
             # remove all examples which do no longer contain a mask
             df = df.filter(lambda x: '<mask>' in x[f"masked_text_{config}"], num_proc=8)
+            # pre- and append prompt to examples
+            start, end = self.start_prompt(), self.end_prompt()
+            df = df.map(lambda x: {f"masked_text_{config}": start + x[f"masked_text_{config}"] + end})
+            self.examples[config] = df
+
+
+    def prepare_examples_by_sentence_count(self):
+        """same functionality as `prepare_examples` but takes the number of sentences from the sentences list
+           instead of the masked text directly. """
+        logging.info(f"Preparing examples for {self.model_name} using input length of {self.input_sentences_count} sentences.")
+        self.examples = {}
+        for config in self.configs:
+            # split masked text to sentences
+            df = self.dataset.map(lambda x: {f"masked_text_{config}": sent_tokenize(x[f"masked_text_{config}"])}, num_proc=1)
+            # shorten input text to number of sentences
+            df = df.map(lambda x: {f"masked_text_{config}": x[f"masked_text_{config}"][:self.input_sentences_count]}, num_proc=1)
+            # rejoin remaining sentences to text
+            df = df.map(lambda x: {f"masked_text_{config}": " ".join(x[f"masked_text_{config}"])}, num_proc=1)
+            # remove all examples which do no longer contain a mask
+            df = df.filter(lambda x: '<mask>' in x[f"masked_text_{config}"], num_proc=1)
             # pre- and append prompt to examples
             start, end = self.start_prompt(), self.end_prompt()
             df = df.map(lambda x: {f"masked_text_{config}": start + x[f"masked_text_{config}"] + end})
