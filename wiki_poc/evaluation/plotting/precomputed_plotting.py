@@ -184,10 +184,11 @@ class PrecomputedPlotting():
     
     @staticmethod
     def plot_accuracy_progression(results, df2):
-        my_font_size = 24
+        my_font_size = 42
         plt.figure(figsize=(20, 14))
-        # only keep the interesting models
-        interesting_models = ["bloomz", "flan_t5", "roberta", "roberta_squad", "t5", "mt0", "bloom"]
+        # only keep the interesting models, e.g. models which were evaluated in different sizes
+        interesting_models = ["bloomz", "flan_t5", "roberta", "t5", "mt0", "bloom", "cerebras", "pythia", "t0"]
+                              # , "llama2"] # ditched roberta_squad and llama2, not interesting
 
         # remove all models that are not in the interesting models list
         df2 = df2[df2['model_class'].isin(interesting_models)]
@@ -204,36 +205,36 @@ class PrecomputedPlotting():
         color_palette = sns.color_palette('tab10', n_colors=len(unique_groups))
 
         # scatter points
-        sns.scatterplot(data=grouped_data, x='size', y='weighted_score', hue='model_class', s=250, markers=True, legend=False)
+        sns.scatterplot(data=grouped_data, x='size', y='weighted_score', hue='model_class', s=500, markers=True, legend=False)
 
         # Plot separate lines for each group with corresponding colors
         for group, color in zip(unique_groups, color_palette):
             group_data = grouped_data[grouped_data['model_class'] == group]
-            plt.plot(group_data['size'], group_data['weighted_score'], color=color, label=group, linewidth=3)
+            plt.plot(group_data['size'], group_data['weighted_score'], color=color, label=group, linewidth=7)
 
         # Set labels and title
-        plt.xlabel("size [billion parameters]", fontsize=my_font_size)
-        plt.ylabel("weighted partial name match score", fontsize=my_font_size)
+        plt.xlabel("model size [billion parameters]", fontsize=my_font_size)
+        plt.ylabel("W-PNMS", fontsize=my_font_size)
 
         # Increase font size of tick labels
         plt.xticks(fontsize=my_font_size)
         plt.yticks(fontsize=my_font_size)
 
-        # Add legend
-        legend = plt.legend(fontsize=my_font_size, framealpha=1)
+        # Add legend, place it outside of plot
+        legend = plt.legend(fontsize=my_font_size - 3, framealpha=1) #, loc='upper left', bbox_to_anchor=(1.04, 1), borderaxespad=0.)
         # increase linewidth of legend lines
         for line in legend.get_lines():
-            line.set_linewidth(6)
+            line.set_linewidth(8)
 
         plt.grid(True)
-        plt.savefig(f"evaluation/plotting/plots/ablations/plot_accuracy_progression_{results['key']}.png", bbox_inches='tight')
+        plt.savefig(f"evaluation/plotting/plots/ablations/plot_accuracy_progression_{results['key']}.png", bbox_inches='tight', dpi=300)
         # ensure pyplot does not run out of memory when too many plots are created
         plt.close()
 
     @staticmethod
     def input_length_progression(results, df):
-        my_font_size = 24
-        plt.figure(figsize=(20, 14))
+        my_font_size = 42
+        plt.figure(figsize=(16, 10))
 
         # use input size as hue
         df['input_size'] = df['model_class'].apply(lambda x: x.split("_")[-1])
@@ -248,19 +249,17 @@ class PrecomputedPlotting():
         unique_groups = grouped_data['model_class'].unique()
         color_palette = sns.color_palette('tab10', n_colors=len(unique_groups))
 
-        my_font_size = 24
-
         # scatter points
-        sns.scatterplot(data=grouped_data, x='input_size', y='accuracy', hue='model_class', s=250, markers=True, legend=False)
+        sns.scatterplot(data=grouped_data, x='input_size', y='accuracy', hue='model_class', s=450, markers=True, legend=False)
 
         # Plot separate lines for each group with corresponding colors
         for group, color in zip(unique_groups, color_palette):
             group_data = grouped_data[grouped_data['model_class'] == group]
-            plt.plot(group_data['input_size'], group_data['accuracy'], color=color, label=group, linewidth=3)
+            plt.plot(group_data['input_size'], group_data['accuracy'], color=color, label=group, linewidth=9)
 
         # Set labels and title
         plt.xlabel("input size [characters]", fontsize=my_font_size)
-        plt.ylabel("partial name match score", fontsize=my_font_size)
+        plt.ylabel("PNMS", fontsize=my_font_size)
 
         # Increase font size of tick labels
         plt.xticks(fontsize=my_font_size)
@@ -270,7 +269,7 @@ class PrecomputedPlotting():
         legend = plt.legend(fontsize=my_font_size, framealpha=1)
         # increase linewidth of legend lines
         for line in legend.get_lines():
-            line.set_linewidth(6)
+            line.set_linewidth(9)
 
         plt.grid(True)
         plt.savefig(f"evaluation/plotting/plots/plot_input_length_progression_{results['key']}.png", bbox_inches='tight')
@@ -370,7 +369,12 @@ class PrecomputedPlotting():
             configs.append('paraphrased')
             precisions.append(model_data['paraphrased']["precision"])
             model_classes.append(model.split("-")[0])
-            weighted_scores.append(model_data['paraphrased']["weighted_score"])
+            if "weighted_score" in model_data['paraphrased']:
+                weighted_scores.append(model_data['paraphrased']["weighted_score"])
+            else:
+                logging.warning(f"no weighted score for {model}")
+                weighted_scores.append(0)
+                
 
         # # Create a DataFrame from the extracted data
         return pd.DataFrame({"model": models, "model_class": model_classes, "size": sizes, "precision": precisions,
@@ -677,7 +681,7 @@ class PrecomputedPlotting():
     def plot_normal_to_instructional_barplot(results, df):
         """expect df to contain each model twice, once for every compared input size"""
         plt.figure(figsize=(20, 14))
-        my_font_size = 24
+        my_font_size = 42
 
         # expect the following models
         models = ["falcon", "roberta", "distilbert", "mpt", "incite", "t5", "bloom"]
@@ -696,8 +700,8 @@ class PrecomputedPlotting():
         for name, group in grouped:
             plot_data.append((name[0], name[1], group['weighted_score'].mean()))
 
-        # Sort data by model name
-        plot_data.sort()
+        # Sort data by score
+        plot_data.sort(key=lambda x: x[2])
 
         # Split data into separate lists
         names, types, accuracies = zip(*plot_data)
@@ -739,10 +743,10 @@ class PrecomputedPlotting():
 
         # Create the bar plot
         plt.bar(bar_l, normal_accuracies, width=bar_width, label='base', color='orange')
-        plt.bar(bar_l + bar_width, instruction_accuracies, width=bar_width, label='instruction tuned', color='blue')
+        plt.bar(bar_l + bar_width, instruction_accuracies, width=bar_width, label='instructional', color='blue')
 
         # Set the labels and title
-        plt.ylabel('weighted partial name match score', fontsize=my_font_size)
+        plt.ylabel('W-PNMS', fontsize=my_font_size)
 
         # Set the positions and labels of the x-axis ticks
         plt.xticks(tick_pos, unique_names_with_size)
@@ -896,7 +900,8 @@ class PrecomputedPlotting():
         df2['weighted_score'] = df2['weighted_score'].apply(lambda x: round(x, 2))
 
         # Rename the columns
-        df2 = df2.rename(columns={'size': 'size [billions]', 'precision': 'partial name matching score', 'weighted_score': 'weighted score'})
+        df2 = df2.rename(columns={'size': 'size [billions]', 'accuracy': 'partial name matching score',
+                                  'precision': 'levenshtein distance','weighted_score': 'weighted score'})
     
         # Ensure the index is of string type
         df2.index = df2.index.astype(str)
