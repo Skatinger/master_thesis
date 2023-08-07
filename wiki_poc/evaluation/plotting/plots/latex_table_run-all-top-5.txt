@@ -1,8 +1,7 @@
 \begin{tabular}{lrrrr}
 \toprule
-model_class & size [billions] & accuracy & partial name matching score & weighted score \\
+model_class & size [billions] & partial name matching score & levenshtein distance & weighted score \\
 \midrule
-gpt_4 & 175.00 & 0.71 & 0.17 & 0.65 \\
 gpt_4 & 1800.00 & 0.71 & 0.17 & 0.65 \\
 gpt3.5turbo & 175.00 & 0.52 & 0.23 & 0.46 \\
 mt0 & 13.00 & 0.37 & 0.42 & 0.31 \\
