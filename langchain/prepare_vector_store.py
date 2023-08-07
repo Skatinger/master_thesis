@@ -23,13 +23,16 @@ CSV_OPTIONS = { "delimiter": "\t", "quotechar": '"'} #, "restval": ''}
 
 csv.field_size_limit(sys.maxsize)
 loader = CSVLoader(file_path=DATA_PATH, csv_args=CSV_OPTIONS)
+print("Loading documents")
 documents = loader.load()
 
 # convert to text snippets
+print("Splitting documents")
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 texts = text_splitter.split_documents(documents)
 
 # Embed and store the texts. passing persist_directory will persist the database
+print("Embedding and storing documents")
 persist_directory = 'db'
 embedding = OpenAIEmbeddings()
 vectordb = Chroma.from_documents(documents=texts, embedding=embedding, persist_directory=persist_directory)
