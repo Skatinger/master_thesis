@@ -9,6 +9,8 @@ import seaborn as sns
 import logging
 import matplotlib
 from adjustText import adjust_text
+from collections import defaultdict
+
 
 matplotlib.use('agg')
 
@@ -46,7 +48,46 @@ class PrecomputedPlotting():
         # self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
         # self.plot_model_types_comparison(self.results, prepared_df)
         # self.plot_model_types_comparison_scatter(self.results, prepared_df)
-        # self.tabulate_results_to_latex(self.results)
+
+    def compute_difference_paraphrased_to_original(self, results, prepared_df):
+        # Define metrics to be calculated
+        metrics = ["accuracy", "precision", "last_name_accuracy", "last_name_precision", "weighted_score"]
+
+        # Initialize counters and sums for original and paraphrased configurations
+        counters = defaultdict(int)
+        sums = defaultdict(lambda: defaultdict(float))
+
+        # Iterate through the data and calculate the sums and counts
+        for model, model_data in results.items():
+            if model == "key":
+                continue
+            for config in ["original", "paraphrased"]:
+                if config not in model_data.keys():
+                    continue
+                # if model_data[config]["weighted_score"] < self.baseline_majority:
+                #     continue
+                counters[config] += 1
+                for metric in metrics:
+                    sums[config][metric] += model_data[config][metric]
+
+        # Calculate averages
+        averages = defaultdict(lambda: defaultdict(float))
+        for config in ["original", "paraphrased"]:
+            for metric in metrics:
+                averages[config][metric] = sums[config][metric] / counters[config] if counters[config] else 0
+
+        # Create a table with the results
+        table_data = [["Configuration"] + metrics]
+        for config in ["original", "paraphrased"]:
+            table_data.append([config] + [averages[config][metric] for metric in metrics])
+        
+        # convert table_data to dataframe
+        table_data = pd.DataFrame(table_data[1:], columns=table_data[0])
+
+        # save result to file
+        latext_text = table_data.to_latex(index=False, float_format="{:0.2f}".format)
+        with open(f"evaluation/plotting/plots/text_results/paraphrased_to_original_{results['key']}.tex", "w") as f:
+            f.write(latext_text)
 
     @staticmethod
     def sampling_method_comparison(results, _df):
