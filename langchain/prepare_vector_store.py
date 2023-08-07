@@ -12,9 +12,7 @@ fills vector database with provided file, filtering by the same criteria as the
 test set ids. In this case, extract all news articles which are from the year 2019
 """
 
-# DATA_PATH = "data/news-articles-2019.tsv"
-# try with tiny version first
-DATA_PATH = "data/news-articles-2019-tiny.tsv"
+DATA_PATH = "data/news-articles-2019.tsv"
 
 assert path.exists(DATA_PATH), "Missing data file"
 
