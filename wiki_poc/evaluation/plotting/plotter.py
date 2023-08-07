@@ -110,8 +110,67 @@ class LevenstheinDistancePlotter(Plotter):
         plt.title(f"{model_name}", fontsize=font_size + 8)
         path = f"evaluation/plotting/plots/{key}_{model_name}_{config}_levensthein_distance.png"
         logging.info(f"saving to {path}")
-        plt.savefig(path)
+        plt.savefig(path, dpi=300, bbox_inches='tight')
 
+
+class LevenstheinDistanceComparisonPlotter(Plotter):
+
+    """creates a plot with all models, showing how correctness and edit-distance correlate
+    """
+
+    def build(self, data: dict, key: str, gt: Dataset) -> None:
+        """takes a dictionary of results and plots a barplot showing the correlation between
+            correctness and edit-distance for every model and configuration in the dictionary"""
+        for model_class, models in data.items():
+            for model, data in models.items():
+                configs = (data.keys() & ["original", "paraphrased"])
+                for config in configs:
+                    # key might be present but without data if metrics were not computed
+                    # for that config. in that case, just skip it
+                    if not "result" in data[config].keys():
+                        continue
+                    results = data[config]['result']['data']
+                    self._plot_single(results, f"{model_class}-{model}", config, key)
+
+    def _plot_single(self, results: dict, model_name: str, config: str, key: str) -> None:
+        """takes a dictionary of results and plots a barplot showing the correlation between"""
+        plt.figure(figsize=(12,8))
+        font_size = 12
+        # Convert the data to a pandas DataFrame
+        df = pd.DataFrame({ 'distance': results['distance'], 'correct': results['correct']})
+        # round the distance to the closest .1 decimal
+        df['distance'] = (df['distance'] / 0.2).round() * 0.2
+        df['distance'] = df['distance'].round(1)
+        # # Group the data by score and correctness to count the entries with the same score
+        df_agg = df.groupby(['distance', 'correct']).size().reset_index(name='count')
+
+        # Map the values of the 'correct' column to their respective terms
+        df_agg['correctness'] = df_agg['correct'].replace({1: 'correct', 0: 'incorrect'})
+        df_agg.drop('correct', axis=1, inplace=True)
+
+        # Filter the data to only include correct results
+        df_agg = df_agg[df_agg['correctness'] == 'correct']
+
+        # Define the barplot using seaborn
+        ax = sns.barplot(x='distance', y='count', hue='correctness', data=df_agg)
+
+        # Remove the legend
+        ax.get_legend().remove()
+
+        # # Add labels and a title
+        plt.xlabel('Levenshtein edit distance', fontsize=font_size)
+        plt.ylabel('number of pages', fontsize=font_size)
+
+        # Increase font size of tick labels
+        plt.xticks(fontsize=font_size)
+        plt.yticks(fontsize=font_size)
+        plt.xticks(rotation=60)
+        # set the y axis maximum
+        plt.ylim(0, 1200)
+        plt.title(f"{model_name}", fontsize=font_size + 8)
+        path = f"evaluation/plotting/plots/{key}_{model_name}_{config}_levensthein_distance.png"
+        logging.info(f"saving to {path}")
+        plt.savefig(path, dpi=300, bbox_inches='tight')
 
 class AccuracyOverviewPlotter(Plotter):
 
@@ -226,7 +285,7 @@ class PageXProxyPlotter(Plotter):
         # Access the second subplot for the second plot
         ax = axs[1]
 
-        plot = sns.histplot(ax=ax, data=views_df, x=proxy, bins=bin_size, log_scale=(False, True), color='skyblue', edgecolor='black')
+        plot = sns.histplot(ax=ax, data=views_df, x=proxy, bins=200, log_scale=(False, True), color='skyblue', edgecolor='black')
         if proxy == 'page_views':
             ax.set_xlabel('Number of Page Views')
         else:
@@ -260,9 +319,9 @@ class PageEditsProxyPlotter(PageXProxyPlotter):
         # remove any entries with None values
         views_df = views_df[views_df['page_edits'].notna()]
         # for the page edits data, entries above 100000 are outliers, so we remove them
-        cutoff = 10000000
-        bin_size = 30
-        return super().build(data, key, gt, 'page_edits', views_df, cutoff, bin_size)
+        cutoff = 400
+        bin_size = 150
+        return super().build(data, key, gt, 'page_edits', views_df, bin_size, cutoff)
 
 class InputLengthAblationPlotter(Plotter):
     """creates a plot showing the scores for different lengths of wiki pages
