@@ -25,8 +25,8 @@ class PrecomputedPlotting():
     def set_baseline_values(self):
         logging.info("setting baseline values, using: ")
         # hardcoded baselines for weighted scores
-        self.baseline_random = 0.0155
-        self.baseline_majority = 0.046
+        self.baseline_random = 0.03
+        self.baseline_majority = 0.11
         logging.info(f"random_full_name: {self.baseline_random}")
         logging.info(f"majority_full_name: {self.baseline_majority}")
 
