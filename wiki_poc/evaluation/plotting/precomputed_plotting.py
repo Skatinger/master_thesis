@@ -48,6 +48,7 @@ class PrecomputedPlotting():
         # self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
         # self.plot_model_types_comparison(self.results, prepared_df)
         # self.plot_model_types_comparison_scatter(self.results, prepared_df)
+        # self.compute_difference_paraphrased_to_original(self.results, prepared_df)
 
     def compute_difference_paraphrased_to_original(self, results, prepared_df):
         # Define metrics to be calculated
