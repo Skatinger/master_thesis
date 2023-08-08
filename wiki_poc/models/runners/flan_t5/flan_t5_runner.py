@@ -38,7 +38,7 @@ class FlanT5Runner(AbstractTextToTextRunner):
             "flan_t5-0b250": 128,
             "flan_t5-0b780": 64,
             "flan_t5-3b": 16,
-            "flan_t5-11b": 8,
+            "flan_t5-11b": 4,
         }
 
     def get_model(self):
