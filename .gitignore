@@ -20,12 +20,11 @@ wiki_poc/dataset/results/data_v2/wiki-dataset-results-1k.csv
 
 # prevent any swissdox data to appear publicly (usage agreement)
 datasets/news_articles/swissdox_newsarticles.tsv
-
 # dataset research
 datasets/news_articles.jsonl
 datasets/news_articles/by_regex_*
 datasets/news_articles/*
-
+datasets/re_identified.md
 
 wiki_poc/models/.credentials
 
