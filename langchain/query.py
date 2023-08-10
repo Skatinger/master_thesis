@@ -6,6 +6,7 @@ from langchain.chains import RetrievalQA
 from langchain.llms import OpenAI
 # import openai embeddings
 import openai
+import time
 from langchain.embeddings import OpenAIEmbeddings
 import pandas as pd
 
@@ -83,3 +84,4 @@ for index, ruling in rulings.iterrows():
 
     # print the results
     print(f"Prediction: {response.choices[0]['message']['content']} | Target: {gts[ruling['file_number']]}")
+    time.sleep(65)
