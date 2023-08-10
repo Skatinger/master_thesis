@@ -133,7 +133,7 @@ if __name__ == "__main__":
             elif (str(reason) == 'm' or str(reason) == ''):
                 reason = 'missing person'
             decision['interesting'] = reason
-            to_append.append(decision.append(pd.Series({'interesting': reason})))
+            to_append.append(decision)
         else:
             print("Invalid response. Skipping decision.\n\n")
 
