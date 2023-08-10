@@ -25,7 +25,7 @@ def paraphrase_ruling(text):
                 and most importantly the verdict. It does not have to be very short, it's more important to retain
                 all information. The ruling:\n\n""" + text + "\n\n"
     response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-0613", # use gpt-3.5-turbo-0613 for less strict rate limits
+                model="gpt-3.5-turbo-16k-0613", # use gpt-3.5-turbo-0613 for less strict rate limits
                 messages=[
                     { "role": "user", "content": prompt },
                 ],
@@ -62,7 +62,7 @@ for index, ruling in rulings.iterrows():
 
 
     response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-0613", # use gpt-3.5-turbo-0613 for less strict rate limits
+                model="gpt-3.5-turbo-16k-0613", # use gpt-3.5-turbo-0613 for less strict rate limits
                 messages=[
                     { "role": "user", "content": input },
                 ],
