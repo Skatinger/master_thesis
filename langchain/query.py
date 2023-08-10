@@ -39,11 +39,15 @@ def paraphrase_ruling(text):
     return response.choices[0]["message"]["content"]
 
 # load the rulings
-rulings = pd.read_csv('data/manually_reidentified.csv')
+rulings = pd.read_csv('data/manually_reidentified_updated.csv')
+# load the gound truth
+gt = pd.read_csv("data/manually_reidentified_gt.csv", header=None, names=["file_number", "name"])
+gts = {}
+for index, row in gt.iterrows():
+    gts[row["file_number"]] = row["name"]
 
 # for every ruling do a prediction
 for index, ruling in rulings.iterrows():
-    import pdb; pdb.set_trace()
     print(ruling["file_number"])
     # prompt the qa system with the ruling
     ruling_text = ruling["full_text"] # [:10000]
@@ -56,13 +60,12 @@ for index, ruling in rulings.iterrows():
 
     input = """Wer ist die Person die im folgenden Gerichtsurteil als <mask> bezeichnet wird?
                Die nötigen Informationen findest du in den angehängten Dokumenten.
-               Du kannst auch weitere relevante Informationen zur Person angeben, aber der Name ist
-               das Wichtigste.\n"""
+               Gib den gesamten Namen an, also mit Vor- und Nachname.\n"""
     input + "Das Urteil:\n\n" + paraphrased_ruling + "\n\n"
     input += "Und die Texte in denen sich die Antwort befindet:\n\n"
+    input += "Erklär in einem Satz warum du denkst dass es sich um die von dir genannte Person handelt."
     for document in documents:
         input += document.page_content + "\n\n"
-
 
     response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo-16k-0613", # use gpt-3.5-turbo-0613 for less strict rate limits
@@ -78,4 +81,5 @@ for index, ruling in rulings.iterrows():
                 stop=["\n"]
             )
 
-    print(response)
+    # print the results
+    print(f"Prediction: {response.choices[0]['message']['content']} | Target: {gts[ruling['file_number']]}")
