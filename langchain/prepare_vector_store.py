@@ -1,25 +1,34 @@
 
 from os import path
 import re
+import time
 from langchain.document_loaders import CSVLoader
 from langchain.vectorstores import Chroma
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import sys
+from tqdm.auto import tqdm
 import csv
 """
 fills vector database with provided file, filtering by the same criteria as the
 test set ids. In this case, extract all news articles which are from the year 2019
 """
 
-DATA_PATH = "data/news-articles-2019.tsv"
+DATA_PATH = "data/news-articles-test-set.tsv"
 
 assert path.exists(DATA_PATH), "Missing data file"
+
+def chunks(lst, chunk_size):
+    for i in range(0, len(lst), chunk_size):
+        yield lst[i:i + chunk_size]
 
 # load file
 # use commas delimiter, double quotes and replace None with empty string
 # to not cause parsing problems with the CSVLoader from langchain
-CSV_OPTIONS = { "delimiter": "\t", "quotechar": '"'} #, "restval": ''}
+CSV_OPTIONS = { "delimiter": "\t", "quotechar": '"', "source_column": "content" }
+            #    "fieldnames": ["id", "pubtime", "medium_code", "medium_name", "rubric", "regional",
+                            #   "doctype doctype_description", "language", "char_count", "dateline", "head",
+                            #   "subhead content_id", "content"]} #, "restval": ''}
 
 csv.field_size_limit(sys.maxsize)
 loader = CSVLoader(file_path=DATA_PATH, csv_args=CSV_OPTIONS)
@@ -34,5 +43,13 @@ texts = text_splitter.split_documents(documents)
 # Embed and store the texts. passing persist_directory will persist the database
 print("Embedding and storing documents")
 persist_directory = 'db'
-embedding = OpenAIEmbeddings()
-vectordb = Chroma.from_documents(documents=texts, embedding=embedding, persist_directory=persist_directory)
+embedding = OpenAIEmbeddings(request_timeout=1000, show_progress_bar=True)
+
+# cannot add all documents at once, so add in chunks
+# initialize db with 100 text snippets
+vectordb = Chroma.from_documents(documents=texts[:100], embedding=embedding, persist_directory=persist_directory)
+# iterate over all texts in chunks of 100
+for chunk in tqdm(chunks(texts[100:], 100)):
+    vectordb.add(chunk)
+    # short timeout so we don't run into timeout errors
+    time.sleep(1)
