@@ -20,10 +20,10 @@ vectordb = Chroma(persist_directory=persist_directory, embedding_function=embedd
 # qa = RetrievalQA.from_chain_type(llm=OpenAI(), chain_type="stuff", retriever=retriever)
 
 # load the rulings
-rulings = pd.read_csv('manually_reidentified.csv')
+rulings = pd.read_csv('data/manually_reidentified.csv')
 
 # for every ruling do a prediction
-for ruling in rulings.iterrows():
+for index, ruling in rulings.iterrows():
     import pdb; pdb.set_trace()
     print(ruling["file_number"])
     # prompt the qa system with the ruling
