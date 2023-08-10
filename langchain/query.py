@@ -40,7 +40,7 @@ for index, ruling in rulings.iterrows():
 
 
     response = openai.ChatCompletion.create(
-                model="gpt-4-0613",
+                model="gpt-3.5-turbo-0613", # use gpt-3.5-turbo-0613 for less strict rate limits
                 messages=[
                     { "role": "user", "content": input },
                 ],
