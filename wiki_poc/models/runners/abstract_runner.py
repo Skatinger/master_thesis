@@ -135,8 +135,8 @@ class AbstractRunner():
         if torch.cuda.is_available():
             # if model is very large (>12 billion parameters), load with  custom device map and memory saving
             if int(self.model_name.split("-")[-1].split("b")[0]) > 20:
-                logging.info("Model is very large, loading with custom device map. Use --memory-saving if batches do not fit.")
-                return self.load_mapped_model(model_path)
+                logging.info("Model is very large, loading in 4bit precision. Use --memory-saving if batches do not fit.")
+                return self.load_huge_model(model_path)
             else:
                 logging.info("Loading model in 8bit.")
                 return self._model_loader().from_pretrained(model_path, load_in_8bit=True, torch_dtype=torch.float16, device_map="auto")
@@ -149,16 +149,8 @@ class AbstractRunner():
     def sizes(self):
         pass
 
-    def load_mapped_model(self, model_path):
-        """loads model with custom device map and meta device to save memory on loading"""
-        with init_empty_weights():
-            meta_model = self._model_loader().from_pretrained(model_path, load_in_8bit=True, torch_dtype=torch.bfloat16)
-        device_map = infer_auto_device_map(meta_model, dtype=torch.bfloat16, max_memory = {0: "65GiB", 1: "75GiB", "cpu": "100GiB"})
-
-        model = self._model_loader().from_pretrained(
-            model_path, device_map=device_map, offload_folder="offload", offload_state_dict = True, torch_dtype=torch.float16
-        )
-        return model
+    def load_huge_model(self, model_path):
+        return self._model_loader().from_pretrained(model_path, load_in_4bit=True, torch_dtype=torch.float16, device_map="auto")
 
     def prepare_examples(self):
         """shortens input text to max length given and pre- and append prompt to examples"""
