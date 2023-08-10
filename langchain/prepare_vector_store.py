@@ -43,7 +43,7 @@ texts = text_splitter.split_documents(documents)
 # Embed and store the texts. passing persist_directory will persist the database
 print("Embedding and storing documents")
 persist_directory = 'db'
-embedding = OpenAIEmbeddings(request_timeout=1000, show_progress_bar=True)
+embedding = OpenAIEmbeddings(request_timeout=1000)
 
 # cannot add all documents at once, so add in chunks
 # initialize db with 100 text snippets
