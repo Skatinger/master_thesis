@@ -50,6 +50,6 @@ embedding = OpenAIEmbeddings(request_timeout=1000, show_progress_bar=True)
 vectordb = Chroma.from_documents(documents=[], embedding=embedding, persist_directory=persist_directory)
 # iterate over all texts in chunks of 100
 for chunk in tqdm(chunks(texts, 100)):
-    vectordb.add(chunk)
+    vectordb = Chroma.from_documents(documents=chunk, embedding=embedding, persist_directory=persist_directory)
     # short timeout so we don't run into timeout errors
     time.sleep(1)
