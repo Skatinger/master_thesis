@@ -19,6 +19,26 @@ vectordb = Chroma(persist_directory=persist_directory, embedding_function=embedd
 
 # qa = RetrievalQA.from_chain_type(llm=OpenAI(), chain_type="stuff", retriever=retriever)
 
+def paraphrase_ruling(text):
+    prompt = """Paraphrase the following court ruling. Take care to not lose any details, focus on things that could
+                be interesting to read in a news article or specific details such as names, locations, money and costs,
+                and most importantly the verdict. It does not have to be very short, it's more important to retain
+                all information. The ruling:\n\n""" + text + "\n\n"
+    response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo-0613", # use gpt-3.5-turbo-0613 for less strict rate limits
+                messages=[
+                    { "role": "user", "content": prompt },
+                ],
+                # temperature=0.5,
+                max_tokens=10,
+                top_p=0.1,
+                n=1,
+                frequency_penalty=0,
+                presence_penalty=1,
+                stop=["\n"]
+            )
+    return response.choices[0]["message"]["content"]
+
 # load the rulings
 rulings = pd.read_csv('data/manually_reidentified.csv')
 
@@ -28,12 +48,14 @@ for index, ruling in rulings.iterrows():
     print(ruling["file_number"])
     # prompt the qa system with the ruling
     ruling_text = ruling["full_text"][:10000]
-    # TODO: use gpt to paraphrase the ruling
+    
+    # paraphrase the rulings text to make it fit into the token limit
+    paraphrased_ruling = paraphrased_ruling(ruling_text)
 
     # get the top 5 documents
     documents = vectordb.similarity_search(ruling_text, k=5)
 
-    input = "Who is the person referred to as <mask> in the following text?\n\n" + ruling_text + "\n\n"
+    input = "Who is the person referred to as <mask> in the following text?\n\n" + paraphrased_ruling + "\n\n"
     input += "Use the following articles to find the correct name of the person:\n\n"
     for document in documents:
         input += document.page_content + "\n\n"
