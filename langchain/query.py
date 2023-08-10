@@ -47,7 +47,7 @@ for index, ruling in rulings.iterrows():
     import pdb; pdb.set_trace()
     print(ruling["file_number"])
     # prompt the qa system with the ruling
-    ruling_text = ruling["full_text"][:10000]
+    ruling_text = ruling["full_text"] # [:10000]
     
     # paraphrase the rulings text to make it fit into the token limit
     paraphrased_ruling = paraphrased_ruling(ruling_text)
