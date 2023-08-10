@@ -7,6 +7,7 @@ from langchain.llms import OpenAI
 # import openai embeddings
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.qa import RetrievalQA
+import pandas as pd
 
 persist_directory =  'db'
 embedding = OpenAIEmbeddings()
@@ -18,3 +19,15 @@ retriever = vectordb.as_retriever()
 
 qa = RetrievalQA.from_chain_type(llm=OpenAI(), chain_type="stuff", retriever=retriever)
 
+# load the rulings
+rulings = pd.read_csv('manually_reidentified.csv')
+
+# for every ruling do a prediction
+
+for ruling in rulings.iterrows():
+    print(ruling["file_number"])
+    # prompt the qa system with the ruling
+    query = "Who is the person referred to as <mask> in the following text?\n\n" + ruling["text"]
+    answer = qa.run(query)
+    print(answer)
+    import pdb; pdb.set_trace()
