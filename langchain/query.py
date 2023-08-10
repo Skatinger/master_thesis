@@ -50,7 +50,7 @@ for index, ruling in rulings.iterrows():
     ruling_text = ruling["full_text"] # [:10000]
     
     # paraphrase the rulings text to make it fit into the token limit
-    paraphrased_ruling = paraphrased_ruling(ruling_text)
+    paraphrased_ruling = paraphrase_ruling(ruling_text)
 
     # get the top 5 documents
     documents = vectordb.similarity_search(ruling_text, k=5)
