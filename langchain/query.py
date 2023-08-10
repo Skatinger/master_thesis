@@ -24,7 +24,7 @@ def paraphrase_ruling(text):
                 auf Fakten die spezifisch sind wie das Datum, Geldbeträge, involvierte Personen, Orte, Kosten und am
                 wichtigsten das gefällte Urteil. Hier ist das Urteil:""" + text
     response = openai.ChatCompletion.create(
-                model="gpt-4-32k-0613", # "gpt-3.5-turbo-16k-0613", # use gpt-3.5-turbo-0613 for less strict rate limits
+                model="gpt-3.5-turbo-16k-0613", # use gpt-3.5-turbo-0613 for less strict rate limits
                 messages=[
                     { "role": "user", "content": prompt },
                 ],
@@ -68,7 +68,7 @@ for index, ruling in rulings.iterrows():
         input += document.page_content + "\n\n"
 
     response = openai.ChatCompletion.create(
-                model="gpt-4-32k-0613", # use gpt-3.5-turbo-0613 for less strict rate limits
+                model="gpt-4-0613", # use gpt-3.5-turbo-0613 for less strict rate limits
                 messages=[
                     { "role": "user", "content": input },
                 ],
