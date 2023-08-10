@@ -7,7 +7,6 @@ from langchain.llms import OpenAI
 # import openai embeddings
 import openai
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.qa import RetrievalQA
 import pandas as pd
 
 persist_directory =  'db'
