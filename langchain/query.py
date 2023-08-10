@@ -20,10 +20,9 @@ vectordb = Chroma(persist_directory=persist_directory, embedding_function=embedd
 # qa = RetrievalQA.from_chain_type(llm=OpenAI(), chain_type="stuff", retriever=retriever)
 
 def paraphrase_ruling(text):
-    prompt = """Paraphrase the following court ruling. Take care to not lose any details, focus on things that could
-                be interesting to read in a news article or specific details such as names, locations, money and costs,
-                and most importantly the verdict. It does not have to be very short, it's more important to retain
-                all information. The ruling:\n\n""" + text + "\n\n"
+    prompt = """Fasse das folgende Gerichtsurteil zusammen. Pass auf dass du keine Details verlierst. Fokussiere dich
+                auf Fakten die spezifisch sind wie das Datum, Geldbeträge, involvierte Personen, Orte, Kosten und am
+                wichtigsten das gefällte Urteil. Hier ist das Urteil:""" + text
     response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo-16k-0613", # use gpt-3.5-turbo-0613 for less strict rate limits
                 messages=[
@@ -55,10 +54,12 @@ for index, ruling in rulings.iterrows():
     # get the top 5 documents
     documents = vectordb.similarity_search(ruling_text, k=5)
 
-    input = """Who is the person referred to as <mask> in the following text? Give the name
-               and other relevant information about the person if you can. The name is the imporant thing.\n\n"""
-    input + "The texts:\n\n" + paraphrased_ruling + "\n\n"
-    input += "Use the following articles to find the correct name of the person:\n\n"
+    input = """Wer ist die Person die im folgenden Gerichtsurteil als <mask> bezeichnet wird?
+               Die nötigen Informationen findest du in den angehängten Dokumenten.
+               Du kannst auch weitere relevante Informationen zur Person angeben, aber der Name ist
+               das Wichtigste.\n"""
+    input + "Das Urteil:\n\n" + paraphrased_ruling + "\n\n"
+    input += "Und die Texte in denen sich die Antwort befindet:\n\n"
     for document in documents:
         input += document.page_content + "\n\n"
 
