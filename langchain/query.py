@@ -30,8 +30,8 @@ def paraphrase_ruling(text):
                     { "role": "user", "content": prompt },
                 ],
                 # temperature=0.5,
-                max_tokens=10,
-                top_p=0.1,
+                max_tokens=2000,
+                top_p=0.5,
                 n=1,
                 frequency_penalty=0,
                 presence_penalty=1,
@@ -55,7 +55,9 @@ for index, ruling in rulings.iterrows():
     # get the top 5 documents
     documents = vectordb.similarity_search(ruling_text, k=5)
 
-    input = "Who is the person referred to as <mask> in the following text?\n\n" + paraphrased_ruling + "\n\n"
+    input = """Who is the person referred to as <mask> in the following text? Give the name
+               and other relevant information about the person if you can. The name is the imporant thing.\n\n"""
+    input + "The texts:\n\n" + paraphrased_ruling + "\n\n"
     input += "Use the following articles to find the correct name of the person:\n\n"
     for document in documents:
         input += document.page_content + "\n\n"
@@ -67,7 +69,7 @@ for index, ruling in rulings.iterrows():
                     { "role": "user", "content": input },
                 ],
                 # temperature=0.5,
-                max_tokens=10,
+                max_tokens=200,
                 top_p=0.1,
                 n=5,
                 frequency_penalty=0,
