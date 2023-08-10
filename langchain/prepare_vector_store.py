@@ -18,7 +18,7 @@ DATA_PATH = "data/news-articles-test-set.tsv"
 
 assert path.exists(DATA_PATH), "Missing data file"
 
-def chunks(lst, chunk_size):
+def chunk_splitter(lst, chunk_size):
     for i in range(0, len(lst), chunk_size):
         yield lst[i:i + chunk_size]
 
@@ -49,7 +49,8 @@ embedding = OpenAIEmbeddings(request_timeout=1000, show_progress_bar=True)
 # initialize db with 100 text snippets
 vectordb = Chroma.from_documents(documents=[], embedding=embedding, persist_directory=persist_directory)
 # iterate over all texts in chunks of 100
-for chunk in tqdm(chunks(texts, 100)):
+chunks = [chunk for chunk in chunk_splitter(texts, 100)]
+for chunk in tqdm(chunks):
     vectordb = Chroma.from_documents(documents=chunk, embedding=embedding, persist_directory=persist_directory)
     # short timeout so we don't run into timeout errors
     time.sleep(1)
