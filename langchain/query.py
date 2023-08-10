@@ -33,10 +33,10 @@ for index, ruling in rulings.iterrows():
     # get the top 5 documents
     documents = vectordb.similarity_search(ruling_text, k=5)
 
-    input = "Who is the person referred to as <mask> in the following text?\n\n" + ruling["text"][:10000]
+    input = "Who is the person referred to as <mask> in the following text?\n\n" + ruling_text + "\n\n"
     input += "Use the following articles to find the correct name of the person:\n\n"
     for document in documents:
-        input += document["text"] + "\n\n"
+        input += document.page_content + "\n\n"
 
 
     response = openai.ChatCompletion.create(
