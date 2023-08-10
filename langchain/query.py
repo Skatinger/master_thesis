@@ -27,7 +27,7 @@ for index, ruling in rulings.iterrows():
     import pdb; pdb.set_trace()
     print(ruling["file_number"])
     # prompt the qa system with the ruling
-    ruling_text = ruling["text"][:10000]
+    ruling_text = ruling["full_text"][:10000]
     # TODO: use gpt to paraphrase the ruling
 
     # get the top 5 documents
