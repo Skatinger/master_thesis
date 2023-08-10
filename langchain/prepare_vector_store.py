@@ -25,7 +25,7 @@ def chunks(lst, chunk_size):
 # load file
 # use commas delimiter, double quotes and replace None with empty string
 # to not cause parsing problems with the CSVLoader from langchain
-CSV_OPTIONS = { "delimiter": "\t", "quotechar": '"', "source_column": "content" }
+CSV_OPTIONS = { "delimiter": "\t", "quotechar": '"'} # , "source_column": "content" }
             #    "fieldnames": ["id", "pubtime", "medium_code", "medium_name", "rubric", "regional",
                             #   "doctype doctype_description", "language", "char_count", "dateline", "head",
                             #   "subhead content_id", "content"]} #, "restval": ''}
