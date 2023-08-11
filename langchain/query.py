@@ -64,7 +64,6 @@ for index, ruling in rulings.iterrows():
                Gib den gesamten Namen an, also mit Vor- und Nachname wenn möglich, sonst das was du weisst.\n"""
     input + "Das Urteil:\n\n" + paraphrased_ruling + "\n\n"
     input += "Und die Texte in denen sich die Antwort befindet:\n\n"
-    # input += "Erklär in einem Satz warum du denkst dass es sich um die von dir genannte Person handelt."
     for document in documents:
         input += document.page_content + "\n\n"
 
