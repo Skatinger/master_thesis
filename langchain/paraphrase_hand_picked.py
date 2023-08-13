@@ -32,7 +32,7 @@ for index, ruling in tqdm(rulings.iterrows(), total=len(rulings)):
     paraphrased_ruling = paraphrase_ruling(ruling_text)
 
     # save paraphrased version to rulings as well
-    ruling_texts.append(paraphrase_ruling)
+    ruling_texts.append(paraphrased_ruling)
 
 # append the paraphrased rulings
 rulings['masked_text_paraphrased'] = ruling_texts
