@@ -132,6 +132,7 @@ def parse_options():
     parser.add_argument("-s", "--size", help="Run all models with a the same size. Options: T, XS, S, M, L, XL Format: model_size (e.g., 5b)", type=str)
     parser.add_argument("-o", "--options", help="Specify options for the model. Format: option1=value1,option2=value2", type=str)
     parser.add_argument("-dt", "--dataset", help="Specify dataset to run on. Options: wiki,rulings", type=str, default="wiki")
+    parser.add_argument("-cd", "--custom-dataset", help="pass the path to a custom dataset instead of a file with ids (json, jsonl, csv, tsv)", type=str)
 
     args = parser.parse_args()
     options = {}
@@ -152,15 +153,24 @@ def parse_options():
         models_list = []
 
     return models_list, args.size, args.model_class, args.key, args.exclude, args.device, args.save_memory, \
-           args.top_k, args.fast, args.dry_run, args.dataset, options
+           args.top_k, args.fast, args.dry_run, args.dataset, args.custom_dataset, options
 
-def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_set_ids.csv", dataset_type = "wiki", no_cache = False):
+def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_set_ids.csv", dataset_type = "wiki",
+                  no_cache = False, custom_file=None):
     """load test dataset from cache or generates it from the full dataset and caches it
     Args:
         path (str, optional): path to cache. Defaults to "models/cache/reduced_test_set".
         ids_file_path (str, optional): path to file with page ids of test set. Defaults to "test_set_ids.csv".
         dataset_type (str, optional): dataset type. Defaults to "wiki". specifies which dataset to use.
     """
+    # when custom dataset requested just load that
+    if custom_file:
+        logging.info("You are using a custom dataset. Ensure it has the necessary columns. Refer to default dataset for format.")
+        logging.info(f"Loading dataset from {custom_file}. Caching to disk option will be neglected.")
+        # extract file typ
+        file_extension = os.path.splitext(custom_file)[1][1:]
+        return load_dataset(file_extension, data_files=custom_file)
+
     if dataset_type == "rulings":
         path = path + "_rulings"
         ids_file_path = ids_file_path.split(".")[0] + "_rulings.csv"
@@ -222,7 +232,7 @@ def check_model_exists(model_name):
                          "Please choose one of the following models: ", get_all_model_names())
 
 def main():
-    models_to_run, model_size_to_run, model_class_to_run, key, excluded, device, save_memory, top_k, fast, dry_run, dataset_type, options = parse_options()
+    models_to_run, model_size_to_run, model_class_to_run, key, excluded, device, save_memory, top_k, fast, dry_run, dataset_type, custom_dataset, options = parse_options()
     if len(models_to_run) > 0:
         for model in models_to_run:
             check_model_exists(model)
@@ -269,6 +279,8 @@ def main():
     # load the test set of pages
     if "ids_file_path" in options.keys():
         test_set = load_test_set(ids_file_path=options["ids_file_path"], dataset_type=dataset_type)
+    elif custom_dataset:
+        test_set = load_test_set(custom_file=custom_dataset)
     else:
         test_set = load_test_set(dataset_type=dataset_type)
     # only select a range if specified
