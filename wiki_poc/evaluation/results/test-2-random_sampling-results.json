@@ -1,5 +1,25 @@
 {
     "key": "test-2-random_sampling",
+    "flan_t5-11b": {
+        "size": 11.0,
+        "paraphrased": {
+            "accuracy": 0.36905263157894735,
+            "precision": 0.45072064283603924,
+            "last_name_accuracy": 0.265578947368421,
+            "last_name_precision": 1.0019817677368212,
+            "weighted_score": 0.3017947368421052
+        }
+    },
+    "bloomz-7b1": {
+        "size": 7.1,
+        "paraphrased": {
+            "accuracy": 0.30336842105263156,
+            "precision": 0.48138763953884206,
+            "last_name_accuracy": 0.23010526315789473,
+            "last_name_precision": 1.0077767612076853,
+            "weighted_score": 0.2557473684210526
+        }
+    },
     "incite_instruct-3b": {
         "size": 3.0,
         "paraphrased": {

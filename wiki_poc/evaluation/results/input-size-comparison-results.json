@@ -1,5 +1,15 @@
 {
     "key": "input-size-comparison",
+    "incite_instruct_500-3b": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.22014435695538057,
+            "precision": 0.6162510333496999,
+            "last_name_accuracy": 0.11034558180227472,
+            "last_name_precision": 1.030723488602577,
+            "weighted_score": 0.14877515310586176
+        }
+    },
     "incite_instruct_2000-3b": {
         "size": 3.0,
         "paraphrased": {
@@ -22,6 +32,16 @@
             "precision": 0.4167030913224789
         }
     },
+    "bloomz_500-7b1": {
+        "size": 7.1,
+        "paraphrased": {
+            "accuracy": 0.12904636920384951,
+            "precision": 0.5656181801320989,
+            "last_name_accuracy": 0.06036745406824147,
+            "last_name_precision": 1.0036231884057971,
+            "weighted_score": 0.08440507436570428
+        }
+    },
     "bloomz_2000-7b1": {
         "size": 7.1,
         "paraphrased": {
@@ -31,6 +51,16 @@
         "original": {
             "accuracy": 0.47750100441944554,
             "precision": 0.41519442583485333
+        }
+    },
+    "flan_t5_500-11b": {
+        "size": 11.0,
+        "paraphrased": {
+            "accuracy": 0.2785433070866142,
+            "precision": 0.46044689373884196,
+            "last_name_accuracy": 0.18252405949256342,
+            "last_name_precision": 1.0029958058717796,
+            "weighted_score": 0.2161307961504812
         }
     },
     "flan_t5_1000-11b": {
@@ -106,6 +136,176 @@
         "paraphrased": {
             "accuracy": 0.5791864338346624,
             "precision": 0.40885187512452936
+        }
+    },
+    "roberta_squad_500-0b355": {
+        "size": 0.355,
+        "paraphrased": {
+            "accuracy": 0.01410761154855643,
+            "precision": 1.0418355041509264,
+            "last_name_accuracy": 0.004046369203849519,
+            "last_name_precision": 1.5405405405405406,
+            "weighted_score": 0.0075678040244969375
+        }
+    },
+    "roberta_squad_1000-0b355": {
+        "size": 0.355,
+        "paraphrased": {
+            "accuracy": 0.02336842105263158,
+            "precision": 1.6146756052876694,
+            "last_name_accuracy": 0.010526315789473684,
+            "last_name_precision": 2.69,
+            "weighted_score": 0.015021052631578949
+        }
+    },
+    "roberta_squad_1500-0b355": {
+        "size": 0.355,
+        "paraphrased": {
+            "accuracy": 0.06784415584415585,
+            "precision": 2.575686993633965,
+            "last_name_accuracy": 0.041662337662337665,
+            "last_name_precision": 3.663341645885287,
+            "weighted_score": 0.050825974025974024
+        }
+    },
+    "roberta_squad_1600-0b355": {
+        "size": 0.355,
+        "paraphrased": {
+            "accuracy": 0.12571250906829723,
+            "precision": 2.8632136296263693,
+            "last_name_accuracy": 0.08643382733962068,
+            "last_name_precision": 3.7697841726618706,
+            "weighted_score": 0.10018136594465747
+        }
+    },
+    "roberta_squad_1750-0b355": {
+        "size": 0.355,
+        "paraphrased": {
+            "accuracy": 0.28404869995872883,
+            "precision": 3.1336225572199408,
+            "last_name_accuracy": 0.20614940156830375,
+            "last_name_precision": 3.9524524524524525,
+            "weighted_score": 0.23341415600495252
+        }
+    },
+    "roberta_squad_2000-0b355": {
+        "size": 0.355,
+        "paraphrased": {
+            "accuracy": 0.36410309066639285,
+            "precision": 3.157050477406649,
+            "last_name_accuracy": 0.2655303419242222,
+            "last_name_precision": 3.9818252126836815,
+            "weighted_score": 0.3000308039839819
+        }
+    },
+    "roberta_squad_3000-0b355": {
+        "size": 0.355,
+        "paraphrased": {
+            "accuracy": 0.4344778545306786,
+            "precision": 3.210870416036478,
+            "last_name_accuracy": 0.3296424217797643,
+            "last_name_precision": 4.007704160246533,
+            "weighted_score": 0.3663348232425844
+        }
+    },
+    "t5_500-0b220": {
+        "size": 0.22,
+        "paraphrased": {
+            "accuracy": 0.03094925634295713,
+            "precision": 0.6361566454861178,
+            "last_name_accuracy": 0.010826771653543307,
+            "last_name_precision": 1.0,
+            "weighted_score": 0.017869641294838146
+        }
+    },
+    "t5_1000-0b220": {
+        "size": 0.22,
+        "paraphrased": {
+            "accuracy": 0.037157894736842105,
+            "precision": 0.6320853532249392,
+            "last_name_accuracy": 0.014842105263157894,
+            "last_name_precision": 1.0212765957446808,
+            "weighted_score": 0.02265263157894737
+        }
+    },
+    "t5_2000-0b220": {
+        "size": 0.22,
+        "paraphrased": {
+            "accuracy": 0.06201868775028237,
+            "precision": 0.6074275311672386,
+            "last_name_accuracy": 0.035321901632611154,
+            "last_name_precision": 1.0406976744186047,
+            "weighted_score": 0.04466577677379607
+        }
+    },
+    "t5_3000-0b220": {
+        "size": 0.22,
+        "paraphrased": {
+            "accuracy": 0.11621292157659488,
+            "precision": 0.6534700211218608,
+            "last_name_accuracy": 0.07446160097521333,
+            "last_name_precision": 1.0954979536152796,
+            "weighted_score": 0.08907456318569687
+        }
+    },
+    "cerebras_1000-2b7": {
+        "size": 2.7,
+        "paraphrased": {
+            "accuracy": 0.021368421052631578,
+            "precision": 0.80749035154358,
+            "last_name_accuracy": 0.009789473684210527,
+            "last_name_precision": 1.2903225806451613,
+            "weighted_score": 0.013842105263157895
+        }
+    },
+    "cerebras_2000-2b7": {
+        "size": 2.7,
+        "paraphrased": {
+            "accuracy": 0.01375911284526132,
+            "precision": 1.5855300365147054,
+            "last_name_accuracy": 0.0067768764760242324,
+            "last_name_precision": 2.757575757575758,
+            "weighted_score": 0.009220659205257213
+        }
+    },
+    "cerebras_3000-2b7": {
+        "size": 2.7,
+        "paraphrased": {
+            "accuracy": 0.017269402681836653,
+            "precision": 1.7227603622503065,
+            "last_name_accuracy": 0.00914262494920764,
+            "last_name_precision": 2.811111111111111,
+            "weighted_score": 0.011986997155627795
+        }
+    },
+    "cerebras_4000-2b7": {
+        "size": 2.7,
+        "paraphrased": {
+            "accuracy": 0.023114969213687293,
+            "precision": 1.9852340781640958,
+            "last_name_accuracy": 0.013323912385182194,
+            "last_name_precision": 3.0454545454545454,
+            "weighted_score": 0.016750782275158978
+        }
+    },
+    "roberta_squad_4000-0b355": {
+        "size": 0.355,
+        "paraphrased": {
+            "accuracy": 0.4506914303018068,
+            "precision": 3.210685380680715,
+            "last_name_accuracy": 0.34844049661855253,
+            "last_name_precision": 4.001448435689455,
+            "weighted_score": 0.38422832340769153
+        }
+    },
+    "t5_4000-0b220": {
+        "size": 0.22,
+        "paraphrased": {
+            "accuracy": 0.1682648632280206,
+            "precision": 0.7004175005031649,
+            "last_name_accuracy": 0.11204199051175937,
+            "last_name_precision": 1.1369369369369369,
+            "weighted_score": 0.1317199959624508
         }
     }
 }

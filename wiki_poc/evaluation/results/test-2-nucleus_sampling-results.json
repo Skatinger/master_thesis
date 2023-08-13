@@ -1,5 +1,25 @@
 {
     "key": "test-2-nucleus_sampling",
+    "flan_t5-11b": {
+        "size": 11.0,
+        "paraphrased": {
+            "accuracy": 0.36926315789473685,
+            "precision": 0.45018335977327467,
+            "last_name_accuracy": 0.26589473684210524,
+            "last_name_precision": 1.002375296912114,
+            "weighted_score": 0.30207368421052627
+        }
+    },
+    "bloomz-7b1": {
+        "size": 7.1,
+        "paraphrased": {
+            "accuracy": 0.3041052631578947,
+            "precision": 0.4809227473780934,
+            "last_name_accuracy": 0.2325263157894737,
+            "last_name_precision": 1.006337709370756,
+            "weighted_score": 0.2575789473684211
+        }
+    },
     "incite_instruct-3b": {
         "size": 3.0,
         "paraphrased": {

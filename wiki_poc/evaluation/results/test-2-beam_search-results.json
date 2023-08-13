@@ -1,5 +1,25 @@
 {
     "key": "test-2-beam_search",
+    "flan_t5-11b": {
+        "size": 11.0,
+        "paraphrased": {
+            "accuracy": 0.3698947368421053,
+            "precision": 0.4489478318499374,
+            "last_name_accuracy": 0.26631578947368423,
+            "last_name_precision": 1.0023715415019763,
+            "weighted_score": 0.3025684210526316
+        }
+    },
+    "bloomz-7b1": {
+        "size": 7.1,
+        "paraphrased": {
+            "accuracy": 0.3426315789473684,
+            "precision": 0.4539519220798345,
+            "last_name_accuracy": 0.2595789473684211,
+            "last_name_precision": 1.0016220600162207,
+            "weighted_score": 0.28864736842105265
+        }
+    },
     "incite_instruct-3b": {
         "size": 3.0,
         "paraphrased": {
