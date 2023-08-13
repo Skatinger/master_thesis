@@ -1,0 +1,113 @@
+{
+    "key": "collection-for-model-type-comparison",
+    "flan_t5-0b080": {
+        "size": 0.08,
+        "paraphrased": {
+            "accuracy": 0.2768421052631579,
+            "precision": 0.5092804143692873,
+            "last_name_accuracy": 0.21052631578947367,
+            "last_name_precision": 1.0035,
+            "weighted_score": 0.23373684210526316
+        }
+    },
+    "pythia-0b070": {
+        "size": 0.07,
+        "paraphrased": {
+            "accuracy": 0.024736842105263158,
+            "precision": 0.8155623825036414,
+            "last_name_accuracy": 0.010842105263157894,
+            "last_name_precision": 1.2427184466019416,
+            "weighted_score": 0.015705263157894736
+        }
+    },
+    "pythia-0b160": {
+        "size": 0.16,
+        "paraphrased": {
+            "accuracy": 0.02273684210526316,
+            "precision": 0.7903058560891907,
+            "last_name_accuracy": 0.009789473684210527,
+            "last_name_precision": 1.2688172043010753,
+            "weighted_score": 0.014321052631578946
+        }
+    },
+    "roberta_squad-0b355": {
+        "size": 0.355,
+        "paraphrased": {
+            "accuracy": 0.02336842105263158,
+            "precision": 1.6146756052876694,
+            "last_name_accuracy": 0.010526315789473684,
+            "last_name_precision": 2.69,
+            "weighted_score": 0.015021052631578949
+        }
+    },
+    "roberta_squad-0b125": {
+        "size": 0.125,
+        "paraphrased": {
+            "accuracy": 0.07136842105263158,
+            "precision": 1.3960409648072267,
+            "last_name_accuracy": 0.03452631578947368,
+            "last_name_precision": 2.1097560975609757,
+            "weighted_score": 0.04742105263157895
+        }
+    },
+    "t5-0b060": {
+        "size": 0.06,
+        "paraphrased": {
+            "accuracy": 0.12252631578947368,
+            "precision": 0.7128323454104245,
+            "last_name_accuracy": 0.07326315789473684,
+            "last_name_precision": 1.1422413793103448,
+            "weighted_score": 0.09050526315789473
+        }
+    },
+    "t5-0b220": {
+        "size": 0.22,
+        "paraphrased": {
+            "accuracy": 0.037157894736842105,
+            "precision": 0.6320853532249392,
+            "last_name_accuracy": 0.014842105263157894,
+            "last_name_precision": 1.0212765957446808,
+            "weighted_score": 0.02265263157894737
+        }
+    },
+    "roberta-0b355": {
+        "size": 0.355,
+        "paraphrased": {
+            "accuracy": 0.1831578947368421,
+            "precision": 1.0341058367831142,
+            "last_name_accuracy": 0.04421052631578947,
+            "last_name_precision": 1.5214285714285714,
+            "weighted_score": 0.09284210526315789
+        }
+    },
+    "roberta-0b125": {
+        "size": 0.125,
+        "paraphrased": {
+            "accuracy": 0.16547368421052633,
+            "precision": 1.0417390034109046,
+            "last_name_accuracy": 0.03389473684210526,
+            "last_name_precision": 1.562111801242236,
+            "weighted_score": 0.07994736842105263
+        }
+    },
+    "distilbert-0b066": {
+        "size": 0.066,
+        "paraphrased": {
+            "accuracy": 0.014,
+            "precision": 1.084460921581903,
+            "last_name_accuracy": 0,
+            "last_name_precision": 1.562111801242236,
+            "weighted_score": 0.0049
+        }
+    },
+    "distilbert_squad-0b062": {
+        "size": 0.062,
+        "paraphrased": {
+            "accuracy": 0.16063157894736843,
+            "precision": 0.7426520188803081,
+            "last_name_accuracy": 0.08989473684210526,
+            "last_name_precision": 1.1639344262295082,
+            "weighted_score": 0.11465263157894737
+        }
+    }
+}
