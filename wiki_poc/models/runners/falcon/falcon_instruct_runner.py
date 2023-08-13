@@ -78,7 +78,7 @@ class FalconInstructRunner(AbstractRunner):
         )
         return model
 
-    def make_predictions(self, examples, config, k_runs=1, cached_cols=[]):
+    def make_predictions(self, examples, config, k_runs=1):
         # tokenize inputs and move to GPU
         texts = examples[f"masked_text_{config}"]
         inputs = self.tokenizer(texts, return_tensors="pt", padding=True, return_token_type_ids=False).to(self.device)

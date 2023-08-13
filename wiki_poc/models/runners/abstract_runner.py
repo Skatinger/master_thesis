@@ -34,7 +34,6 @@ class AbstractRunner():
 
         # set default values for options
         self.input_length = 1000
-        self.cached_predictions = {}
         self.k_runs = 1
         self.input_sentences_count = None
         self.save_memory = False
@@ -90,16 +89,7 @@ class AbstractRunner():
     def results_exist(self, config):
         """checks if results for current config already exist and if all predictions were done"""
         # does the result file even exist?
-        if not os.path.exists(self.get_path(config)):
-            return False
-        
-        # load the set
-        dataset = load_dataset("json", data_files=self.get_path(config), split="train")
-        # store cached predictions
-        self.cached_predictions[config] = dataset
-        # and check if it contains all k predictions
-        required_cols = [f"prediction_{k}" for k in range(self.k_runs)]
-        return all(column in dataset.column_names for column in required_cols)
+        return os.path.exists(self.get_path(config))
 
     @staticmethod
     def start_prompt():
@@ -225,21 +215,13 @@ class AbstractRunner():
             batch_size = self.batch_sizes()[self.model_name]
             if self.save_memory:
                 batch_size = 1
-            # load cached predictions if they exist for this config, pass their column
-            # names to the processing so they won't get processed again
-            cached_cols = self.cached_predictions[config].column_names if config in self.cached_predictions else {}
-            # split cached predictions into batches
             logging.info(f"Using {self.strategy} strategy with batch size {batch_size} to generate ouputs.")
             result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names,
-                               fn_kwargs={'k_runs': self.k_runs, 'cached_cols': cached_cols, 'config': self.config})
-            # add already processed columns to result
-            for col_name in cached_cols:
-                if col_name not in ['page_id', 'id', 'input_length']:
-                    result_df = result_df.add_column(col_name, self.cached_predictions[config][col_name])
+                               fn_kwargs={'k_runs': self.k_runs, 'config': self.config})
             PATH = self.get_path(config)
             result_df.to_json(PATH)
 
-    def make_predictions(self, examples, config, k_runs=1, cached_cols=[]):
+    def make_predictions(self, examples, config, k_runs=1):
         # tokenize inputs and move to GPU
         texts = examples[f"masked_text_{config}"]
         inputs = self.tokenizer(texts, return_tensors="pt", padding=True,

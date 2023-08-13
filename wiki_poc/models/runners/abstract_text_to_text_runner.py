@@ -4,9 +4,6 @@ import torch
 import os
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-# TODO: caching for columns is no longer working correctly, model will always predict top_k results,
-#       regardless of wether they are cached or not (e.g. 2 predictions cached, but 5 requested)
-
 class AbstractTextToTextRunner(AbstractRunner):
 
     def get_model(self):
@@ -55,20 +52,12 @@ class AbstractTextToTextRunner(AbstractRunner):
             batch_size = self.batch_sizes()[self.model_name]
             if self.save_memory:
                 batch_size = 1
-            # load cached predictions if they exist for this config, pass their column
-            # names to the processing so they won't get processed again
-            cached_cols = self.cached_predictions[config].column_names if config in self.cached_predictions else {}
-
             result_df = df.map(self.make_predictions, batched=True, batch_size=batch_size, remove_columns=df.column_names,
-                               fn_kwargs={'k_runs': self.k_runs, 'cached_cols': cached_cols, 'config': self.config})
-            # add already processed columns to result
-            for col_name in cached_cols:
-                if col_name not in ['page_id', 'input_length']:
-                    result_df = result_df.add_column(col_name, self.cached_predictions[config][col_name])           
+                               fn_kwargs={'k_runs': self.k_runs, 'config': self.config})        
             PATH = self.get_path(config)
             result_df.to_json(PATH)
 
-    def make_predictions(self, examples, config, k_runs=1, cached_cols=[]):
+    def make_predictions(self, examples, config, k_runs=1):
         # tokenize inputs and move to GPU
         texts = examples[f"masked_text_{config}"]
         inputs = self.tokenizer(texts, return_tensors="pt", padding=True).to(self.device)
