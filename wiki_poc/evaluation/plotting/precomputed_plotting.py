@@ -37,18 +37,20 @@ class PrecomputedPlotting():
         prepared_df = self.convert_to_df(self.results)
         # self.plot_normal_to_instructional(self.results, prepared_df)
         # self.plot_normal_to_instructional_barplot(self.results, prepared_df)
-        self.plot_accuracy_progression(self.results, prepared_df)
+        # self.plot_accuracy_progression(self.results, prepared_df)
         # self.plot_best_performers(self.results, prepared_df)
         # self.plot_with_huge(self.results, prepared_df)
         # self.plot_accuracy_overview(self.results)
         # self.plot_accuracy_overview_with_legend(self.results, prepared_df)
         # self.plot_accuracy_input_size_comparison(self.results, prepared_df)
-        # self.input_length_progression(self.results, prepared_df)
+        self.input_length_progression(self.results, prepared_df)
         # self.sampling_method_comparison(self.results, prepared_df)
         # self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
         # self.plot_model_types_comparison(self.results, prepared_df)
         # self.plot_model_types_comparison_scatter(self.results, prepared_df)
         # self.compute_difference_paraphrased_to_original(self.results, prepared_df)
+        # self.tabulate_results_to_latex(self.results)
+
 
     def compute_difference_paraphrased_to_original(self, results, prepared_df):
         # Define metrics to be calculated
@@ -91,12 +93,13 @@ class PrecomputedPlotting():
             f.write(latext_text)
 
     @staticmethod
-    def sampling_method_comparison(results, _df):
-        data_for_df = []
+    def sampling_method_comparison(results, _df):        
+        data_for_df = {}
 
         for key, value in results.items():
             if key != 'key':
                 method = key.split('--')[-1]
+                model = key.split('--')[0]
                 if method == "beam_search_sampling":
                     method = "beam-search"
                 elif method == "sampling":
@@ -118,19 +121,73 @@ class PrecomputedPlotting():
                 # accuracy = value['paraphrased']['accuracy']
                 weighted_score = value['paraphrased']['weighted_score']
                 # data_for_df.append([method, accuracy])
-                data_for_df.append([method, weighted_score])
+                if data_for_df.get(model) is None:
+                    data_for_df[model] = [[method, weighted_score]]
+                else:
+                    data_for_df[model].append([method, weighted_score])
+        
+        # Restructuring data
+        grouped_data = {}
+        for model, values in data_for_df.items():
+            for method, score in values:
+                if method not in grouped_data:
+                    grouped_data[method] = {}
+                grouped_data[method][model] = score
 
-        df = pd.DataFrame(data_for_df, columns=['method', 'weighted_score'])
-        df = df.sort_values(by=['weighted_score'], ascending=False)
+        methods = list(grouped_data.keys())
+        models = list(data_for_df.keys())
 
-        ax = df.plot(kind='bar', x='method', y='weighted_score', legend=False)
-        plt.ylabel('W-PNMS', fontsize=16)
+        # Calculating average scores for sorting
+
+        # Average scores for each method across all models
+        average_method_scores = {method: np.mean(list(scores.values())) for method, scores in grouped_data.items()}
+        sorted_methods = sorted(average_method_scores, key=average_method_scores.get, reverse=True)
+
+        # Average scores for each model across all methods
+        average_model_scores = {model: np.mean([grouped_data[method][model] for method in sorted_methods]) for model in models}
+        sorted_models = sorted(average_model_scores, key=average_model_scores.get, reverse=True)
+
+        # Plotting the sorted data
+
+        x = np.arange(len(sorted_methods))
+        bar_width = 0.25  # Adjust as needed for number of models
+
+        fig, ax = plt.subplots(figsize=(21, 12))
+
+        # For each sorted model, plot bars for each sorted method
+        for idx, model in enumerate(sorted_models):
+            scores = [grouped_data[method][model] for method in sorted_methods]
+            ax.bar(x + idx * bar_width, scores, width=bar_width, label=model, align='center')
+
+        # ax.set_title('Weighted Score by Method and Model (Sorted)')
+        ax.set_xticks(x + bar_width * (len(models) - 1) / 2)
+        ax.set_xticklabels(sorted_methods)
+
+        # smaller y ticks
+        # Determine the y-axis range
+        y_min = 0
+        y_max = max(max(grouped_data[method][model] for method in sorted_methods) for model in sorted_models) + 0.05  # Adding a small margin for clarity
+
+        # Generate y ticks with smaller steps
+        y_ticks = np.arange(y_min, y_max, 0.05)
+        ax.set_yticks(y_ticks)
+
+
+        legend = plt.legend(fontsize=38, framealpha=1,
+                            loc='upper center', bbox_to_anchor=(0.5, 1.2), ncol=len(models))
+
+        # df = pd.DataFrame(data_for_df, columns=['method', 'weighted_score'])
+        # df = df.sort_values(by=['weighted_score'], ascending=False)
+
+        # ax = df.plot(kind='bar', x='method', y='weighted_score', legend=False)
+        plt.ylabel('W-PNMS', fontsize=38)
         # plt.title('Comparison of Different Generation Methods (top 5)\nincite_instruct-3b')
-        plt.xticks(rotation=45, ha='right')
+        plt.xticks(rotation=35, ha='right')
         # remove x axis label
         # increase font size of labels
-        plt.tick_params(axis='both', which='major', labelsize=16)
+        plt.tick_params(axis='both', which='major', labelsize=38)
         ax.set_xlabel('')
+        plt.grid(axis="y")
         plt.tight_layout()  # adjusts subplot params so that the subplot fits into the figure area
 
         plt.savefig('evaluation/plotting/plots/ablations/sampling_method_comparison.png', dpi=400, bbox_inches='tight')
@@ -234,11 +291,13 @@ class PrecomputedPlotting():
 
     @staticmethod
     def input_length_progression(results, df):
-        my_font_size = 42
-        plt.figure(figsize=(16, 10))
+        my_font_size = 32
+        plt.figure(figsize=(18, 8))
 
         # use input size as hue
         df['input_size'] = df['model_class'].apply(lambda x: x.split("_")[-1])
+        # convert input size to integers
+        df['input_size'] = df['input_size'].apply(lambda x: int(x))
         # remove input sizes from model class names
         df['model_class'] = df['model_class'].apply(lambda x: "_".join(x.split("_")[:-1]))
 
@@ -266,14 +325,16 @@ class PrecomputedPlotting():
         plt.xticks(fontsize=my_font_size)
         plt.yticks(fontsize=my_font_size)
 
-        # Add legend
-        legend = plt.legend(fontsize=my_font_size, framealpha=1)
+        # Add legend outside on the right of the plot
+        legend = plt.legend(fontsize=my_font_size, framealpha=1,
+                            loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=3)
+                            # , loc='upper left', bbox_to_anchor=(1.04, 1), borderaxespad=0.)
         # increase linewidth of legend lines
         for line in legend.get_lines():
             line.set_linewidth(9)
 
         plt.grid(True)
-        plt.savefig(f"evaluation/plotting/plots/plot_input_length_progression_{results['key']}.png", bbox_inches='tight')
+        plt.savefig(f"evaluation/plotting/plots/ablations/plot_input_length_progression_{results['key']}.png", bbox_inches='tight')
         # ensure pyplot does not run out of memory when too many plots are created
         plt.close()
     
@@ -681,7 +742,7 @@ class PrecomputedPlotting():
     @staticmethod
     def plot_normal_to_instructional_barplot(results, df):
         """expect df to contain each model twice, once for every compared input size"""
-        plt.figure(figsize=(20, 14))
+        plt.figure(figsize=(20, 8))
         my_font_size = 42
 
         # expect the following models
@@ -743,8 +804,8 @@ class PrecomputedPlotting():
         tick_pos = [i + bar_width / 2 for i in bar_l]
 
         # Create the bar plot
-        plt.bar(bar_l, normal_accuracies, width=bar_width, label='base', color='orange')
-        plt.bar(bar_l + bar_width, instruction_accuracies, width=bar_width, label='instructional', color='blue')
+        plt.bar(bar_l, normal_accuracies, width=bar_width, label='base', color='orange', zorder=1)
+        plt.bar(bar_l + bar_width, instruction_accuracies, width=bar_width, label='instructional', color='blue', zorder=1)
 
         # Set the labels and title
         plt.ylabel('W-PNMS', fontsize=my_font_size)
@@ -763,6 +824,8 @@ class PrecomputedPlotting():
         plt.xticks(fontsize=my_font_size)
         plt.yticks(fontsize=my_font_size)
 
+        plt.grid(axis="y", zorder=0)
+
         plt.savefig(f"evaluation/plotting/plots/ablations/plot_normal_to_instructional_barplot_{results['key']}.png", bbox_inches='tight')
 
     @staticmethod
@@ -775,7 +838,7 @@ class PrecomputedPlotting():
         # remove input sizes from model class names
         df2['model_class'] = df2['model_class'].apply(lambda x: "_".join(x.split("_")[:-1]))
 
-        my_font_size = 24
+        my_font_size = 18
         df3 = df2.sort_values('input_size', ascending=False)
         sns.scatterplot(data=df3, x="size", y="accuracy", hue="input_size", s=350, markers=True)
 
