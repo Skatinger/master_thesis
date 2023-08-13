@@ -169,7 +169,7 @@ def load_test_set(path = "models/cache/reduced_test_set", ids_file_path = "test_
         logging.info(f"Loading dataset from {custom_file}. Caching to disk option will be neglected.")
         # extract file typ
         file_extension = os.path.splitext(custom_file)[1][1:]
-        return load_dataset(file_extension, data_files=custom_file)
+        return load_dataset(file_extension, data_files=custom_file, split="train")
 
     if dataset_type == "rulings":
         path = path + "_rulings"
