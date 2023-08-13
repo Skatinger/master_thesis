@@ -7,6 +7,7 @@ from names_dataset import NameDataset
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('agg')
+from matplotlib.ticker import FuncFormatter
 
 name_dataset = NameDataset()
 
@@ -18,6 +19,16 @@ classification = {
         "just a letter": {},
         "good": {},
     }
+
+
+# Define the function to format tick values
+def kilo_formatter(x, pos):
+    if x == 0:
+        return '0'
+    elif x < 1000:
+        return f'{x/1000:.1f}k'
+    else:
+        return f'{x//1000}k'
 
 def is_name(word: str) -> bool:
     """checks if a word is a name by checking if it is in the names dataset"""
@@ -127,28 +138,40 @@ def main():
     models.sort(key=lambda x: total_scores[x], reverse=True)
 
     x = np.arange(len(labels))  # the label locations
-    width = 0.13  # the width of the bars
+    width = 0.17  # the width of the bars
 
-    fig, ax = plt.subplots(figsize=(12, 9))
+    fig, ax = plt.subplots(figsize=(12, 5))
     rects = []
     for i, model in enumerate(models):
         model_values = [classification[label][model] for label in labels]
         rects.append(ax.bar(x - width*len(models)/2 + i*width, model_values, width, label=model))
 
+    # Drawing vertical lines to separate the groups
+    for i in range(len(labels) - 1):
+        line_position = x[i] + width*len(models)/2
+        ax.axvline(line_position, color='gray', linestyle='--', linewidth=1.2)
+    
+    # Adjust the x-axis limits to reduce whitespace
+    # ax.set_xlim(left=x[0] - width*len(models)/2 + 0.2)  # Adjust the 0.5 value as needed
+
     # Add some text for labels, title and custom x-axis tick labels, etc.
     # ax.set_title('Type of prediction by model', fontsize=22)
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=20)
+    plt.xticks(rotation=25, ha='right')
+    # Set the custom formatter for the y-axis
+    plt.gca().yaxis.set_major_formatter(FuncFormatter(kilo_formatter))
     # sent font size of y axis ticks to 20
     ax.tick_params(axis='y', labelsize=20)
-    legend = ax.legend(fontsize=20)
+    legend = ax.legend(fontsize=18)
+    plt.grid(axis="y")
     # legend.set_title('models', prop={'size': 26})
 
     # Move x-tick labels to the center of the sections
     for tick in ax.get_xticklabels():
         tick.set_ha('center')
 
-    plt.xlabel('Classified as', fontsize=20)
+    # plt.xlabel('Classified as', fontsize=20)
     plt.ylabel('number of predictions', fontsize=20)
 
     plt.savefig(f"evaluation/plotting/plots/legal/{dataset_key}-histogram.png", bbox_inches='tight')
