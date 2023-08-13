@@ -37,6 +37,6 @@ for index, ruling in tqdm(rulings.iterrows(), total=len(rulings)):
 # append the paraphrased rulings
 rulings['masked_text_paraphrased'] = ruling_texts
 # rename full text
-rulings.rename(columns={"full_text": "masked_text_original"}, inplace=True)
+rulings.rename(columns={"full_text": "masked_text_original", "decision_id": "id" }, inplace=True)
 
 rulings.to_csv('data/manually_reidentified_updated_with_paraphrased.csv', index=False)
