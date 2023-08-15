@@ -1,0 +1,43 @@
+{
+    "key": "collection-for-length-ablation",
+    "flan_t5-11b": {
+        "size": 11.0,
+        "paraphrased": {
+            "accuracy": 0.3698947368421053,
+            "precision": 0.4489478318499374,
+            "last_name_accuracy": 0.26631578947368423,
+            "last_name_precision": 1.0023715415019763,
+            "weighted_score": 0.3025684210526316
+        }
+    },
+    "bloom-7b1": {
+        "size": 7.1,
+        "paraphrased": {
+            "accuracy": 0.20705263157894738,
+            "precision": 0.5724221344284783,
+            "last_name_accuracy": 0.15357894736842106,
+            "last_name_precision": 1.0644276901987664,
+            "weighted_score": 0.17229473684210528
+        }
+    },
+    "incite_instruct-3b": {
+        "size": 3.0,
+        "paraphrased": {
+            "accuracy": 0.3590010405827263,
+            "precision": 0.5340350933534473,
+            "last_name_accuracy": 0.24661810613943808,
+            "last_name_precision": 1.0,
+            "weighted_score": 0.28595213319458895
+        }
+    },
+    "mt0-13b": {
+        "size": 13.0,
+        "paraphrased": {
+            "accuracy": 0.37473684210526315,
+            "precision": 0.42299737600393356,
+            "last_name_accuracy": 0.27242105263157895,
+            "last_name_precision": 1.0038639876352395,
+            "weighted_score": 0.3082315789473684
+        }
+    }
+}
