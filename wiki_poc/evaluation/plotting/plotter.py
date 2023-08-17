@@ -168,7 +168,7 @@ class LevenstheinDistanceComparisonPlotter(Plotter):
         # set the y axis maximum
         plt.ylim(0, 1200)
         plt.title(f"{model_name}", fontsize=font_size + 8)
-        path = f"evaluation/plotting/plots/{key}_{model_name}_{config}_levensthein_distance.png"
+        path = f"evaluation/plotting/plots/insights/{key}_{model_name}_{config}_levensthein_distance.png"
         logging.info(f"saving to {path}")
         plt.savefig(path, dpi=300, bbox_inches='tight')
 
@@ -207,10 +207,12 @@ class AccuracyOverviewPlotter(Plotter):
         matplotlib.pyplot.close()
 
 class PageXProxyPlotter(Plotter):
-    """creates a plot showing the scores for different page views of wiki pages"""
+    """creates a plot showing the scores for different page views/edits of wiki pages"""
     def build(self, data, key, gt, proxy, views_df, bin_size=200, cutoff=None):
         gt_df = pd.DataFrame(gt)
         gt_df = gt_df[['id', 'title']]
+
+        fontsize = 26
 
         # plt.figure(figsize=(10,6))
         
@@ -227,10 +229,10 @@ class PageXProxyPlotter(Plotter):
         cmap = ListedColormap(colors)
 
         # Create a figure with two subplots with shared x-axis
-        fig, axs = plt.subplots(2, 1, figsize=(10, 10), sharex=True, gridspec_kw={'height_ratios': [3, 1]})
+        fig, axs = plt.subplots(2, 1, figsize=(20, 16), sharex=True, gridspec_kw={'height_ratios': [2.5, 1]})
 
         # Access the first subplot for the first plot
-        ax = axs[0]
+        ax = axs[0] 
 
         # Keep track of the current color index
         color_index = 0
@@ -255,46 +257,51 @@ class PageXProxyPlotter(Plotter):
 
                 df['length_group'] = pd.cut(df[proxy], bins=bin_size)
 
+                # Group by 'length_group' and compute the aggregated values
                 grouped = df.groupby('length_group').agg(
                     size=pd.NamedAgg(column=proxy, aggfunc='mean'),
-                    accuracy=pd.NamedAgg(column='correct', aggfunc='mean')
+                    accuracy=pd.NamedAgg(column='correct', aggfunc='mean'),
+                    last_name_accuracy=pd.NamedAgg(column='last_name_correct', aggfunc='mean')
                 ).reset_index()
 
-                # Use the same color for the regression line
-                plot = sns.regplot(ax=ax, data=grouped, x='size', y='accuracy', scatter=False, lowess=True, color=colors[color_index])
+                # Compute the combined accuracy with given weights
+                grouped['weighted_score'] = 0.35 * grouped['accuracy'] + 0.65 * grouped['last_name_accuracy']
 
+                # Use the same color for the regression line, dont show a legend
+                plot = sns.regplot(ax=ax, data=grouped, x='size', y='weighted_score', scatter=True, lowess=False,
+                                   color=colors[color_index], scatter_kws={'alpha': 0.5, 's': 150}, label=None,
+                                   line_kws={'linewidth': 4})
+                plot.set_ylabel('PNMS', fontsize=fontsize)
+                plt.xticks(fontsize=fontsize)
+                plot.set_xlabel("")
                 # Create a custom line to add to the legend
-                legend_line = mlines.Line2D([], [], color=colors[color_index], label=f'{model_key}-{size}')
+                legend_line = mlines.Line2D([], [], color=colors[color_index], label=f'{model_key}-{size}', linewidth=10)
                 legend_lines.append(legend_line)
+                # place legend below plot
 
                 ax.xaxis.set_major_formatter(ticker.EngFormatter())
 
                 # Move to the next color
                 color_index += 1
 
-        ax.set_ylabel('partial name match score')
-        if cutoff:
-            cutoff_label = f"\n(cutoff for pages with more than {cutoff:,} {proxy})"
-        else:
-            cutoff_label = ''
-        ax.set_title(f"partial name match score by wiki {proxy}{cutoff_label}\n$\it{{DRAFT (data used from: {key})}}$", fontsize=14)
-
-        # Add legend manually
-        ax.legend(handles=legend_lines, title='model')
-
+        plot.legend(handles=legend_lines, loc='upper center', bbox_to_anchor=(0.5, + 1.1), ncol=5, fontsize=fontsize)
         # Access the second subplot for the second plot
-        ax = axs[1]
 
-        plot = sns.histplot(ax=ax, data=views_df, x=proxy, bins=200, log_scale=(False, True), color='skyblue', edgecolor='black')
+        # Adjust tick label size for the first subplot
+        axs[0].tick_params(axis='both', which='major', labelsize=fontsize)
+        # Adjust tick label size for the second subplot
+        axs[1].tick_params(axis='both', which='major', labelsize=fontsize)
+
+
+        ax = axs[1]
+        # lower plot
+        plot = sns.histplot(ax=ax, data=views_df, x=proxy, bins=120, log_scale=(False, True), color='skyblue', edgecolor='black')
+
         if proxy == 'page_views':
-            ax.set_xlabel('Number of Page Views')
+            ax.set_xlabel('Number of Page Views', fontsize=fontsize)
         else:
-            ax.set_label('Number of Page Edits')
-        ax.set_ylabel('Number of Pages')
-        if proxy == 'page_views':
-            ax.set_title('Distribution of Number of Pages Compared to View Count')
-        else:
-            ax.set_title('Distribution of Number of Pages Compared to Edit Count')
+            ax.set_xlabel('Number of Page Edits', fontsize=fontsize)
+        ax.set_ylabel('Number of Pages', fontsize=fontsize)
         ax.xaxis.set_major_formatter(ticker.EngFormatter())
 
         plt.tight_layout()
@@ -310,7 +317,8 @@ class PageViewsProxyPlotter(PageXProxyPlotter):
         views_df = pd.read_csv(f"dataset/wiki_page_views.csv")
         # for the page views data, entries above 1000000 are outliers, so we remove them
         cutoff = 1000000
-        return super().build(data, key, gt, 'page_views', views_df, 150, cutoff)
+        binsize = 30
+        return super().build(data, key, gt, 'page_views', views_df, binsize, cutoff)
 
 class PageEditsProxyPlotter(PageXProxyPlotter):
     """creates a plot showing the scores for different page edits of wiki pages"""
