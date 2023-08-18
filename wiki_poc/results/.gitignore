@@ -1,7 +1,0 @@
-# useful for ignoring result collections which are used
-# for testing, or for specific collections for some plots
-
-collection-for-length-ablation
-mt0-only
-collection-for-model-type-comparison
-legal-hand-picked
