@@ -3,6 +3,9 @@ import sys
 import json
 from tqdm import tqdm
 
+
+"""helper script to convert tsv files to jsonl"""
+
 # allow reading of large rows
 csv.field_size_limit(sys.maxsize)
 
