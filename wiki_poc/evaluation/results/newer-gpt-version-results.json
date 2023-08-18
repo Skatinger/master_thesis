@@ -1,9 +1,0 @@
-{
-    "key": "newer-gpt-version",
-    "gpt3.5turbo0613-175b": {
-        "paraphrased": {
-            "accuracy": 0.5174708818635607,
-            "precision": 4.12540192926045
-        }
-    }
-}
