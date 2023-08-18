@@ -391,6 +391,26 @@
             "weighted_score": 0.23946865251081817
         }
     },
+    "mt0-0b300": {
+        "size": 0.3,
+        "paraphrased": {
+            "accuracy": 0.26526315789473687,
+            "precision": 0.514369198200212,
+            "last_name_accuracy": 0.18789473684210525,
+            "last_name_precision": 1.007843137254902,
+            "weighted_score": 0.21497368421052632
+        }
+    },
+    "mt0-3b7": {
+        "size": 3.7,
+        "paraphrased": {
+            "accuracy": 0.3111578947368421,
+            "precision": 0.4209745577309543,
+            "last_name_accuracy": 0.24126315789473685,
+            "last_name_precision": 1.006108202443281,
+            "weighted_score": 0.2657263157894737
+        }
+    },
     "mt0-13b": {
         "size": 13.0,
         "paraphrased": {
@@ -617,16 +637,6 @@
     },
     "gpt_4-1800b": {
         "size": 1800.0,
-        "paraphrased": {
-            "accuracy": 0.7051,
-            "precision": 0.16836432176387633,
-            "last_name_accuracy": 0.6136,
-            "last_name_precision": 1.0065189048239895,
-            "weighted_score": 0.645625
-        }
-    },
-    "gpt_4-175b": {
-        "size": 175.0,
         "paraphrased": {
             "accuracy": 0.7051,
             "precision": 0.16836432176387633,

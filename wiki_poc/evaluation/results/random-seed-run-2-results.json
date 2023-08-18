@@ -1,0 +1,20 @@
+{
+    "key": "random-seed-run-2",
+    "mt0-1b2": {
+        "size": 1.2,
+        "paraphrased": {
+            "accuracy": 0.21547368421052632,
+            "precision": 0.5153970293577984,
+            "last_name_accuracy": 0.16431578947368422,
+            "last_name_precision": 1.0064061499039076,
+            "weighted_score": 0.18222105263157895
+        },
+        "original": {
+            "accuracy": 0.23699305625440273,
+            "precision": 0.5106650046530876,
+            "last_name_accuracy": 0.18587098721948275,
+            "last_name_precision": 1.0054141851651326,
+            "weighted_score": 0.20376371138170474
+        }
+    }
+}
