@@ -317,7 +317,7 @@ class PageViewsProxyPlotter(PageXProxyPlotter):
         views_df = pd.read_csv(f"dataset/wiki_page_views.csv")
         # for the page views data, entries above 1000000 are outliers, so we remove them
         cutoff = 1000000
-        binsize = 30
+        binsize = 25
         return super().build(data, key, gt, 'page_views', views_df, binsize, cutoff)
 
 class PageEditsProxyPlotter(PageXProxyPlotter):
@@ -327,8 +327,8 @@ class PageEditsProxyPlotter(PageXProxyPlotter):
         # remove any entries with None values
         views_df = views_df[views_df['page_edits'].notna()]
         # for the page edits data, entries above 100000 are outliers, so we remove them
-        cutoff = 400
-        bin_size = 150
+        cutoff = 200
+        bin_size = 30
         return super().build(data, key, gt, 'page_edits', views_df, bin_size, cutoff)
 
 class InputLengthAblationPlotter(Plotter):

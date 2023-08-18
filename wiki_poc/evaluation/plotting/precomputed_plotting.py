@@ -8,11 +8,25 @@ import pandas as pd
 import seaborn as sns
 import logging
 import matplotlib
+import math
 from adjustText import adjust_text
 from collections import defaultdict
 
 
 matplotlib.use('agg')
+
+
+"""
+Plotting class that can play all kinds of different plots. Plotting methods assume that wikipedia results are used,
+some expect specific models to be present in the data, or to contain a specific format.
+All "precomputed" results are loaded from wiki_poc/evaluation/results. You can pass the name of the results json
+file (except the -results.json part) as second argument to run on your results.
+
+Uncomment the desired plotting functions on line 50 for your specific result.
+Plots will be saved to the corresponding folder under wiki_poc/evaluation/plotting/plots/
+
+Note: This class is built as a one-shot tinkering playground and therefore not very stable.
+"""
 
 class PrecomputedPlotting():
 
@@ -37,13 +51,13 @@ class PrecomputedPlotting():
         prepared_df = self.convert_to_df(self.results)
         # self.plot_normal_to_instructional(self.results, prepared_df)
         # self.plot_normal_to_instructional_barplot(self.results, prepared_df)
-        # self.plot_accuracy_progression(self.results, prepared_df)
+        self.plot_accuracy_progression(self.results, prepared_df)
         # self.plot_best_performers(self.results, prepared_df)
         # self.plot_with_huge(self.results, prepared_df)
         # self.plot_accuracy_overview(self.results)
         # self.plot_accuracy_overview_with_legend(self.results, prepared_df)
         # self.plot_accuracy_input_size_comparison(self.results, prepared_df)
-        self.input_length_progression(self.results, prepared_df)
+        # self.input_length_progression(self.results, prepared_df)
         # self.sampling_method_comparison(self.results, prepared_df)
         # self.plot_accuracy_overview_with_legend_and_size(self.results, prepared_df)
         # self.plot_model_types_comparison(self.results, prepared_df)
@@ -67,8 +81,6 @@ class PrecomputedPlotting():
             for config in ["original", "paraphrased"]:
                 if config not in model_data.keys():
                     continue
-                # if model_data[config]["weighted_score"] < self.baseline_majority:
-                #     continue
                 counters[config] += 1
                 for metric in metrics:
                     sums[config][metric] += model_data[config][metric]
@@ -87,6 +99,41 @@ class PrecomputedPlotting():
         # convert table_data to dataframe
         table_data = pd.DataFrame(table_data[1:], columns=table_data[0])
 
+        # Initialize variance and standard deviation dictionaries
+        variances = defaultdict(lambda: defaultdict(float))
+        standard_deviations = defaultdict(lambda: defaultdict(float))
+
+        # Calculate variances
+        for model, model_data in results.items():
+            if model == "key":
+                continue
+            for config in ["original", "paraphrased"]:
+                if config not in model_data.keys():
+                    continue
+                for metric in metrics:
+                    variances[config][metric] += (model_data[config][metric] - averages[config][metric])**2
+
+        # Calculate standard deviations
+        for config in ["original", "paraphrased"]:
+            for metric in metrics:
+                variances[config][metric] = variances[config][metric] / counters[config] if counters[config] else 0
+                standard_deviations[config][metric] = math.sqrt(variances[config][metric])
+
+        # Calculate standard deviation of the mean
+        standard_errors = defaultdict(lambda: defaultdict(float))
+        for config in ["original", "paraphrased"]:
+            for metric in metrics:
+                standard_errors[config][metric] = standard_deviations[config][metric] / math.sqrt(counters[config]) if counters[config] else 0
+
+        # Create rows for standard errors
+        original_errors = ['original_std_error'] + [standard_errors['original'][metric] for metric in metrics]
+        paraphrased_errors = ['paraphrased_std_error'] + [standard_errors['paraphrased'][metric] for metric in metrics]
+
+        original_errors_df = pd.DataFrame([original_errors], columns=table_data.columns)
+        paraphrased_errors_df = pd.DataFrame([paraphrased_errors], columns=table_data.columns)
+
+        table_data = pd.concat([table_data, original_errors_df, paraphrased_errors_df], ignore_index=True)
+
         # save result to file
         latext_text = table_data.to_latex(index=False, float_format="{:0.2f}".format)
         with open(f"evaluation/plotting/plots/text_results/paraphrased_to_original_{results['key']}.tex", "w") as f:
@@ -96,10 +143,47 @@ class PrecomputedPlotting():
     def sampling_method_comparison(results, _df):        
         data_for_df = {}
 
+        # replace names with correct names
+        # fix the names
+        names = {
+            "bloomz": "BLOOMZ",
+            "flan_t5": "Flan_T5",
+            "roberta": "RoBERTa",
+            "t5": "T5",
+            "mt0": "mT0",
+            "bloom": "BLOOM",
+            "cerebras": "Cerebras-GPT",
+            "pythia": "Pythia",
+            "t0": "T0",
+            "incite_instruct": "INCITE-Instruct",
+        }
+
+        def format_label(s):
+            # Split the string at 'b'
+            parts = s.split('B')
+            
+            # Extract billions and millions parts
+            billions = parts[0]
+            millions = parts[1] if len(parts) > 1 else None
+            
+            # Format the string based on the provided conditions
+            if billions == '0':
+                return f"{millions}M"
+            elif millions:
+                return f"{billions}.{millions}B"
+            else:
+                return f"{billions}B"
+
         for key, value in results.items():
             if key != 'key':
                 method = key.split('--')[-1]
                 model = key.split('--')[0]
+                # and now replace the model name with the correct name
+                model_name, model_size = model.split('-')
+                # import pdb; pdb.set_trace()
+                # convert size to number
+                model_size = format_label(model_size)
+                model = names[model_name] + " " + model_size
                 if method == "beam_search_sampling":
                     method = "beam-search"
                 elif method == "sampling":
@@ -137,8 +221,6 @@ class PrecomputedPlotting():
         methods = list(grouped_data.keys())
         models = list(data_for_df.keys())
 
-        # Calculating average scores for sorting
-
         # Average scores for each method across all models
         average_method_scores = {method: np.mean(list(scores.values())) for method, scores in grouped_data.items()}
         sorted_methods = sorted(average_method_scores, key=average_method_scores.get, reverse=True)
@@ -173,17 +255,12 @@ class PrecomputedPlotting():
         ax.set_yticks(y_ticks)
 
 
-        legend = plt.legend(fontsize=38, framealpha=1,
+        legend = plt.legend(fontsize=36.5, framealpha=1,
                             loc='upper center', bbox_to_anchor=(0.5, 1.2), ncol=len(models))
 
-        # df = pd.DataFrame(data_for_df, columns=['method', 'weighted_score'])
-        # df = df.sort_values(by=['weighted_score'], ascending=False)
-
-        # ax = df.plot(kind='bar', x='method', y='weighted_score', legend=False)
         plt.ylabel('W-PNMS', fontsize=38)
         # plt.title('Comparison of Different Generation Methods (top 5)\nincite_instruct-3b')
         plt.xticks(rotation=35, ha='right')
-        # remove x axis label
         # increase font size of labels
         plt.tick_params(axis='both', which='major', labelsize=38)
         ax.set_xlabel('')
@@ -192,8 +269,8 @@ class PrecomputedPlotting():
 
         plt.savefig('evaluation/plotting/plots/ablations/sampling_method_comparison.png', dpi=400, bbox_inches='tight')
 
-    @staticmethod
-    def plot_with_huge(results, df2):
+
+    def plot_with_huge(self, results, df2):
         # Extract the class of the model from the 'model' column
         my_font_size = 24
 
@@ -232,9 +309,7 @@ class PrecomputedPlotting():
 
         # Set x-axis to logarithmic scale
         plt.xscale('log')
-        # plt.legend(bbox_to_anchor=(1.04, 1), loc='upper left', borderaxespad=0., fontsize='xx-large')
 
-        # plt.title("accuracy compared to model size for paraphrased texts", fontsize="xx-large")
         plt.grid(True)
         plt.savefig(f"evaluation/plotting/plots/plot_best_performers_with_huge_{results['key']}.png") # , bbox_inches='tight')
         # ensure pyplot does not run out of memory when too many plots are created
@@ -250,6 +325,22 @@ class PrecomputedPlotting():
 
         # remove all models that are not in the interesting models list
         df2 = df2[df2['model_class'].isin(interesting_models)]
+
+        # fix the names
+        names = {
+            "bloomz": "BLOOMZ",
+            "flan_t5": "Flan_T5",
+            "roberta": "RoBERTa",
+            "t5": "T5",
+            "mt0": "mT0",
+            "bloom": "BLOOM",
+            "cerebras": "Cerebras-GPT",
+            "pythia": "Pythia",
+            "t0": "T0"
+        }
+
+        # replace model_class names with name from the names dict
+        df2['model_class'] = df2['model_class'].replace(names)
 
         # remove any models above 20 billion parameters, as they are not interesting because
         # they pull apart the plot too much
@@ -279,7 +370,7 @@ class PrecomputedPlotting():
         plt.yticks(fontsize=my_font_size)
 
         # Add legend, place it outside of plot
-        legend = plt.legend(fontsize=my_font_size - 3, framealpha=1) #, loc='upper left', bbox_to_anchor=(1.04, 1), borderaxespad=0.)
+        legend = plt.legend(fontsize=my_font_size - 3, framealpha=1)
         # increase linewidth of legend lines
         for line in legend.get_lines():
             line.set_linewidth(8)
@@ -292,7 +383,7 @@ class PrecomputedPlotting():
     @staticmethod
     def input_length_progression(results, df):
         my_font_size = 32
-        plt.figure(figsize=(18, 8))
+        plt.figure(figsize=(20, 7.5))
 
         # use input size as hue
         df['input_size'] = df['model_class'].apply(lambda x: x.split("_")[-1])
@@ -300,6 +391,23 @@ class PrecomputedPlotting():
         df['input_size'] = df['input_size'].apply(lambda x: int(x))
         # remove input sizes from model class names
         df['model_class'] = df['model_class'].apply(lambda x: "_".join(x.split("_")[:-1]))
+
+        names = {
+            "bloomz": "BLOOMZ",
+            "flan_t5": "Flan_T5",
+            "roberta": "RoBERTa",
+            "t5": "T5",
+            "mt0": "mT0",
+            "bloom": "BLOOM",
+            "cerebras": "Cerebras-GPT",
+            "pythia": "Pythia",
+            "t0": "T0",
+            "incite_instruct": "INCITE-Instruct",
+            "roberta_squad": "RoBERTa-SQuAD",
+        }
+
+        # replace model_class names with name from the names dict
+        df['model_class'] = df['model_class'].replace(names)
 
         # group it
         df = df.sort_values('input_size', ascending=False)
@@ -315,7 +423,18 @@ class PrecomputedPlotting():
         # Plot separate lines for each group with corresponding colors
         for group, color in zip(unique_groups, color_palette):
             group_data = grouped_data[grouped_data['model_class'] == group]
-            plt.plot(group_data['input_size'], group_data['accuracy'], color=color, label=group, linewidth=9)
+            # concat model_class and model_size to get the label
+            if group_data['size'].iloc[0] > 1:
+                num = group_data['size'].iloc[0]
+                number = int(num) if num == round(num) else num
+                label = f"{group} {number}B"
+            else:
+                num = group_data['size'].iloc[0]
+                number = int(num) if num == round(num, 0) else num
+                number = round(number * 1000)
+                label = f"{group} {number}M"
+
+            plt.plot(group_data['input_size'], group_data['accuracy'], color=color, label=label, linewidth=9)
 
         # Set labels and title
         plt.xlabel("input size [characters]", fontsize=my_font_size)
@@ -324,24 +443,26 @@ class PrecomputedPlotting():
         # Increase font size of tick labels
         plt.xticks(fontsize=my_font_size)
         plt.yticks(fontsize=my_font_size)
+        plt.ylim(0, 0.6)
+        plt.xlim(400, 4100)
 
         # Add legend outside on the right of the plot
-        legend = plt.legend(fontsize=my_font_size, framealpha=1,
-                            loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=3)
+        legend = plt.legend(fontsize=my_font_size - 4, framealpha=1,
+                            loc='upper center', bbox_to_anchor=(0.47, -0.15), ncol=3)
                             # , loc='upper left', bbox_to_anchor=(1.04, 1), borderaxespad=0.)
         # increase linewidth of legend lines
         for line in legend.get_lines():
             line.set_linewidth(9)
 
         plt.grid(True)
-        plt.savefig(f"evaluation/plotting/plots/ablations/plot_input_length_progression_{results['key']}.png", bbox_inches='tight')
+        plt.savefig(f"evaluation/plotting/plots/ablations/plot_input_length_progression_{results['key']}.png",
+                    bbox_inches='tight', dpi=300)
         # ensure pyplot does not run out of memory when too many plots are created
         plt.close()
     
     def plot_wiki_edits_proxy(results, df2):
         """Plot the wiki edits proxy metric for each model
            this shows the number of edits to a page compared to the length of the page"""
-
 
 
     @staticmethod
@@ -398,8 +519,6 @@ class PrecomputedPlotting():
         plt.legend(ncol=1, fontsize=my_font_size -2,
                    markerscale=3.5, framealpha=1)
 
-
-        # plt.title("accuracy compared to model size for paraphrased texts", fontsize="xx-large")
         plt.grid(True)
         plt.savefig(f"evaluation/plotting/plots/plot_best_performers_{results['key']}.png") # , bbox_inches='tight')
         # ensure pyplot does not run out of memory when too many plots are created
@@ -442,38 +561,40 @@ class PrecomputedPlotting():
         return pd.DataFrame({"model": models, "model_class": model_classes, "size": sizes, "precision": precisions,
                              "accuracy": accuracies, "weighted_score": weighted_scores, "config": configs})
 
-    @staticmethod
-    def plot_accuracy_overview(results):
+
+    def plot_accuracy_overview(self, results):
         df2 = PrecomputedPlotting.convert_to_df(results)
 
-        plt.figure(figsize=(20, 16))
-        sns.scatterplot(data=df2, x="size", y="accuracy", hue="model", s=300, markers=True, legend=False)
+        plt.figure(figsize=(12, 8))
+        sns.scatterplot(data=df2, x="size", y="weighted_score", hue="model", s=300, markers=True, legend=False)
 
         # Prepare the labels and positions
         labels = df2['model'].tolist()
-        positions = df2[['size', 'accuracy']].values.tolist()
+        positions = df2[['size', 'weighted_score']].values.tolist()
 
         # Add labels with adjustment to avoid overlap
         texts = []
         for label, position in zip(labels, positions):
             label_length = len(label)
             mv_left = label_length * 2
-            text = plt.annotate(label, position, xytext=(-mv_left, 15), textcoords='offset points', fontsize='large')
-            texts.append(text)
+            # text = plt.annotate(label, position, xytext=(-mv_left, 15), textcoords='offset points', fontsize='large')
+            # texts.append(text)
 
         # Adjust the positions of labels to prevent overlap
-        adjust_text(texts)
+        # adjust_text(texts)
 
         # baselines hardcoded (TODO: make dynamic or change if test set changes)
-        plt.axhline(y=0.06, color='blue', linewidth=2.5, label="random names")
-        plt.axhline(y=0.13, color='orange', linewidth=2.5, label="majority names")
+        plt.axhline(y=self.baseline_random, color='blue', linewidth=2.5, label="random names")
+        plt.axhline(y=self.baseline_majority, color='orange', linewidth=2.5, label="majority names")
 
         plt.legend(fontsize="xx-large")
 
+         # Set x-axis to logarithmic scale
+        plt.xscale('log')
 
         # Set labels and title
-        plt.xlabel("Size", fontsize="xx-large")
-        plt.ylabel("Accuracy", fontsize="xx-large")
+        plt.xlabel("Size [Billion Parameters]", fontsize="xx-large")
+        plt.ylabel("W-PNMS", fontsize="xx-large")
 
         # Increase font size of tick labels
         plt.xticks(fontsize='xx-large')
@@ -545,8 +666,6 @@ class PrecomputedPlotting():
 
         # Create custom legend entries
         import matplotlib.lines as mlines
-        # random_patch = mpatches.Patch(color='blue', label='random names')
-        # majority_patch = mpatches.Patch(color='orange', label='majority names')
         random_line = mlines.Line2D([], [], color='blue', marker='_', markersize=15, label='random names baseline', linewidth=1.5)
         majority_line = mlines.Line2D([], [], color='orange', marker='_', markersize=15, label='majority names baseline', linewidth=1.5)
 
@@ -562,80 +681,78 @@ class PrecomputedPlotting():
             group_data = grouped_data[grouped_data['model_type'] == group]
             plt.plot(group_data['size'], group_data['weighted_score'], color=color, label="_nolegend_", linewidth=3)
 
-
-
-        # sns.scatterplot(data=df, x="size", y="weighted_score", hue="model_type", s=250, markers=True, legend=True)
-
         plt.legend(fontsize="x-large")
         plt.xlabel('model size [million parameters]', fontsize="x-large")
         plt.ylabel('weighted partial name match score', fontsize="x-large")
         plt.title('Model Performance by Type', fontsize="x-large")
-        plt.savefig(f"evaluation/plotting/plots/ablations/plot_model_types_comparison_scatter_{results['key']}.png")
-
+        plt.savefig(f"evaluation/plotting/plots/ablations/toto_plot_model_types_comparison_scatter_{results['key']}.png")
 
     
     def plot_model_types_comparison(self, results, df):
-
-        # Dict
         model_types = {
-            "bert": "fill_mask",
-            "bloom": "text_generation",
-            "bloomz": "text_generation",
-            "cerebras": "text_generation",
-            "deberta": "fill_mask",
-            "deberta_squad": "question_answering",
-            "distilbert_squad": "question_answering",
-            "distilbert": "fill_mask",
-            "falcon": "text_generation",
-            "falcon_instruct": "text_generation",
-            "flan_t5": "text_generation",
-            "gptj": "text_generation",
-            "incite_instruct": "text_generation",
-            "llama": "text_generation",
-            "mpt": "text_generation",
-            "mt0": "text_generation",
-            "mt5": "text_generation",
-            "pythia": "text_generation",
-            "roberta_squad": "question_answering",
-            "t5": "text_generation",
-            "roberta": "fill_mask",
-            "gpt3.5turbo": "text_generation",
-            "gpt_4": "text_generation",
+            "bert": "Fill Mask",
+            "bloom": "Text Generation",
+            "bloomz": "Text Generation",
+            "cerebras": "Text Generation",
+            "deberta": "Fill Mask",
+            "deberta_squad": "Question Answering",
+            "distilbert_squad": "Question Answering",
+            "distilbert": "Fill Mask",
+            "falcon": "Text Generation",
+            "falcon_instruct": "Text Generation",
+            "flan_t5": "Text Generation",
+            "gptj": "Text Generation",
+            "incite_instruct": "Text Generation",
+            "llama": "Text Generation",
+            "mpt": "Text Generation",
+            "mt0": "Text Generation",
+            "mt5": "Text Generation",
+            "pythia": "Text Generation",
+            "roberta_squad": "Question Answering",
+            "t5": "Text Generation",
+            "roberta": "Fill Mask",
+            "gpt3.5turbo": "Text Generation",
+            "gpt_4": "Text Generation",
         }
 
         # Convert dict to DataFrame
         model_types_df = pd.DataFrame(list(model_types.items()), columns=['model_class', 'model_type'])
 
+        # exlucde very bad text generation models, they do not represent the class well
+        excluded_models = [
+            "pythia", "cerebras", "falcon_instruct", "gptj", "falcon"
+        ]
+        # filter out rows which have model_class in exluded_models
+        df = df[~df["model_class"].isin(excluded_models)]
+
+        print(df)
+
         # Merge dataframes on model_class
         df = pd.merge(df, model_types_df, on='model_class')
 
-        # Apply log transformation to 'size' column
-        df['log_size'] = np.log1p(df['size'])
+        # neclect all models that performed below the baseline and are text generation models
+        # df = df[~((df['weighted_score'] < self.baseline_random) & (df['model_type'] == "Text Generation"))]
 
-        # Divide 'log_size' into quantiles
-        bins = [0.1,0.5,1]
-        df['size_group'] = pd.cut(df['size'], bins=bins)
-        print(df)
+        # upscale billions to normal numbers
+        df['size'] = df['size'] * 1e9
 
-        # Sorting by size_group and weighted_score
-        df.sort_values(by=['weighted_score', 'size'], inplace=True)
+        plt.figure(figsize=(9, 4))
+        # y axis weighted_score, x axis is model size, color is model type
+        scatter = sns.scatterplot(data=df, x="size", y="weighted_score", hue="model_type", s=250, markers=True, legend=True)
 
-        # Convert size_group to string for plotting
-        df['size_group'] = 'Group ' + pd.cut(df['size'], bins=bins).cat.codes.astype(str)
+        # Set x-axis to logarithmic scale
+        plt.xscale('log')
 
-        # Plot
-        plt.figure(figsize=(10, 8))
-        sns.barplot(x='accuracy', y='model', hue='model_type', data=df, dodge=False)
-
-        # Adding a vertical line to separate the groups
-        unique_groups = df['size_group'].unique()
-        for i in range(1, len(unique_groups)):
-            plt.axhline(y=df[df['size_group'] == unique_groups[i]].index.min()-0.5, color='black', linestyle='--')
-
-        plt.xlabel('Accuracy')
-        plt.ylabel('Model')
-        plt.title('Model Performance by Type')
-        plt.savefig(f"evaluation/plotting/plots/ablations/plot_model_types_comparison_{results['key']}_2.png")
+        plt.ylabel("W-PNMS", fontsize="xx-large")
+        plt.xlabel('Size [Parameters]', fontsize="xx-large")
+        plt.tick_params(axis='both', which='major', labelsize="xx-large")
+        # Enlarging the legend dots
+        legend_labels, _= scatter.get_legend_handles_labels()
+        scatter.legend(legend_labels, df["model_type"].unique(), title='', loc='upper left',
+                       markerscale=1.5, fontsize="x-large", framealpha=1)
+        plt.grid()
+        plt.savefig(f"evaluation/plotting/plots/ablations/plot_model_types_comparison_{results['key']}.png",
+                    dpi=300, bbox_inches='tight')
 
 
     def plot_accuracy_overview_with_legend_and_size(self, results, df2):
@@ -657,12 +774,8 @@ class PrecomputedPlotting():
         plt.xticks(fontsize=my_font_size)
         plt.yticks(fontsize=my_font_size)
 
-        # plt.title("accuracy compared to model size for paraphrased texts", fontsize=my_font_size + 10)
-
-        # plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0., ncol=1, fontsize=my_font_size,
-                #    markerscale=3.5)
         plt.legend(ncol=1, fontsize=my_font_size -2,
-                   markerscale=3.5, framealpha=1)
+                   markerscale=3.5, framealpha=1, bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0.)
         plt.grid(True)
 
         plt.savefig(f"evaluation/plotting/plots/plot_accuracies_with_legend_and_size_{results['key']}.png") #, bbox_inches='tight')
@@ -675,8 +788,6 @@ class PrecomputedPlotting():
 
         # expect the following models
         models = ["falcon", "roberta", "distilbert", "mpt", "incite", "t5"]
-
-        print("at least here")
 
         df2["is_instructional"] = df2["model_class"].apply(
             lambda x: "instruction tuned" if ("squad" in x or "flan" in x or "instruct" in x) else "base")
@@ -735,7 +846,6 @@ class PrecomputedPlotting():
 
         legend = plt.legend(ncol=1, fontsize=my_font_size -2,
                    markerscale=3.5, framealpha=1)
-        # plt.grid(True)
 
         plt.savefig(f"evaluation/plotting/plots/ablations/plot_normal_to_instructional_{results['key']}.png", bbox_inches='tight')
 
@@ -748,11 +858,33 @@ class PrecomputedPlotting():
         # expect the following models
         models = ["falcon", "roberta", "distilbert", "mpt", "incite", "t5", "bloom"]
 
+        names = {
+            "bloomz": "BLOOMZ",
+            "flan_t5": "Flan_T5",
+            "roberta": "RoBERTa",
+            "t5": "T5",
+            "mt0": "mT0",
+            "bloom": "BLOOM",
+            "cerebras": "Cerebras-GPT",
+            "pythia": "Pythia",
+            "t0": "T0",
+            "falcon": "Falcon",
+            "mpt": "MPT",
+            "distilbert": "DistilBERT",
+            "incite_instruct": "INCITE-Instruct",
+            "incite": "INCITE",
+            "roberta_squad": "RoBERTa-SQuAD",
+        }
+
+
         # Group by model names
         df['model_name'] = df["model"].str.extract(f"({'|'.join(models)})")[0]
+        # replace model_class names with name from the names dict
+        df['model_name'] = df['model_name'].replace(names)
 
         df["is_instructional"] = df["model_class"].apply(
             lambda x: "instruction tuned" if ("squad" in x or "flan" in x or "instruct" in x) else "base")
+        
 
         grouped = df.groupby(['model_name', 'is_instructional'])
         size_grouped = df.groupby('model_name')['size'].mean()
