@@ -5,10 +5,7 @@ from datasets import load_dataset
 # from ..models.model_runner import load_test_set
 import Levenshtein
 
-# ids_file_path = "test_set_ids.csv"
-# test_set_ids = set([i.strip() for i in open(ids_file_path).readlines()])
 dataset = load_dataset("Skatinger/wikipedia-persons-masked", split="train")
-# dataset = dataset.filter(lambda x: x["id"] in test_set_ids, num_proc=8)
 
 def compare_distances(example):
     # compare sentence by sentence, compute average distance over all sentences
