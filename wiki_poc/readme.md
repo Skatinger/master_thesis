@@ -43,10 +43,6 @@ Texts are split to sentences for paraphrasing only, as this will ensure the para
 sentence structure, but not change the full text. Sentences are then joined back together to a text, to improve the
 quality of NER, as well as the fill-mask afterwards.
 
-### Fields of the datasets
-`id`: the id of the data page within the wiki dataset  
-`normal_text_masked`: contains the normal text once for every <mask>, so for 5 detected entities, it contains 5 texts with each entity masked once.  
-##### TODO: document all fields
 ## Scripts and Pipeline for Wiki-Large
 1. `prepare-wiki-large`:
     pulls wikipedia dataset and first 700'000 people from wikipedia via sparql query on wikidata. Only keeps wikipedia pages

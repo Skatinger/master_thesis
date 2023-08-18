@@ -9,8 +9,6 @@ If you are unsure about something you can always come back to this documentation
 on the model_runner.
 
 
-
-
 ### Examples
 
 - Running everything on the default dataset (wiki)
@@ -35,54 +33,3 @@ For a list of available models you can pass any invalid model name and receive t
 `>> python -m models.model_runner --model help`
 ('Model help does not exist. ', 'Please choose one of the following models: ', ['t0pp-11b', 'mt5-0b300', 't5-3b', 'cerebras-13b', 'bloomz-7b1', 't5-11b', 'bloomz-1b7', 'bloomz-1b1', 'legal_xlm_longformer-0b279', 'bloom-3b', 't0-3b', 'flan_t5-0b780', 'llama-13b', 'legal_swiss_roberta-0b279', 'llama-7b', 't5-0b060', 'legal_swiss_roberta-0b561', 'legal_swiss_longformer-0b279', 'falcon_instruct-7b', 'random_full_name-1b', 'pythia-0b070', 't5-0b770', 'swiss_bert-0b110', 'llama2-7b', 'legal_xlm_roberta-0b279', 'cerebras-0b111', 'llama-30b', 'cerebras-6b7', 'legal_xlm_roberta-0b561', 'falcon_instruct-40b', 'majority_full_name-1b', 'falcon-40b', 'pythia-12b', 'pythia-1b4', 'flan_t5-3b', 'mt5-13b', 'mt0-13b', 'cerebras-2b7', 'distilbert_squad-0b062', 'bloom-1b7', 'mpt-7b', 'mt5-3b7', 'mpt_instruct-6b7', 'roberta_squad-0b125', 'gptj-6b', 'mt5-1b2', 'incite_instruct-3b', 'mt0-0b300', 'roberta-0b355', 'llama2-70b', 'deberta_squad-0b100', 'flan_t5-11b', 'roberta_squad-0b355', 'mt0-1b2', 'pythia-2b8', 'distilbert-0b066', 'incite-3b', 'falcon-7b', 'llama-65b', 't5-0b220', 'roberta-0b125', 'bloom-1b1', 'flan_t5-0b250', 'flan_t5-0b080', 'mt5-0b580', 'bloomz-3b', 'pythia-0b410', 'xlm_swiss_bert-0b110', 'cerebras-1b3', 'mt0-0b580', 't0-11b', 'gpt_neox-20b', 'bloom-7b1', 'llama2-13b', 'pythia-0b160', 'pythia-6b9', 'mt0-3b7'])
 ```
-
-
-model | type | instruction tuned
-
-bloomz-1b1
-bloomz-1b7
-bloomz-3b
-bloomz-7b1
-cerebras-0b111
-cerebras-1b3
-cerebras-2b7
-cerebras-6b7
-cerebras-13b
-roberta-0b125
-roberta-0b355
-t5-0b060
-t5-0b220
-t5-0b770
-t5-3b
-t5-11b
-pythia-0b070
-pythia-0b160
-pythia-0b410
-pythia-1b4
-pythia-2b8
-pythia-6b9
-pythia-12b
-mpt_instruct-6b7
-incite_instruct-3b
-flan_t5-0b080
-flan_t5-0b250
-flan_t5-0b780
-flan_t5-3b
-flan_t5-11b
-falcon_instruct-40b
-falcon_instruct-7b
-gptj-6b
-gpt_neox-20b
-llama-7b
-llama-13b
-llama-30b
-llama-65b
-distilbert-0b066
-falcon-40b
-falcon-7b
-distilbert_squad-0b062
-deberta_squad-0b100
-roberta_squad-0b125
-roberta_squad-0b355
-majority_full_name-1b
-random_full_name-1b
