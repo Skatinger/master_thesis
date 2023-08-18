@@ -1,20 +1,10 @@
-# master_thesis
+# Anonymity at Risk? Assessing Re-Identification Capabilities of Large Language Models (AAAI24)
+
+This is the official code repository for the paper.
 
 ## Structure
-- `/wiki_poc`: contains all the processing for wikipedia and court rulings.
+- `/datasets`: contains all files for datasets and some processing helper scripts.
+- `/wiki_poc`: contains all the processing for wikipedia and court rulings, including code for running experiments.
+- `/langchain`: Augmented retrieval experiment for court rulings.
 
-- 
-
-
-## how the BGer decisions are selected
-
-10'000 examples (from last years?)
-
-predict all
-
-clean predictions:
-remove all that are just 2 letters
-remove all that are already in the text
-remove empty ones
-
-manually go through and check which ones could be fine
+You can find additional information and details within each module.
