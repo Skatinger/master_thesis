@@ -176,23 +176,6 @@ def main():
 
     plt.savefig(f"evaluation/plotting/plots/legal/{dataset_key}-histogram.png", bbox_inches='tight')
 
-    # pie plot for every model
-    # fix, axs = plt.subplots(nrows=2, ncols=3, figsize=(15,10))
-    # flat_axs = axs.flatten()
-
-    # import pdb; pdb.set_trace()
-
-    # for i, model in enumerate(models):
-    #     pieces = [classification[label][model] for label in labels]
-    #     # plot pieplot
-    #     flat_axs[i].pie(pieces, labels)
-    #     flat_axs[i].set_title(model)
-
-    # fig.legend()
-
-    # plt.savefig(f"evaluation/plotting/plots/legal/{dataset_key}-pie.png")
-
-
 
 if __name__ == "__main__":
     main()
